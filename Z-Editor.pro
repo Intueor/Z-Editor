@@ -46,7 +46,7 @@ HEADERS += \
     main-window.h
 
 FORMS += \
-    mainwindow.ui
+    main-window.ui
 
 DISTFILES += \
     pthread/lib/pthreadVC2.lib \
