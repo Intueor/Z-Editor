@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "main-hub.h"
 #include "parser-ext.h"
+#include "schematic-window.h"
 
 //== МАКРОСЫ.
 #define LOG_DIR_PATH			"../Z-Editor/logs/"
@@ -20,6 +21,9 @@
 namespace Ui {
 	class MainWindow;
 }
+
+//== ПРЕД-ДЕКЛАРАЦИИ.
+class SchematicWindow;
 
 // Для избежания ошибки при доступе из другого потока.
 Q_DECLARE_METATYPE(QVector<int>)
@@ -40,13 +44,24 @@ public:
 	/// Процедуры при закрытии окна приложения.
 	void closeEvent(QCloseEvent* event);
 							///< \param[in] event Указатель на событие.
-
+	/// Установка соединения сигнала на обновление граф. окна с граф. окном.
+	void SetSchViewSignalConnection();
+	/// Для внешнего переключения чекбокса кнопки 'Схема'.
+	static void UncheckSchemaCheckbox();
 private:
 
 private slots:
+	/// При переключении кнопки 'Schematic'.
+	static void on_actionSchematic_triggered(bool checked);
+							///< \param[in] checked Позиция переключателя.
+signals:
+	// Сигнал для удалённого (относительно потока) обновления граф. окна.
+	void RemoteUpdateSchView();
 
 public:
 	static int iInitRes; ///< Результат инициализации.
+	static SchematicWindow* p_SchematicWindow; ///< Указатель на класс окна схематического обзора.
+	static bool bSchemaIsOpened; ///< Флаг открытого обзора схемы.
 
 private:
 	static Ui::MainWindow *p_ui; ///< Указатель на UI.

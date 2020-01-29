@@ -2,7 +2,7 @@
 #define PARSEREXT
 
 //== ВКЛЮЧЕНИЯ.
-#include <../Z-Editor/TinyXML2/tinyxml2.h>
+#include <TinyXML2/tinyxml2.h>
 #include <list>
 #ifndef WIN32
 #include <algorithm>

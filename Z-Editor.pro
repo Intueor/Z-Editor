@@ -30,7 +30,9 @@ SOURCES += \
     parser-ext.cpp \
     TinyXML2/tinyxml2.cpp \
     dlfcn-win32/dlfcn.c \
-    main-window.cpp
+    main-window.cpp \
+    schematic-window.cpp \
+    schematic-view.cpp
 
 HEADERS += \
     logger.h \
@@ -43,12 +45,18 @@ HEADERS += \
     pthread/include/pthread.h \
     pthread/include/sched.h \
     pthread/include/semaphore.h \
-    main-window.h
+    main-window.h \
+    schematic-window.h \
+    schematic-view.h
 
 FORMS += \
-    main-window.ui
+    main-window.ui \
+    schematic-window.ui
 
 DISTFILES += \
     pthread/lib/pthreadVC2.lib \
     pthread/dll/pthreadVC2.dll
+
+RESOURCES += \
+    resources.qrc
 
