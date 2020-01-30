@@ -86,8 +86,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	// Splitters.
 
 	// Other.
-
-	//
 	if(p_SchematicWindow != 0)
 	{
 		if(p_SchematicWindow->isVisible())

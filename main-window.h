@@ -9,9 +9,9 @@
 #include <QSettings>
 #include <QLabel>
 #include <QVector>
-#include "logger.h"
-#include "main-hub.h"
-#include "parser-ext.h"
+#include "../Z-Hub/logger.h"
+#include "../Z-Hub/main-hub.h"
+#include "../Z-Hub/parser-ext.h"
 #include "schematic-window.h"
 
 //== МАКРОСЫ.
@@ -64,12 +64,12 @@ public:
 	static bool bSchemaIsOpened; ///< Флаг открытого обзора схемы.
 
 private:
+	LOGDECL
+	LOGDECL_PTHRD_INCLASS_ADD
 	static Ui::MainWindow *p_ui; ///< Указатель на UI.
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
 	static const char* cp_chUISettingsName; ///< Указатель на имя файла с установками UI.
 	static QLabel* p_QLabelStatusBarText; ///< Указатель на объект метки статуса.
-	LOGDECL
-	LOGDECL_PTHRD_INCLASS_ADD
 };
 
 #endif // MAINWINDOW_H
