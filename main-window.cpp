@@ -513,7 +513,7 @@ bool MainWindow::ClientStartProcedures()
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
-	MessageDialog(tr("Внимание"), tr("Неудачная попытка подключения"));
+	MessageDialog("Warning", "Failed to connect");
 	return false;
 }
 
@@ -537,8 +537,7 @@ bool MainWindow::ClientStopProcedures()
 		MSleep(USER_RESPONSE_MS);
 	}
 gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
-	MessageDialog(tr("Внимание"), tr("Неудачная попытка отключения"));
-	p_QLabelStatusBarText->setText(tr("Сбой отключения."));
+	MessageDialog("Error", "Failed to disconnect");
 	p_QLabelStatusBarText->setText(cstrStatusReady);
 	p_ui->statusBar->repaint();
 	return false;
