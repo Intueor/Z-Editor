@@ -574,10 +574,11 @@ gCO:    if(uchAttempt == 4)
 	pthread_create(&RecThr, nullptr, RecThread, nullptr); // Запуск потока приёма.
 	//
 	LOG_P_2(LOG_CAT_I, "Waiting for response.");
-	for(unsigned char uchAtt = 0; uchAtt != 100; uchAtt++)
+	for(unsigned char uchAtt = 0; uchAtt != CLIENT_WAITING_ATTEMPTS; uchAtt++)
 	{
 		if(bServerAlive)
 		{
+			LOG_P_2(LOG_CAT_I, "Ready for conversation.");
 			goto gSA;
 		}
 		MSleep(USER_RESPONSE_MS);

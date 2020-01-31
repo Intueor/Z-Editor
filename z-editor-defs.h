@@ -12,6 +12,6 @@
 #define ELEMENT_MIN_Y   30
 
 //== КОНСТАНТЫ.
-const QString cstrStatusStopClient= "Stop client...";
+const QString cstrStatusStopClient = "Stop client...";
 
 #endif // ZEDITORDEFS_H

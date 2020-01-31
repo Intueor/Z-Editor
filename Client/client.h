@@ -23,6 +23,9 @@
 #include "../Z-Hub/Server/net-hub.h"
 #include "../Z-Hub/Server/proto-parser.h"
 
+//== МАКРОСЫ.
+#define CLIENT_WAITING_ATTEMPTS		128
+
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBServerCommandArrived)(unsigned short ushCommand);
 typedef void (*CBServerDataArrived)(unsigned short ushType, void *p_ReceivedData, int iPocket);

@@ -7,7 +7,6 @@
 #define LOG_NAME					"main-window"
 #define MSG_WRONG_DATA				"Wrong data in pocket."
 #define C_CONF_PATH					"../Z-Editor/settings/client.xml"
-#define CLIENT_WAITING_ATTEMPTS		128
 //
 #define MessageDialog(caption, message)																\
 	p_WidgetsThrAccess->oStrMsgDialogPair.strCaption = caption;                                     \
