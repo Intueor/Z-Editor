@@ -11,10 +11,10 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Схематический вид</string>
+   <string>Schematic view</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../Z-Hub/resources.qrc">
     <normaloff>:/icons/z-icon.ico</normaloff>:/icons/z-icon.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -73,12 +73,12 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="Content_menu">
     <property name="title">
-     <string>Содержимое</string>
+     <string>&amp;Content</string>
     </property>
     <addaction name="List_action"/>
    </widget>
@@ -98,7 +98,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../Z-Hub/resources.qrc"/>
  </resources>
  <connections/>
 </ui>

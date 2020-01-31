@@ -11,7 +11,9 @@
 #include <QVector>
 #include "../Z-Hub/logger.h"
 #include "../Z-Hub/main-hub.h"
+#include "z-editor-defs.h"
 #include "../Z-Hub/parser-ext.h"
+#include "Client/client.h"
 #include "schematic-window.h"
 
 //== МАКРОСЫ.
@@ -30,6 +32,37 @@ Q_DECLARE_METATYPE(QVector<int>)
 //
 
 //== КЛАССЫ.
+/// Класс потоко-независимого доступа к интерфейсу.
+class WidgetsThrAccess : public QObject
+{
+	Q_OBJECT
+
+public:
+	/// Структура пары строк для вызова диалога собщения.
+	struct StrMsgDialogPair
+	{
+		QString strCaption; ///< Строка с заголовком.
+		QString strMessage; ///< Строка с сообщением.
+	};
+
+private:
+	static Ui::MainWindow* p_uiInt; ///< Внутренний указатель на главное окно.
+
+public:
+	static StrMsgDialogPair oStrMsgDialogPair; ///< Объект для заполнения данными для вывода диалога сообщения.
+
+public:
+	/// Конструктор.
+	WidgetsThrAccess(Ui::MainWindow* p_ui);
+							///< \param[in] p_ui Указатель интерфейс.
+
+public slots:
+	/// Создание, вызов и удаление диалога.
+	static void DoDialog();
+	/// Очистка сцены.
+	void ClearScene();
+};
+
 /// Класс главного окна.
 class MainWindow : public QMainWindow
 {
@@ -49,6 +82,31 @@ public:
 	/// Для внешнего переключения чекбокса кнопки 'Схема'.
 	static void UncheckSchemaCheckbox();
 private:
+	/// Кэлбэк обработки отслеживания статута сервера.
+	static void ServerStatusChangedCallback(bool bStatus);
+							///< \param[in] a_NetHub Ссылка на текущий хаб.
+							///< \param[in] bStatus Статус сервера.
+	/// Кэлбэк обработки прихода команд от сервера.
+	static void ServerCommandArrivedCallback(unsigned short ushCommand);
+							///< \param[in] a_NetHub Ссылка на текущий хаб.
+							///< \param[in] ushCommand Код команды.
+	/// Кэлбэк обработки прихода пакетов от сервера.
+	static void ServerDataArrivedCallback(unsigned short ushType, void *p_ReceivedData, int iPocket);
+							///< \param[in] ushType Тип принятого.
+							///< \param[in] p_ReceivedData Указатель на принятый пакет.
+							///< \param[in] iPocket Номер пакета для освобождения с ReleaseDataInPositionC после использования.
+	/// Процедуры запуска клиента.
+	static bool ClientStartProcedures();
+							///< \return true - при удаче.
+	/// Процедуры остановки клиента.
+	static bool ClientStopProcedures();
+							///< \return true - при удаче.
+	/// Загрузка конфигурации клиента.
+	static bool LoadClientConfig();
+							///< \return true - при удаче.
+	/// Сохранение конфигурации клиента.
+	static bool SaveClientConfig();
+							///< \return true - при удаче.
 
 private slots:
 	/// При переключении кнопки 'Schematic'.
@@ -62,6 +120,7 @@ public:
 	static int iInitRes; ///< Результат инициализации.
 	static SchematicWindow* p_SchematicWindow; ///< Указатель на класс окна схематического обзора.
 	static bool bSchemaIsOpened; ///< Флаг открытого обзора схемы.
+	static WidgetsThrAccess* p_WidgetsThrAccess; ///< Указатель на объект класса доступа к интерфейсу.
 
 private:
 	LOGDECL
@@ -70,6 +129,12 @@ private:
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
 	static const char* cp_chUISettingsName; ///< Указатель на имя файла с установками UI.
 	static QLabel* p_QLabelStatusBarText; ///< Указатель на объект метки статуса.
+	static Client* p_Client; ///< Указатель на объект клиента.
+	static PServerName oPServerName; ///< Объект структуры для заполнения именем сервера.
+	static char m_chIPInt[IP_STR_LEN]; ///< Внутренний массив строки IP.
+	static char m_chPortInt[PORT_STR_LEN]; ///< Внутренний массив порта.
+	static char m_chPasswordInt[AUTH_PASSWORD_STR_LEN]; ///< Внутренний массив строки пароля.
+	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
 };
 
 #endif // MAINWINDOW_H

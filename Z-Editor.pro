@@ -32,7 +32,12 @@ SOURCES += \
     ../Z-Hub/TinyXML2/tinyxml2.cpp \
     ../Z-Hub/dlfcn-win32/dlfcn.c \
     ../Z-Hub/main-hub.cpp \
-    ../Z-Hub/parser-ext.cpp
+    ../Z-Hub/parser-ext.cpp \
+    Client/client.cpp \
+    ../Z-Hub/Server/net-hub.cpp \
+    ../Z-Hub/Server/proto-parser.cpp \
+    ../Z-Hub/Server/proto-util.cpp \
+    ../Z-Hub/Dialogs/message-dialog.cpp
 
 HEADERS += \
     main-window.h \
@@ -47,11 +52,18 @@ HEADERS += \
     ../Z-Hub/TinyXML2/tinyxml2.h \
     ../Z-Hub/main-hub.h \
     ../Z-Hub/main-hub-defs.h \
-    ../Z-Hub/parser-ext.h
+    ../Z-Hub/parser-ext.h \
+    z-editor-defs.h \
+    Client/client.h \
+    ../Z-Hub/Server/protocol.h \
+    ../Z-Hub/Server/net-hub.h \
+    ../Z-Hub/Server/proto-parser.h \
+    ../Z-Hub/Dialogs/message-dialog.h
 
 FORMS += \
     main-window.ui \
-    schematic-window.ui
+    schematic-window.ui \
+    ../Z-Hub/Dialogs/message-dialog.ui
 
 DISTFILES += \
     ../Z-Hub/pthread/lib/pthreadVC2.lib \
