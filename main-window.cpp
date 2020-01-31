@@ -4,9 +4,12 @@
 #include "../Z-Hub/Dialogs/message-dialog.h"
 
 //== МАКРОСЫ.
-#define LOG_NAME					"main-window"
-#define MSG_WRONG_DATA				"Wrong data in pocket."
-#define C_CONF_PATH					"../Z-Editor/settings/client.xml"
+#define LOG_NAME						"main-window"
+#define MSG_WRONG_DATA					"Wrong data in pocket."
+#define C_CONF_PATH						"../Z-Editor/settings/client.xml"
+#define CLIENT_REQUEST_UNDEFINED        -1
+#define CLIENT_REQUEST_CONNECT          0
+#define CLIENT_REQUEST_DISCONNECT       1
 //
 #define MessageDialog(caption, message)																\
 	p_WidgetsThrAccess->oStrMsgDialogPair.strCaption = caption;                                     \
@@ -32,6 +35,8 @@ char MainWindow::m_chIPInt[IP_STR_LEN];
 char MainWindow::m_chPortInt[PORT_STR_LEN];
 char MainWindow::m_chPasswordInt[AUTH_PASSWORD_STR_LEN];
 NetHub::IPPortPassword MainWindow::oIPPortPassword;
+char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
+bool MainWindow::bAutoConnection = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс главного окна.
@@ -66,6 +71,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 			RETVAL_SET(RETVAL_ERR);
 		}
 		bSchemaIsOpened = p_UISettings->value("Schema").toBool();
+		bAutoConnection = p_UISettings->value("AutoConnection").toBool();
 	}
 	else
 	{
@@ -76,6 +82,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_Client->SetServerCommandArrivedCB(ServerCommandArrivedCallback);
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
 	p_Client->SetServerStatusChangedCB(ServerStatusChangedCallback);
+	chLastClientRequest = CLIENT_REQUEST_CONNECT;
 	if(!ClientStartProcedures())
 	{
 gEI:	iInitRes = RETVAL_ERR;
@@ -84,7 +91,13 @@ gEI:	iInitRes = RETVAL_ERR;
 	}
 	//
 	p_ui->actionSchematic->setChecked(bSchemaIsOpened);
+	p_ui->actionConnect_at_startup->setChecked(bAutoConnection);
 	p_QLabelStatusBarText->setText(cstrStatusReady);
+	// Из-за глюков алигмента на Qt 5.11.2
+	p_ui->groupBox_Servers->setStyleSheet("QGroupBox::title {subcontrol-position: top center; padding: 6 5px;}");
+	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
+	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
+	//
 }
 
 // Деструктор.
@@ -116,6 +129,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	p_UISettings->setValue("Geometry", saveGeometry());
 	p_UISettings->setValue("WindowState", saveState());
 	p_UISettings->setValue("Schema", bSchemaIsOpened);
+	p_UISettings->setValue("AutoConnection", bAutoConnection);
 	// Splitters.
 
 	// Other.
@@ -166,55 +180,55 @@ void MainWindow::ServerStatusChangedCallback(bool bStatus)
 void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 {
 	LOG_P_2(LOG_CAT_I, "Server command: " << ushCommand);
-//	switch(chLastClientRequest)
-//	{
-//		case CLIENT_REQUEST_CONNECT:
-//		{
-//			switch(ushCommand)
-//			{
-//				case PROTO_S_PASSW_OK:
-//				{
-//					break;
-//				}
-//				case PROTO_S_PASSW_ERR:
-//				{
-//					LOG_P_0(LOG_CAT_W, "Server entry password is wrong.");
-//					MessageDialog(tr("Ошибка"), tr("Неверный пароль к серверу"));
-//					break;
-//				}
-//			}
-//			break;
-//		}
-//		case CLIENT_REQUEST_DISCONNECT:
-//		{
-//			switch(ushCommand)
-//			{
-//				case PROTO_S_ACCEPT_LEAVING:
-//				{
-//					break;
-//				}
-//			}
-//			break;
-//		}
-//		case CLIENT_REQUEST_UNDEFINED:
-//		{
-//			switch(ushCommand)
-//			{
-//				case PROTO_S_SHUTDOWN_INFO:
-//				{
-//					MessageDialog(tr("Информация"), tr("Сервер отключил клиенты"));
-//					break;
-//				}
-//				case PROTO_S_KICK:
-//				{
-//					MessageDialog(tr("Внимание"), tr("Клиент отключен сервером"));
-//					break;
-//				}
-//			}
-//			break;
-//		}
-//	}
-//	chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
+	switch(chLastClientRequest)
+	{
+		case CLIENT_REQUEST_CONNECT:
+		{
+			switch(ushCommand)
+			{
+				case PROTO_S_PASSW_OK:
+				{
+					break;
+				}
+				case PROTO_S_PASSW_ERR:
+				{
+					LOG_P_0(LOG_CAT_W, "Server entry password is wrong.");
+					MessageDialog("Error", "Wrong password");
+					break;
+				}
+			}
+			break;
+		}
+		case CLIENT_REQUEST_DISCONNECT:
+		{
+			switch(ushCommand)
+			{
+				case PROTO_S_ACCEPT_LEAVING:
+				{
+					break;
+				}
+			}
+			break;
+		}
+		case CLIENT_REQUEST_UNDEFINED:
+		{
+			switch(ushCommand)
+			{
+				case PROTO_S_SHUTDOWN_INFO:
+				{
+					MessageDialog("Info", "Server disconnect clients");
+					break;
+				}
+				case PROTO_S_KICK:
+				{
+					MessageDialog("Warning", "Client has been kicked");
+					break;
+				}
+			}
+			break;
+		}
+	}
+	chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
 }
 
 // Кэлбэк обработки прихода пакетов от сервера.
@@ -542,6 +556,12 @@ gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
 	return false;
 }
 
+/// При переключении кнопки 'Соединение при включении'.
+void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
+{
+	bAutoConnection = checked;
+}
+
 //== Класс потоко-независимого доступа к интерфейсу.
 // Конструктор.
 WidgetsThrAccess::WidgetsThrAccess(Ui::MainWindow *p_ui)
@@ -565,3 +585,4 @@ void WidgetsThrAccess::ClearScene()
 {
 	MainWindow::p_SchematicWindow->oScene.clear();
 }
+

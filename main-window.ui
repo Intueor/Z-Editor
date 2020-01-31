@@ -6,24 +6,197 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>487</width>
+    <height>359</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Z-Editor</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../Z-Hub/resources.qrc">
     <normaloff>:/icons/z-icon.ico</normaloff>:/icons/z-icon.ico</iconset>
   </property>
-  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
+    <property name="leftMargin">
+     <number>1</number>
+    </property>
+    <property name="topMargin">
+     <number>1</number>
+    </property>
+    <property name="rightMargin">
+     <number>1</number>
+    </property>
+    <property name="bottomMargin">
+     <number>1</number>
+    </property>
+    <item>
+     <widget class="QGroupBox" name="groupBox_Servers">
+      <property name="title">
+       <string>Servers</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>1</number>
+       </property>
+       <property name="topMargin">
+        <number>1</number>
+       </property>
+       <property name="rightMargin">
+        <number>1</number>
+       </property>
+       <property name="bottomMargin">
+        <number>1</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_CurrentServer">
+         <property name="title">
+          <string>Current server</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>1</number>
+          </property>
+          <property name="topMargin">
+           <number>1</number>
+          </property>
+          <property name="rightMargin">
+           <number>1</number>
+          </property>
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_CurrentServer">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <property name="midLineWidth">
+             <number>4</number>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::NoTextInteraction</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_AvailableServers">
+         <property name="title">
+          <string>Available servers</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>1</number>
+          </property>
+          <property name="topMargin">
+           <number>1</number>
+          </property>
+          <property name="rightMargin">
+           <number>1</number>
+          </property>
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="listWidget_Servers">
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAsNeeded</enum>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_ServerActions">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>1</number>
+          </property>
+          <property name="topMargin">
+           <number>1</number>
+          </property>
+          <property name="rightMargin">
+           <number>1</number>
+          </property>
+          <property name="bottomMargin">
+           <number>1</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="pushButton_Connect">
+            <property name="text">
+             <string>Connect</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Disconnect">
+            <property name="text">
+             <string>Disconnect</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Add">
+            <property name="text">
+             <string>Add</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>487</width>
      <height>22</height>
     </rect>
    </property>
@@ -33,6 +206,13 @@
     </property>
     <addaction name="actionSchematic"/>
    </widget>
+   <widget class="QMenu" name="menuConnection">
+    <property name="title">
+     <string>&amp;Connection</string>
+    </property>
+    <addaction name="actionConnect_at_startup"/>
+   </widget>
+   <addaction name="menuConnection"/>
    <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -44,10 +224,18 @@
     <string>&amp;Schematic</string>
    </property>
   </action>
+  <action name="actionConnect_at_startup">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Connect at startup</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../Z-Hub/resources.qrc"/>
  </resources>
  <connections/>
 </ui>

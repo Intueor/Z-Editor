@@ -26,43 +26,13 @@ namespace Ui {
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class SchematicWindow;
+class WidgetsThrAccess;
 
 // Для избежания ошибки при доступе из другого потока.
 Q_DECLARE_METATYPE(QVector<int>)
 //
 
 //== КЛАССЫ.
-/// Класс потоко-независимого доступа к интерфейсу.
-class WidgetsThrAccess : public QObject
-{
-	Q_OBJECT
-
-public:
-	/// Структура пары строк для вызова диалога собщения.
-	struct StrMsgDialogPair
-	{
-		QString strCaption; ///< Строка с заголовком.
-		QString strMessage; ///< Строка с сообщением.
-	};
-
-private:
-	static Ui::MainWindow* p_uiInt; ///< Внутренний указатель на главное окно.
-
-public:
-	static StrMsgDialogPair oStrMsgDialogPair; ///< Объект для заполнения данными для вывода диалога сообщения.
-
-public:
-	/// Конструктор.
-	WidgetsThrAccess(Ui::MainWindow* p_ui);
-							///< \param[in] p_ui Указатель интерфейс.
-
-public slots:
-	/// Создание, вызов и удаление диалога.
-	static void DoDialog();
-	/// Очистка сцены.
-	void ClearScene();
-};
-
 /// Класс главного окна.
 class MainWindow : public QMainWindow
 {
@@ -112,6 +82,10 @@ private slots:
 	/// При переключении кнопки 'Schematic'.
 	static void on_actionSchematic_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.
+private slots:
+	/// При переключении кнопки 'Соединение при включении'.
+	static void on_actionConnect_at_startup_triggered(bool checked);
+							///< \param[in] checked Позиция переключателя.
 signals:
 	// Сигнал для удалённого (относительно потока) обновления граф. окна.
 	void RemoteUpdateSchView();
@@ -135,6 +109,39 @@ private:
 	static char m_chPortInt[PORT_STR_LEN]; ///< Внутренний массив порта.
 	static char m_chPasswordInt[AUTH_PASSWORD_STR_LEN]; ///< Внутренний массив строки пароля.
 	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
+	static char chLastClientRequest; ///< Последний запрос клиента.
+	static bool bAutoConnection; ///< Флаг автосоединения при запуске.
+};
+
+/// Класс потоко-независимого доступа к интерфейсу.
+class WidgetsThrAccess : public QObject
+{
+	Q_OBJECT
+
+public:
+	/// Структура пары строк для вызова диалога собщения.
+	struct StrMsgDialogPair
+	{
+		QString strCaption; ///< Строка с заголовком.
+		QString strMessage; ///< Строка с сообщением.
+	};
+
+private:
+	static Ui::MainWindow* p_uiInt; ///< Внутренний указатель на главное окно.
+
+public:
+	static StrMsgDialogPair oStrMsgDialogPair; ///< Объект для заполнения данными для вывода диалога сообщения.
+
+public:
+	/// Конструктор.
+	WidgetsThrAccess(Ui::MainWindow* p_ui);
+							///< \param[in] p_ui Указатель интерфейс.
+
+public slots:
+	/// Создание, вызов и удаление диалога.
+	static void DoDialog();
+	/// Очистка сцены.
+	void ClearScene();
 };
 
 #endif // MAINWINDOW_H
