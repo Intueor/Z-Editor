@@ -63,25 +63,28 @@ private:
 							///< \param[in] ushType Тип принятого.
 							///< \param[in] p_ReceivedData Указатель на принятый пакет.
 							///< \param[in] iPocket Номер пакета для освобождения с ReleaseDataInPositionC после использования.
-	/// Процедуры запуска клиента.
-	static void ClientStartProcedures();
 	/// Загрузка конфигурации клиента.
 	static bool LoadClientConfig();
 							///< \return true - при удаче.
 	/// Сохранение конфигурации клиента.
 	static bool SaveClientConfig();
 							///< \return true - при удаче.
+	/// Установка имени и подсказки для метки текущего сервера.
+	static void SetServerLabelData(bool bIsIPv4);
+							///< \param[in] bIsIPv4 Признак протокола IPv4.
+	/// Процедуры запуска клиента.
+	static void ClientStartProcedures();
 
 private slots:
-	/// Установка кнопок соединения в позицию по состоянию.
-	static void SetConnectionButtonsState(bool bConnected);
-							///< \param[in] bConnected true, если подключено.
+	/// Процедуры остановки клиента.
+	static void ClientStopProcedures();
 	/// Вызов диалога сообщения.
 	static void MsgDialog(QString strCaption, QString strMsg);
 							///< \param[in] strCaption Заголовок.
 							///< \param[in] strMsg Сообщение.
-	/// Процедуры остановки клиента.
-	static void ClientStopProcedures();
+	/// Установка кнопок соединения в позицию по состоянию.
+	static void SetConnectionButtonsState(bool bConnected);
+							///< \param[in] bConnected true, если подключено.
 	/// При переключении кнопки 'Schematic'.
 	static void on_actionSchematic_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.

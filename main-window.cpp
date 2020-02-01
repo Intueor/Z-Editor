@@ -266,7 +266,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				case PROTO_S_PASSW_ERR:
 				{
 					LOG_P_0(LOG_CAT_W, "Wrong password.");
-					emit p_This->RemoteMsgDialog(cstrMsgError, cstrMsgWrongPassword);
+					emit p_This->RemoteMsgDialog(cstrMsgError, "Неверный пароль");
 					emit p_This->RemoteClientStopProcedures();
 					break;
 				}
@@ -290,14 +290,14 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 			{
 				case PROTO_S_SHUTDOWN_INFO:
 				{
-					emit p_This->RemoteMsgDialog(cstrMsgInfo, cstrMsgServerDisconnectClients);
+					emit p_This->RemoteMsgDialog("Информация", "Сервер отключил клиенты");
 gD:					SetStatusBarText(cstrStatusReady);
 					emit p_This->RemoteSetConnectionButtonsState(false);
 					break;
 				}
 				case PROTO_S_KICK:
 				{
-					emit p_This->RemoteMsgDialog(cstrMsgWarning, cstrMsgKicked);
+					emit p_This->RemoteMsgDialog(cstrMsgWarning, "Сервер отключил клиент");
 					goto gD;
 				}
 			}
@@ -328,7 +328,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 			}
 			else
 			{
-				LOG_P_0(LOG_CAT_W, MSG_WRONG_DATA);
+				LOG_P_0(LOG_CAT_W, "Wrong data in pocket.");
 			}
 			bProcessed = true;
 			break;
@@ -442,6 +442,10 @@ bool MainWindow::LoadClientConfig()
 	{
 		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! Incorrect main adress format.");
 		return false;
+	}
+	else
+	{
+		SetServerLabelData(oNumericAddress.bIsIPv4);
 	}
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pServers,
 					   "Servers", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
@@ -590,11 +594,42 @@ bool MainWindow::SaveClientConfig()
 	else return true;
 }
 
+// Установка имени и подсказки для метки текущего сервера.
+void MainWindow::SetServerLabelData(bool bIsIPv4)
+{
+	if(bIsIPv4)
+	{
+		if(oPServerName.m_chServerName[0] != 0)
+		{
+			p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
+			p_ui->label_CurrentServer->
+					setToolTip(QString(oPServerName.m_chServerName) + " - " + QString(m_chIPInt) + ":" + QString(m_chPortInt));
+		}
+		else
+		{
+			p_ui->label_CurrentServer->setText(QString(m_chIPInt) + ':' + QString(m_chPortInt));
+		}
+	}
+	else
+	{
+		if(oPServerName.m_chServerName[0] != 0)
+		{
+			p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
+			p_ui->label_CurrentServer->
+					setToolTip(QString(oPServerName.m_chServerName) + " - [" + QString(m_chIPInt) + "]:" + QString(m_chPortInt));
+		}
+		else
+		{
+			p_ui->label_CurrentServer->setText("[" + QString(m_chIPInt) + "]:" + QString(m_chPortInt));
+		}
+	}
+}
+
 // Процедуры запуска клиента.
 void MainWindow::ClientStartProcedures()
 {
 	chLastClientRequest = CLIENT_REQUEST_CONNECT;
-	SetStatusBarText(cstrStatusStartClient);
+	SetStatusBarText("Запуск клиента...");
 	if(!p_Client->Start(&oIPPortPassword))
 	{
 		goto gCA;
@@ -610,7 +645,7 @@ void MainWindow::ClientStartProcedures()
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
-	emit p_This->RemoteMsgDialog(cstrMsgWarning, cstrMsgFailedToConnect);
+	emit p_This->RemoteMsgDialog(cstrMsgWarning, "Соединение невозможно");
 	SetStatusBarText(cstrStatusReady);
 }
 
@@ -618,7 +653,7 @@ gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
 void MainWindow::ClientStopProcedures()
 {
 	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
-	SetStatusBarText(cstrStatusStopClient);
+	SetStatusBarText("Остановка клиента...");
 	if(!p_Client->Stop())
 	{
 		goto gTS;
@@ -635,7 +670,7 @@ void MainWindow::ClientStopProcedures()
 	}
 gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
 	RETVAL_SET(RETVAL_ERR);
-	emit p_This->RemoteMsgDialog(cstrMsgError, cstrMsgFailedToDisonnect);
+	emit p_This->RemoteMsgDialog(cstrMsgError, "Программное разъединение невозможно");
 	SetStatusBarText(cstrStatusConnected);
 }
 
@@ -647,6 +682,23 @@ void MainWindow::MsgDialog(QString strCaption, QString strMsg)
 	p_Message_Dialog = new Message_Dialog(strCaption.toStdString().c_str(), strMsg.toStdString().c_str());
 	p_Message_Dialog->exec();
 	p_Message_Dialog->deleteLater();
+}
+
+// Установка кнопок соединения в позицию готовности.
+void MainWindow::SetConnectionButtonsState(bool bConnected)
+{
+	if(bConnected)
+	{
+		p_ui->pushButton_Connect->setEnabled(false);
+		p_ui->pushButton_Disconnect->setEnabled(true);
+		p_ui->pushButton_Disconnect->setFocus();
+	}
+	else
+	{
+		p_ui->pushButton_Disconnect->setEnabled(false);
+		p_ui->pushButton_Connect->setEnabled(true);
+		p_ui->pushButton_Connect->setFocus();
+	}
 }
 
 // При переключении кнопки 'Соединение при включении'.
@@ -667,19 +719,3 @@ void MainWindow::on_pushButton_Disconnect_clicked()
 	ClientStopProcedures();
 }
 
-// Установка кнопок соединения в позицию готовности.
-void MainWindow::SetConnectionButtonsState(bool bConnected)
-{
-	if(bConnected)
-	{
-		p_ui->pushButton_Connect->setEnabled(false);
-		p_ui->pushButton_Disconnect->setEnabled(true);
-		p_ui->pushButton_Disconnect->setFocus();
-	}
-	else
-	{
-		p_ui->pushButton_Disconnect->setEnabled(false);
-		p_ui->pushButton_Connect->setEnabled(true);
-		p_ui->pushButton_Connect->setFocus();
-	}
-}
