@@ -125,7 +125,10 @@
           <item>
            <widget class="QListWidget" name="listWidget_Servers">
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAsNeeded</enum>
+             <enum>Qt::ScrollBarAlwaysOn</enum>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
             </property>
             <property name="showDropIndicator" stdset="0">
              <bool>false</bool>

@@ -94,7 +94,6 @@ gEI:	iInitRes = RETVAL_ERR;
 	p_ui->actionConnect_at_startup->setChecked(bAutoConnection);
 	p_QLabelStatusBarText->setText(cstrStatusReady);
 	// Из-за глюков алигмента на Qt 5.11.2
-	p_ui->groupBox_Servers->setStyleSheet("QGroupBox::title {subcontrol-position: top center; padding: 6 5px;}");
 	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	//
@@ -441,10 +440,16 @@ bool MainWindow::LoadClientConfig()
 			LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! Incorrect adress format.");
 			return false;
 		}
+		else
+		{
+			p_ui->listWidget_Servers->addItem(new ServersListWidgetItem(&oIPPortPasswordHelper,
+																		oNumericAddress.bIsIPv4, p_chHelper));
+		}
 	} PARSE_CHILDLIST_END(p_ListServers);
 	oIPPortPassword.p_chIPNameBuffer = m_chIPInt;
 	oIPPortPassword.p_chPortNameBuffer = m_chPortInt;
 	oIPPortPassword.p_chPasswordNameBuffer = m_chPasswordInt;
+	p_ui->listWidget_Servers->setCurrentRow(0);
 	return true;
 }
 
@@ -560,6 +565,75 @@ gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
 void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 {
 	bAutoConnection = checked;
+}
+
+//== Класс добавки данных сервера к стандартному элементу лист-виджета.
+// Конструктор.
+ServersListWidgetItem::ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPassword,
+											 bool bIsIPv4, char *p_chName, QListWidget* p_ListWidget) : QListWidgetItem(p_ListWidget)
+{
+	if(p_chName)
+	{
+		CopyStrArray(p_chName, m_chName, SERVER_NAME_STR_LEN);
+	}
+	else
+	{
+		m_chName[0] = 0;
+	}
+	CopyStrArray(p_IPPortPassword->p_chIPNameBuffer, m_chIP, IP_STR_LEN);
+	CopyStrArray(p_IPPortPassword->p_chPortNameBuffer, m_chPort, PORT_STR_LEN);
+	CopyStrArray(p_IPPortPassword->p_chPasswordNameBuffer, m_chPassword, AUTH_PASSWORD_STR_LEN);
+	if(bIsIPv4)
+	{
+		if(m_chName[0] == 0)
+		{
+			this->setText(QString(m_chIP) + ":" + QString(m_chPort));
+		}
+		else
+		{
+			this->setText(QString(m_chName));
+			this->setToolTip(QString(m_chName) + " - " + QString(m_chIP) + ":" + QString(m_chPort));
+		}
+	}
+	else
+	{
+		if(m_chName[0] == 0)
+		{
+			this->setText("[" + QString(m_chIP) + "]:" + QString(m_chPort));
+		}
+		else
+		{
+			this->setText(QString(m_chName));
+			this->setToolTip(QString(m_chName) + " - [" + QString(m_chIP) + "]:" + QString(m_chPort));
+		}
+	}
+}
+
+// Получение структуры с указателями на строчные массивы типа IPPortPassword.
+NetHub::IPPortPassword ServersListWidgetItem::GetIPPortPassword()
+{
+	NetHub::IPPortPassword oIPPortPassword;
+	//
+	oIPPortPassword.p_chIPNameBuffer = m_chIP;
+	oIPPortPassword.p_chPortNameBuffer = m_chPort;
+	oIPPortPassword.p_chPasswordNameBuffer = m_chPassword;
+	return oIPPortPassword;
+}
+
+// Копирование массива строки с паролем во внутренний буфер.
+void ServersListWidgetItem::SetPassword(char* p_chPassword)
+{
+	CopyStrArray(p_chPassword, m_chPassword, AUTH_PASSWORD_STR_LEN);
+}
+
+// Получение указателя строку с именем сервера или 0 при пустой строке.
+char* ServersListWidgetItem::GetName()
+{
+	if(m_chName[0] != 0)
+	{
+		return &m_chName[0];
+	}
+	return 0;
 }
 
 //== Класс потоко-независимого доступа к интерфейсу.

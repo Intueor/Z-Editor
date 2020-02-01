@@ -9,6 +9,7 @@
 #include <QSettings>
 #include <QLabel>
 #include <QVector>
+#include <QListWidget>
 #include "../Z-Hub/logger.h"
 #include "../Z-Hub/main-hub.h"
 #include "z-editor-defs.h"
@@ -111,6 +112,36 @@ private:
 	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
 	static char chLastClientRequest; ///< Последний запрос клиента.
 	static bool bAutoConnection; ///< Флаг автосоединения при запуске.
+};
+
+/// Класс добавки данных сервера к стандартному элементу лист-виджета.
+class ServersListWidgetItem : public QObject, public QListWidgetItem
+{
+	Q_OBJECT
+
+private:
+	char m_chName[SERVER_NAME_STR_LEN]; // Массив имени сервера.
+	char m_chIP[IP_STR_LEN]; // Массив строки IP.
+	char m_chPort[PORT_STR_LEN]; // Массив строки порта.
+	char m_chPassword[AUTH_PASSWORD_STR_LEN]; // Массив строки пароля.
+
+public:
+	/// Конструктор.
+	ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPassword, bool bIsIPv4, char* p_chName,
+						  QListWidget* p_ListWidget = nullptr);
+							///< \param[in] p_IPPortPassword Указатель на структуру с указателями на массивы строк с описанием сервера.
+							///< \param[in] bIsIPv4 Признак протокола IPv4.
+							///< \param[in] p_chName Указатель на строку с именем сервера или 0 для пустой строки.
+							///< \param[in] p_ListWidget Указатель на родительский лист-виджет.
+	/// Получение структуры с указателями на строчные массивы типа IPPortPassword.
+	NetHub::IPPortPassword GetIPPortPassword();
+							///< \return Структура с указателями на сохранённые массивы строк с описанием сервера.
+	/// Копирование массива строки с паролем во внутренний буфер.
+	void SetPassword(char* p_chPassword);
+							///< \param[in] p_chPassword Указатель на массив строки с паролем.
+	/// Получение указателя строку с именем сервера или 0 при пустой строке.
+	char* GetName();
+							///< \return Получение структуры с указателями на сохранённые массивы строк с описанием сервера.
 };
 
 /// Класс потоко-независимого доступа к интерфейсу.
