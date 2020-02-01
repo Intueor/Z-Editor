@@ -74,10 +74,16 @@ void SchematicWindow::UpdateSelectionFlash()
 
 }
 
+// Очистка сцены.
+void SchematicWindow::ClearScene()
+{
+	p_QGraphicsScene->clear();
+}
+
 // Обновление сцены.
 void SchematicWindow::UpdateScene()
 {
-	oScene.update();
+	p_QGraphicsScene->update();
 }
 
 // Закрытие с флагом внешнего управления.

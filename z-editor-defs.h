@@ -12,6 +12,13 @@
 #define ELEMENT_MIN_Y   30
 
 //== КОНСТАНТЫ.
-const QString cstrStatusStopClient = "Stop client...";
+const QString cstrMsgFailedToConnect = "Соединение невозможно";
+const QString cstrMsgFailedToDisonnect = "Программное разъединение невозможно";
+const QString cstrMsgServerDisconnectClients = "Сервер отключил клиенты";
+const QString cstrMsgKicked = "Сервер отключил клиент";
+const QString cstrMsgWrongPassword = "Неверный пароль";
+const QString cstrStatusStartClient = "Запуск клиента...";
+const QString cstrStatusConnected = "Соединён";
+const QString cstrStatusStopClient = "Остановка клиента...";
 
 #endif // ZEDITORDEFS_H

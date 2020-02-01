@@ -46,9 +46,11 @@ public:
 
 public slots:
 	/// Обновление сцены.
-	void UpdateScene();
+	static void UpdateScene();
 	/// Обновление от таймера мерцания выбранных элементов.
-	void UpdateSelectionFlash();
+	static void UpdateSelectionFlash();
+	/// Очистка сцены.
+	static void ClearScene();
 
 private:
 	LOGDECL

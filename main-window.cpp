@@ -10,15 +10,11 @@
 #define CLIENT_REQUEST_UNDEFINED        -1
 #define CLIENT_REQUEST_CONNECT          0
 #define CLIENT_REQUEST_DISCONNECT       1
-//
-#define MessageDialog(caption, message)																\
-	p_WidgetsThrAccess->oStrMsgDialogPair.strCaption = caption;                                     \
-	p_WidgetsThrAccess->oStrMsgDialogPair.strMessage = message;                                     \
-	ThrUiAccessET(p_WidgetsThrAccess, DoDialog);
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 LOGDECL_INIT_INCLASS(MainWindow)
 LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(MainWindow)
+MainWindow* MainWindow::p_This = nullptr;
 int MainWindow::iInitRes;
 Ui::MainWindow* MainWindow::p_ui = new Ui::MainWindow;
 QSettings* MainWindow::p_UISettings = nullptr;
@@ -26,9 +22,6 @@ const char* MainWindow::cp_chUISettingsName = E_MAINWINDOW_UI_CONF_PATH;
 QLabel* MainWindow::p_QLabelStatusBarText;
 SchematicWindow* MainWindow::p_SchematicWindow = nullptr;
 bool MainWindow::bSchemaIsOpened = false;
-WidgetsThrAccess* MainWindow::p_WidgetsThrAccess;
-Ui::MainWindow* WidgetsThrAccess::p_uiInt;
-WidgetsThrAccess::StrMsgDialogPair WidgetsThrAccess::oStrMsgDialogPair;
 Client* MainWindow::p_Client = nullptr;
 PServerName MainWindow::oPServerName;
 char MainWindow::m_chIPInt[IP_STR_LEN];
@@ -39,6 +32,75 @@ char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
 bool MainWindow::bAutoConnection = false;
 
 //== ФУНКЦИИ КЛАССОВ.
+//== Класс добавки данных сервера к стандартному элементу лист-виджета.
+// Конструктор.
+ServersListWidgetItem::ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPassword,
+											 bool bIsIPv4, char *p_chName, QListWidget* p_ListWidget) : QListWidgetItem(p_ListWidget)
+{
+	if(p_chName)
+	{
+		CopyStrArray(p_chName, m_chName, SERVER_NAME_STR_LEN);
+	}
+	else
+	{
+		m_chName[0] = 0;
+	}
+	CopyStrArray(p_IPPortPassword->p_chIPNameBuffer, m_chIP, IP_STR_LEN);
+	CopyStrArray(p_IPPortPassword->p_chPortNameBuffer, m_chPort, PORT_STR_LEN);
+	CopyStrArray(p_IPPortPassword->p_chPasswordNameBuffer, m_chPassword, AUTH_PASSWORD_STR_LEN);
+	if(bIsIPv4)
+	{
+		if(m_chName[0] == 0)
+		{
+			this->setText(QString(m_chIP) + ":" + QString(m_chPort));
+		}
+		else
+		{
+			this->setText(QString(m_chName));
+			this->setToolTip(QString(m_chName) + " - " + QString(m_chIP) + ":" + QString(m_chPort));
+		}
+	}
+	else
+	{
+		if(m_chName[0] == 0)
+		{
+			this->setText("[" + QString(m_chIP) + "]:" + QString(m_chPort));
+		}
+		else
+		{
+			this->setText(QString(m_chName));
+			this->setToolTip(QString(m_chName) + " - [" + QString(m_chIP) + "]:" + QString(m_chPort));
+		}
+	}
+}
+
+// Получение структуры с указателями на строчные массивы типа IPPortPassword.
+NetHub::IPPortPassword ServersListWidgetItem::GetIPPortPassword()
+{
+	NetHub::IPPortPassword oIPPortPassword;
+	//
+	oIPPortPassword.p_chIPNameBuffer = m_chIP;
+	oIPPortPassword.p_chPortNameBuffer = m_chPort;
+	oIPPortPassword.p_chPasswordNameBuffer = m_chPassword;
+	return oIPPortPassword;
+}
+
+// Копирование массива строки с паролем во внутренний буфер.
+void ServersListWidgetItem::SetPassword(char* p_chPassword)
+{
+	CopyStrArray(p_chPassword, m_chPassword, AUTH_PASSWORD_STR_LEN);
+}
+
+// Получение указателя строку с именем сервера или 0 при пустой строке.
+char* ServersListWidgetItem::GetName()
+{
+	if(m_chName[0] != 0)
+	{
+		return &m_chName[0];
+	}
+	return 0;
+}
+
 //== Класс главного окна.
 // Конструктор.
 MainWindow::MainWindow(QWidget* p_parent) :
@@ -47,12 +109,19 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	// Для избежания ошибки при доступе из другого потока.
 	qRegisterMetaType<QVector<int>>("QVector<int>");
 	//
+	p_This = this;
 	LOG_CTRL_INIT;
 	LOG_P_0(LOG_CAT_I, "START.");
 	iInitRes = RETVAL_OK;
+	//
+	connect(this, SIGNAL(RemoteSetConnectionButtonsState(bool)), this, SLOT(SetConnectionButtonsState(bool)));
+	connect(this, SIGNAL(RemoteMsgDialog(QString, QString)), this, SLOT(MsgDialog(QString, QString)));
+	connect(this, SIGNAL(RemoteClearScene()), this, SLOT(SchematicWindow::ClearScene()));
+	//
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
 	p_QLabelStatusBarText = new QLabel(this);
+	p_QLabelStatusBarText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 	p_ui->statusBar->addWidget(p_QLabelStatusBarText);
 	if(IsFileExists((char*)cp_chUISettingsName))
 	{
@@ -77,22 +146,28 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	{
 		LOG_P_0(LOG_CAT_W, "mainwidow_ui.ini is missing and will be created by default at the exit from program.");
 	}
-	if(!LoadClientConfig()) goto gEI;
+	if(!LoadClientConfig())
+	{
+		iInitRes = RETVAL_ERR;
+		RETVAL_SET(RETVAL_ERR);
+		return;
+	}
 	p_Client = new Client(LOG_MUTEX);
 	p_Client->SetServerCommandArrivedCB(ServerCommandArrivedCallback);
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
 	p_Client->SetServerStatusChangedCB(ServerStatusChangedCallback);
-	chLastClientRequest = CLIENT_REQUEST_CONNECT;
-	if(!ClientStartProcedures())
-	{
-gEI:	iInitRes = RETVAL_ERR;
-		RETVAL_SET(RETVAL_ERR);
-		return;
-	}
 	//
+	p_ui->pushButton_Connect->setFocus();
 	p_ui->actionSchematic->setChecked(bSchemaIsOpened);
 	p_ui->actionConnect_at_startup->setChecked(bAutoConnection);
-	p_QLabelStatusBarText->setText(cstrStatusReady);
+	if(bAutoConnection)
+	{
+		p_ui->pushButton_Connect->click();
+	}
+	else
+	{
+		SetStatusBarText(cstrStatusReady);
+	}
 	// Из-за глюков алигмента на Qt 5.11.2
 	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
@@ -117,11 +192,13 @@ MainWindow::~MainWindow()
 // Процедуры при закрытии окна приложения.
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	p_QLabelStatusBarText->setText(cstrStatusShutdown);
-	p_ui->statusBar->repaint();
+	SetStatusBarText(cstrStatusShutdown);
 	if(p_Client)
 	{
-		LCHECK_BOOL(ClientStopProcedures());
+		if(p_Client->CheckServerAlive())
+		{
+			LCHECK_BOOL(ClientStopProcedures());
+		}
 		delete p_Client;
 	}
 	// Main.
@@ -191,8 +268,8 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				}
 				case PROTO_S_PASSW_ERR:
 				{
-					LOG_P_0(LOG_CAT_W, "Server entry password is wrong.");
-					MessageDialog("Error", "Wrong password");
+					LOG_P_0(LOG_CAT_W, "Wrong password.");
+					emit p_This->RemoteMsgDialog(cstrMsgError, cstrMsgWrongPassword);
 					break;
 				}
 			}
@@ -215,13 +292,15 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 			{
 				case PROTO_S_SHUTDOWN_INFO:
 				{
-					MessageDialog("Info", "Server disconnect clients");
+					emit p_This->RemoteMsgDialog(cstrMsgInfo, cstrMsgServerDisconnectClients);
+gD:					SetStatusBarText(cstrStatusReady);
+					emit p_This->RemoteSetConnectionButtonsState(false);
 					break;
 				}
 				case PROTO_S_KICK:
 				{
-					MessageDialog("Warning", "Client has been kicked");
-					break;
+					emit p_This->RemoteMsgDialog(cstrMsgWarning, cstrMsgKicked);
+					goto gD;
 				}
 			}
 			break;
@@ -516,6 +595,7 @@ bool MainWindow::SaveClientConfig()
 // Процедуры запуска клиента.
 bool MainWindow::ClientStartProcedures()
 {
+	SetStatusBarText(cstrStatusStartClient);
 	if(!p_Client->Start(&oIPPortPassword))
 	{
 		goto gCA;
@@ -524,22 +604,21 @@ bool MainWindow::ClientStartProcedures()
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			p_QLabelStatusBarText->setText(cstrStatusReady);
-			p_ui->statusBar->repaint();
+			SetStatusBarText(cstrStatusConnected);
 			return true;
 		}
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
-	MessageDialog("Warning", "Failed to connect");
+	emit p_This->RemoteMsgDialog(cstrMsgWarning, cstrMsgFailedToConnect);
+	SetStatusBarText(cstrStatusReady);
 	return false;
 }
 
 // Процедуры остановки клиента.
 bool MainWindow::ClientStopProcedures()
 {
-	p_QLabelStatusBarText->setText(cstrStatusStopClient);
-	p_ui->statusBar->repaint();
+	SetStatusBarText(cstrStatusStopClient);
 	if(!p_Client->Stop())
 	{
 		goto gTS;
@@ -548,115 +627,66 @@ bool MainWindow::ClientStopProcedures()
 	{
 		if(!p_Client->CheckServerAlive())
 		{
-			p_QLabelStatusBarText->setText(cstrStatusReady);
-			p_ui->statusBar->repaint();
+			SetStatusBarText(cstrStatusReady);
 			return true;
 		}
 		MSleep(USER_RESPONSE_MS);
 	}
 gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
-	MessageDialog("Error", "Failed to disconnect");
-	p_QLabelStatusBarText->setText(cstrStatusReady);
-	p_ui->statusBar->repaint();
+	emit p_This->RemoteMsgDialog(cstrMsgError, cstrMsgFailedToDisonnect);
+	SetStatusBarText(cstrStatusConnected);
 	return false;
 }
 
-/// При переключении кнопки 'Соединение при включении'.
+// Вызов диалога сообщения.
+void MainWindow::MsgDialog(QString strCaption, QString strMsg)
+{
+	Message_Dialog* p_Message_Dialog;
+	//
+	p_Message_Dialog = new Message_Dialog(strCaption.toStdString().c_str(), strMsg.toStdString().c_str());
+	p_Message_Dialog->exec();
+	p_Message_Dialog->deleteLater();
+}
+
+// При переключении кнопки 'Соединение при включении'.
 void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 {
 	bAutoConnection = checked;
 }
 
-//== Класс добавки данных сервера к стандартному элементу лист-виджета.
-// Конструктор.
-ServersListWidgetItem::ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPassword,
-											 bool bIsIPv4, char *p_chName, QListWidget* p_ListWidget) : QListWidgetItem(p_ListWidget)
+// При нажатии кнопки 'Соединить'.
+void MainWindow::on_pushButton_Connect_clicked()
 {
-	if(p_chName)
+	chLastClientRequest = CLIENT_REQUEST_CONNECT;
+	if(ClientStartProcedures())
 	{
-		CopyStrArray(p_chName, m_chName, SERVER_NAME_STR_LEN);
+		SetConnectionButtonsState(true);
+	}
+}
+
+// При нажатии кнопки 'Разъединить'.
+void MainWindow::on_pushButton_Disconnect_clicked()
+{
+	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
+	if(ClientStopProcedures())
+	{
+		SetConnectionButtonsState(false);
+	}
+}
+
+// Установка кнопок соединения в позицию готовности.
+void MainWindow::SetConnectionButtonsState(bool bConnected)
+{
+	if(bConnected)
+	{
+		p_ui->pushButton_Connect->setEnabled(false);
+		p_ui->pushButton_Disconnect->setEnabled(true);
+		p_ui->pushButton_Disconnect->setFocus();
 	}
 	else
 	{
-		m_chName[0] = 0;
-	}
-	CopyStrArray(p_IPPortPassword->p_chIPNameBuffer, m_chIP, IP_STR_LEN);
-	CopyStrArray(p_IPPortPassword->p_chPortNameBuffer, m_chPort, PORT_STR_LEN);
-	CopyStrArray(p_IPPortPassword->p_chPasswordNameBuffer, m_chPassword, AUTH_PASSWORD_STR_LEN);
-	if(bIsIPv4)
-	{
-		if(m_chName[0] == 0)
-		{
-			this->setText(QString(m_chIP) + ":" + QString(m_chPort));
-		}
-		else
-		{
-			this->setText(QString(m_chName));
-			this->setToolTip(QString(m_chName) + " - " + QString(m_chIP) + ":" + QString(m_chPort));
-		}
-	}
-	else
-	{
-		if(m_chName[0] == 0)
-		{
-			this->setText("[" + QString(m_chIP) + "]:" + QString(m_chPort));
-		}
-		else
-		{
-			this->setText(QString(m_chName));
-			this->setToolTip(QString(m_chName) + " - [" + QString(m_chIP) + "]:" + QString(m_chPort));
-		}
+		p_ui->pushButton_Disconnect->setEnabled(false);
+		p_ui->pushButton_Connect->setEnabled(true);
+		p_ui->pushButton_Connect->setFocus();
 	}
 }
-
-// Получение структуры с указателями на строчные массивы типа IPPortPassword.
-NetHub::IPPortPassword ServersListWidgetItem::GetIPPortPassword()
-{
-	NetHub::IPPortPassword oIPPortPassword;
-	//
-	oIPPortPassword.p_chIPNameBuffer = m_chIP;
-	oIPPortPassword.p_chPortNameBuffer = m_chPort;
-	oIPPortPassword.p_chPasswordNameBuffer = m_chPassword;
-	return oIPPortPassword;
-}
-
-// Копирование массива строки с паролем во внутренний буфер.
-void ServersListWidgetItem::SetPassword(char* p_chPassword)
-{
-	CopyStrArray(p_chPassword, m_chPassword, AUTH_PASSWORD_STR_LEN);
-}
-
-// Получение указателя строку с именем сервера или 0 при пустой строке.
-char* ServersListWidgetItem::GetName()
-{
-	if(m_chName[0] != 0)
-	{
-		return &m_chName[0];
-	}
-	return 0;
-}
-
-//== Класс потоко-независимого доступа к интерфейсу.
-// Конструктор.
-WidgetsThrAccess::WidgetsThrAccess(Ui::MainWindow *p_ui)
-{
-	p_uiInt = p_ui;
-}
-
-// Создание, вызов и удаление диалога.
-void WidgetsThrAccess::DoDialog()
-{
-	Message_Dialog* p_Message_Dialog;
-	//
-	p_Message_Dialog = new
-			Message_Dialog(oStrMsgDialogPair.strCaption.toStdString().c_str(), oStrMsgDialogPair.strMessage.toStdString().c_str());
-	p_Message_Dialog->exec();
-	p_Message_Dialog->deleteLater();
-}
-
-// Очистка сцены.
-void WidgetsThrAccess::ClearScene()
-{
-	MainWindow::p_SchematicWindow->oScene.clear();
-}
-

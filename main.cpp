@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	oApplication.setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
 	MainWindow wMainWindow;
-		SchematicWindow wSchematicWindow;
+	SchematicWindow wSchematicWindow;
 	//
 	if(wMainWindow.iInitRes == RETVAL_OK)
 	{

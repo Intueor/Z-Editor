@@ -37,7 +37,7 @@
     <item>
      <widget class="QGroupBox" name="groupBox_Servers">
       <property name="title">
-       <string>Servers</string>
+       <string>Серверы</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -61,7 +61,7 @@
        <item>
         <widget class="QGroupBox" name="groupBox_CurrentServer">
          <property name="title">
-          <string>Current server</string>
+          <string>Текущий сервер</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
@@ -98,13 +98,57 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QFrame" name="frame_ConnectionButtons">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="spacing">
+              <number>3</number>
+             </property>
+             <property name="leftMargin">
+              <number>1</number>
+             </property>
+             <property name="topMargin">
+              <number>1</number>
+             </property>
+             <property name="rightMargin">
+              <number>1</number>
+             </property>
+             <property name="bottomMargin">
+              <number>1</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="pushButton_Connect">
+               <property name="text">
+                <string>Соединить</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton_Disconnect">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Разъединить</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_AvailableServers">
          <property name="title">
-          <string>Available servers</string>
+          <string>Сохранённые серверы</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <property name="spacing">
@@ -166,23 +210,9 @@
            <number>1</number>
           </property>
           <item>
-           <widget class="QPushButton" name="pushButton_Connect">
-            <property name="text">
-             <string>Connect</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_Disconnect">
-            <property name="text">
-             <string>Disconnect</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="pushButton_Add">
             <property name="text">
-             <string>Add</string>
+             <string>Добавить</string>
             </property>
            </widget>
           </item>
@@ -205,13 +235,13 @@
    </property>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>&amp;View</string>
+     <string>Обзоры</string>
     </property>
     <addaction name="actionSchematic"/>
    </widget>
    <widget class="QMenu" name="menuConnection">
     <property name="title">
-     <string>&amp;Connection</string>
+     <string>Соединение</string>
     </property>
     <addaction name="actionConnect_at_startup"/>
    </widget>
@@ -224,7 +254,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Schematic</string>
+    <string>Схематический</string>
    </property>
   </action>
   <action name="actionConnect_at_startup">
@@ -232,7 +262,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Connect at startup</string>
+    <string>Соединить при запуске</string>
    </property>
   </action>
  </widget>
