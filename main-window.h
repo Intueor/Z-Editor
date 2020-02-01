@@ -17,9 +17,6 @@
 #include "Client/client.h"
 #include "schematic-window.h"
 
-//== МАКРОСЫ.
-#define LOG_DIR_PATH			"../Z-Editor/logs/"
-
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {
 	class MainWindow;
@@ -67,11 +64,7 @@ private:
 							///< \param[in] p_ReceivedData Указатель на принятый пакет.
 							///< \param[in] iPocket Номер пакета для освобождения с ReleaseDataInPositionC после использования.
 	/// Процедуры запуска клиента.
-	static bool ClientStartProcedures();
-							///< \return true - при удаче.
-	/// Процедуры остановки клиента.
-	static bool ClientStopProcedures();
-							///< \return true - при удаче.
+	static void ClientStartProcedures();
 	/// Загрузка конфигурации клиента.
 	static bool LoadClientConfig();
 							///< \return true - при удаче.
@@ -87,6 +80,8 @@ private slots:
 	static void MsgDialog(QString strCaption, QString strMsg);
 							///< \param[in] strCaption Заголовок.
 							///< \param[in] strMsg Сообщение.
+	/// Процедуры остановки клиента.
+	static void ClientStopProcedures();
 	/// При переключении кнопки 'Schematic'.
 	static void on_actionSchematic_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.
@@ -107,6 +102,8 @@ signals:
 	void RemoteMsgDialog(QString strCaption, QString strMsg);
 	/// Сигнал очистки сцены.
 	void RemoteClearScene();
+	/// Сигнал начала процедур остановки клиента.
+	void RemoteClientStopProcedures();
 
 public:
 	static int iInitRes; ///< Результат инициализации.

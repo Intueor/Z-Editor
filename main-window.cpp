@@ -4,12 +4,8 @@
 #include "../Z-Hub/Dialogs/message-dialog.h"
 
 //== МАКРОСЫ.
-#define LOG_NAME						"main-window"
-#define MSG_WRONG_DATA					"Wrong data in pocket."
-#define C_CONF_PATH						"../Z-Editor/settings/client.xml"
-#define CLIENT_REQUEST_UNDEFINED        -1
-#define CLIENT_REQUEST_CONNECT          0
-#define CLIENT_REQUEST_DISCONNECT       1
+#define LOG_NAME				"main-window"
+#define LOG_DIR_PATH			"../Z-Editor/logs/"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 LOGDECL_INIT_INCLASS(MainWindow)
@@ -116,7 +112,8 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	//
 	connect(this, SIGNAL(RemoteSetConnectionButtonsState(bool)), this, SLOT(SetConnectionButtonsState(bool)));
 	connect(this, SIGNAL(RemoteMsgDialog(QString, QString)), this, SLOT(MsgDialog(QString, QString)));
-	connect(this, SIGNAL(RemoteClearScene()), this, SLOT(SchematicWindow::ClearScene()));
+	connect(this, SIGNAL(RemoteClearScene()), p_SchematicWindow, SLOT(SchematicWindow::ClearScene()));
+	connect(this, SIGNAL(RemoteClientStopProcedures()), this, SLOT(ClientStopProcedures()));
 	//
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
@@ -197,7 +194,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			LCHECK_BOOL(ClientStopProcedures());
+			ClientStopProcedures();
 		}
 		delete p_Client;
 	}
@@ -270,6 +267,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				{
 					LOG_P_0(LOG_CAT_W, "Wrong password.");
 					emit p_This->RemoteMsgDialog(cstrMsgError, cstrMsgWrongPassword);
+					emit p_This->RemoteClientStopProcedures();
 					break;
 				}
 			}
@@ -593,8 +591,9 @@ bool MainWindow::SaveClientConfig()
 }
 
 // Процедуры запуска клиента.
-bool MainWindow::ClientStartProcedures()
+void MainWindow::ClientStartProcedures()
 {
+	chLastClientRequest = CLIENT_REQUEST_CONNECT;
 	SetStatusBarText(cstrStatusStartClient);
 	if(!p_Client->Start(&oIPPortPassword))
 	{
@@ -605,19 +604,20 @@ bool MainWindow::ClientStartProcedures()
 		if(p_Client->CheckServerAlive())
 		{
 			SetStatusBarText(cstrStatusConnected);
-			return true;
+			SetConnectionButtonsState(true);
+			return;
 		}
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
 	emit p_This->RemoteMsgDialog(cstrMsgWarning, cstrMsgFailedToConnect);
 	SetStatusBarText(cstrStatusReady);
-	return false;
 }
 
 // Процедуры остановки клиента.
-bool MainWindow::ClientStopProcedures()
+void MainWindow::ClientStopProcedures()
 {
+	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
 	SetStatusBarText(cstrStatusStopClient);
 	if(!p_Client->Stop())
 	{
@@ -628,14 +628,15 @@ bool MainWindow::ClientStopProcedures()
 		if(!p_Client->CheckServerAlive())
 		{
 			SetStatusBarText(cstrStatusReady);
-			return true;
+			SetConnectionButtonsState(false);
+			return;
 		}
 		MSleep(USER_RESPONSE_MS);
 	}
 gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
+	RETVAL_SET(RETVAL_ERR);
 	emit p_This->RemoteMsgDialog(cstrMsgError, cstrMsgFailedToDisonnect);
 	SetStatusBarText(cstrStatusConnected);
-	return false;
 }
 
 // Вызов диалога сообщения.
@@ -657,21 +658,13 @@ void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 // При нажатии кнопки 'Соединить'.
 void MainWindow::on_pushButton_Connect_clicked()
 {
-	chLastClientRequest = CLIENT_REQUEST_CONNECT;
-	if(ClientStartProcedures())
-	{
-		SetConnectionButtonsState(true);
-	}
+	ClientStartProcedures();
 }
 
 // При нажатии кнопки 'Разъединить'.
 void MainWindow::on_pushButton_Disconnect_clicked()
 {
-	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
-	if(ClientStopProcedures())
-	{
-		SetConnectionButtonsState(false);
-	}
+	ClientStopProcedures();
 }
 
 // Установка кнопок соединения в позицию готовности.

@@ -3,8 +3,8 @@
 #include <string.h>
 
 //== МАКРОСЫ.
-#define LOG_NAME				"Z-Client"
-#define LOG_DIR_PATH			"../Z-Client/logs/"
+#define LOG_NAME				"client"
+#define LOG_DIR_PATH			"../Z-Editor/logs/"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 LOGDECL_INIT_INCLASS(Client)

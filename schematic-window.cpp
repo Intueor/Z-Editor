@@ -5,6 +5,7 @@
 
 //== МАКРОСЫ.
 #define LOG_NAME				"schematic-window"
+#define LOG_DIR_PATH			"../Z-Editor/logs/"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 LOGDECL_INIT_INCLASS(SchematicWindow)
