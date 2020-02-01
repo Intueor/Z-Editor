@@ -249,7 +249,7 @@ void MainWindow::UncheckSchemaCheckbox()
 // Кэлбэк обработки отслеживания статута сервера.
 void MainWindow::ServerStatusChangedCallback(bool bStatus)
 {
-
+	bStatus = bStatus;
 }
 
 // Кэлбэк обработки прихода команд от сервера.
@@ -324,7 +324,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				if(QString(oPServerName.m_chServerName) != QString((char*)p_ReceivedData))
 				{
 					memcpy(oPServerName.m_chServerName, p_ReceivedData, sizeof(PServerName)); // Загрузка в соотв. структуру.
-					//LCHECK_BOOL(SaveClientConfig());
+					LCHECK_BOOL(SaveClientConfig());
 				}
 				LOG_P_2(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
 			}
@@ -544,8 +544,8 @@ bool MainWindow::SaveClientConfig()
 	XMLNode* p_NodePort;
 	XMLNode* p_NodePassword;
 	XMLNode* p_NodeServers;
-//	XMLNode* p_NodeServer;
-//	char* p_chHelper;
+	XMLNode* p_NodeServer;
+	char* p_chHelper;
 	//
 	xmlDocCConf.InsertEndChild(xmlDocCConf.NewDeclaration());
 	p_NodeRoot = xmlDocCConf.InsertEndChild(xmlDocCConf.NewElement("Root"));
@@ -564,25 +564,25 @@ bool MainWindow::SaveClientConfig()
 	p_NodePassword->ToElement()->SetText(m_chPasswordInt);
 	//
 	p_NodeServers = p_NodeRoot->InsertEndChild(xmlDocCConf.NewElement("Servers"));
-//	for(int iC=0; iC < p_ui->Servers_listWidget->count(); iC++)
-//	{
-//		p_NodeServer = p_NodeServers->InsertEndChild(xmlDocCConf.NewElement("Server"));
-//		p_chHelper = ((ServersListWidgetItem*)p_ui->Servers_listWidget->item(iC))->GetName();
-//		if(p_chHelper != 0)
-//		{
-//			p_NodeName = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Name"));
-//			p_NodeName->ToElement()->SetText(p_chHelper);
-//		}
-//		p_NodeServerIP = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("IP"));
-//		p_NodeServerIP->ToElement()->SetText(
-//					((ServersListWidgetItem*)p_ui->Servers_listWidget->item(iC))->GetIPPortPassword().p_chIPNameBuffer);
-//		p_NodePort = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Port"));
-//		p_NodePort->ToElement()->SetText(
-//					((ServersListWidgetItem*)p_ui->Servers_listWidget->item(iC))->GetIPPortPassword().p_chPortNameBuffer);
-//		p_NodePassword = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Password"));
-//		p_NodePassword->ToElement()->SetText(
-//					((ServersListWidgetItem*)p_ui->Servers_listWidget->item(iC))->GetIPPortPassword().p_chPasswordNameBuffer);
-//	}
+	for(int iC=0; iC < p_ui->listWidget_Servers->count(); iC++)
+	{
+		p_NodeServer = p_NodeServers->InsertEndChild(xmlDocCConf.NewElement("Server"));
+		p_chHelper = ((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetName();
+		if(p_chHelper != 0)
+		{
+			p_NodeName = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Name"));
+			p_NodeName->ToElement()->SetText(p_chHelper);
+		}
+		p_NodeServerIP = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("IP"));
+		p_NodeServerIP->ToElement()->SetText(
+					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetIPPortPassword().p_chIPNameBuffer);
+		p_NodePort = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Port"));
+		p_NodePort->ToElement()->SetText(
+					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetIPPortPassword().p_chPortNameBuffer);
+		p_NodePassword = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Password"));
+		p_NodePassword->ToElement()->SetText(
+					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetIPPortPassword().p_chPasswordNameBuffer);
+	}
 	eResult = xmlDocCConf.SaveFile(C_CONF_PATH);
 	if (eResult != XML_SUCCESS)
 	{
