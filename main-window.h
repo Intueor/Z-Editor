@@ -16,6 +16,7 @@
 #include "../Z-Hub/parser-ext.h"
 #include "Client/client.h"
 #include "schematic-window.h"
+#include "../Z-Hub/Dialogs/set-server-dialog.h"
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {
@@ -25,6 +26,7 @@ namespace Ui {
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class SchematicWindow;
 class WidgetsThrAccess;
+class ServersListWidgetItem;
 
 // Для избежания ошибки при доступе из другого потока.
 Q_DECLARE_METATYPE(QVector<int>)
@@ -77,7 +79,14 @@ private:
 	/// Установка текста строки статуса.
 	static void SetStatusBarText(QString strMsg);
 							///< \param[in] strMsg Строка с сообщением.
-
+	/// Проверка на совпадение цифровых IP.
+	static bool CheckEqualsNumbers(Set_Server_Dialog::NumAddrPassw& a_Numbers1, Set_Server_Dialog::NumAddrPassw& a_Numbers2);
+							///< \param[in] a_Numbers1 Ссылка на превый объект структуры цифрового адреса.
+							///< \param[in] a_Numbers2 Ссылка на второй объект структуры цифрового адреса.
+							///< \return true - при совпадении.
+	/// Обмен выбранного сервера списка серверов с текущим сервером.
+	static void CurrentServerSwap(ServersListWidgetItem* p_ServersListWidgetItem);
+							///< \param[in] p_ServersListWidgetItem Указатель на строку списка для обмена.
 private slots:
 	/// Процедуры остановки клиента.
 	static void SlotClientStopProcedures();
@@ -101,9 +110,14 @@ private slots:
 	/// При нажатии ПКМ на элементе списка серверов.
 	static void on_listWidget_Servers_customContextMenuRequested(const QPoint &pos);
 							///< \param[in] pos Ссылка на координаты точки указателя в виджете.
-	// При нажатии ПКМ на метке с именем текущего сервера.
+	/// При нажатии ПКМ на метке с именем текущего сервера.
 	static void on_label_CurrentServer_customContextMenuRequested(const QPoint &pos);
 							///< \param[in] pos Ссылка на координаты точки указателя в виджете.
+	/// При нажатии на кнопку 'Добавить' сервер.
+	static void on_pushButton_Add_clicked();
+	/// При двойном клике на элементе лист-виджета.
+	static void on_listWidget_Servers_itemDoubleClicked(QListWidgetItem* item);
+							///< \param[in] QListWidgetItem Указатель на элемент.
 
 signals:
 	/// Обновление граф. окна.

@@ -21,6 +21,9 @@
 // Многократно используемые строки.
 const QString cstrMsgError = "Ошибка";
 const QString cstrMsgWarning = "Внимание";
+const QString cstrMsgDelete = "Удалить";
+const QString cstrMsgSetPassword = "Задать пароль";
+const QString cstrMsgSetAsDefault = "Установить как текущий";
 const QString cstrStatusConnected = "Соединён";
 
 #endif // ZEDITORDEFS_H

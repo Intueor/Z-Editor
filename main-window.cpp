@@ -629,6 +629,75 @@ gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
 	SetStatusBarText(cstrStatusReady);
 }
 
+
+// Проверка на совпадение цифровых IP.
+bool MainWindow::CheckEqualsNumbers(Set_Server_Dialog::NumAddrPassw& a_Numbers1, Set_Server_Dialog::NumAddrPassw& a_Numbers2)
+{
+	unsigned char uchL;
+	//
+	if(a_Numbers1.oNumericAddress.bIsIPv4 != a_Numbers2.oNumericAddress.bIsIPv4)
+	{
+		return false;
+	}
+	if(a_Numbers1.oNumericAddress.bIsIPv4)
+	{
+		uchL = 4;
+	}
+	else
+	{
+		uchL = 8;
+	}
+	for(unsigned char uchI = 0; uchI != uchL; uchI++)
+	{
+		if(a_Numbers1.oNumericAddress.iIPNrs[uchI] != a_Numbers2.oNumericAddress.iIPNrs[uchI])
+		{
+			return false;
+		}
+	}
+	if(a_Numbers1.oNumericAddress.iPort != a_Numbers2.oNumericAddress.iPort)
+	{
+		return false;
+	}
+	return true;
+}
+
+// Установка текста строки статуса.
+void MainWindow::SetStatusBarText(QString strMsg)
+{
+	p_QLabelStatusBarText->setText(strMsg);
+	p_ui->statusBar->repaint();
+}
+
+// Обмен выбранного сервера списка серверов с текущим сервером.
+void MainWindow::CurrentServerSwap(ServersListWidgetItem* p_ServersListWidgetItem)
+{
+	NetHub::IPPortPassword oIPPortPassword;
+	char* p_chName;
+	//
+	p_ui->listWidget_Servers->setCurrentRow(-1);
+	oIPPortPassword.p_chIPNameBuffer = m_chIPInt;
+	oIPPortPassword.p_chPortNameBuffer = m_chPortInt;
+	oIPPortPassword.p_chPasswordNameBuffer = m_chPasswordInt;
+	p_ui->listWidget_Servers->addItem(new ServersListWidgetItem(
+										  &oIPPortPassword, NetHub::CheckIPv4(oIPPortPassword.p_chIPNameBuffer),
+										  oPServerName.m_chServerName)); // Добавили элемент с текущими данными.
+	// Копия новых строк в текущие данные.
+	p_chName = p_ServersListWidgetItem->GetName();
+	CopyStrArray(p_ServersListWidgetItem->m_chIP, m_chIPInt, IP_STR_LEN);
+	CopyStrArray(p_ServersListWidgetItem->m_chPort, m_chPortInt, PORT_STR_LEN);
+	CopyStrArray(p_ServersListWidgetItem->m_chPassword, m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
+	if(p_chName != 0)
+	{
+		CopyStrArray(p_chName, oPServerName.m_chServerName, SERVER_NAME_STR_LEN);
+	}
+	else
+	{
+		oPServerName.m_chServerName[0] = 0;
+	}
+	SetServerLabelData(NetHub::CheckIPv4(m_chIPInt));
+	delete p_ServersListWidgetItem;
+}
+
 // Процедуры остановки клиента.
 void MainWindow::SlotClientStopProcedures()
 {
@@ -683,13 +752,6 @@ void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 	bBlockConnectionButtons = false;
 }
 
-// Установка текста строки статуса.
-void MainWindow::SetStatusBarText(QString strMsg)
-{
-	p_QLabelStatusBarText->setText(strMsg);
-	p_ui->statusBar->repaint();
-}
-
 // При переключении кнопки 'Соединение при включении'.
 void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 {
@@ -721,17 +783,21 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	if(p_ServersListWidgetItem != 0)
 	{
 		pntGlobalPos = QCursor::pos();
-		oMenu.addAction(tr("Удалить"));
-		oMenu.addAction(tr("Задать пароль"));
+		oMenu.addAction(cstrMsgDelete);
+		oMenu.addAction(cstrMsgSetPassword);
+		if(!p_Client->CheckServerAlive())
+		{
+			oMenu.addAction(cstrMsgSetAsDefault);
+		}
 		p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == tr("Удалить"))
+			if(p_SelectedMenuItem->text() == cstrMsgDelete)
 			{
 				delete p_ServersListWidgetItem;
 				LCHECK_BOOL(SaveClientConfig());
 			}
-			else if(p_SelectedMenuItem->text() == tr("Задать пароль"))
+			else if(p_SelectedMenuItem->text() == cstrMsgSetPassword)
 			{
 				p_Set_Password_Dialog = new Set_Password_Dialog(p_ServersListWidgetItem->m_chPassword);
 				if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
@@ -739,6 +805,11 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 					LCHECK_BOOL(SaveClientConfig());
 				}
 				p_Set_Password_Dialog->deleteLater();
+			}
+			else if(p_SelectedMenuItem->text() == cstrMsgSetAsDefault)
+			{
+				CurrentServerSwap(p_ServersListWidgetItem);
+				LCHECK_BOOL(SaveClientConfig());
 			}
 		}
 	}
@@ -754,11 +825,11 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	Set_Password_Dialog* p_Set_Password_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
-	oMenu.addAction(tr("Задать пароль"));
+	oMenu.addAction(cstrMsgSetPassword);
 	p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 	if(p_SelectedMenuItem != 0)
 	{
-		if(p_SelectedMenuItem->text() == tr("Задать пароль"))
+		if(p_SelectedMenuItem->text() == cstrMsgSetPassword)
 		{
 			p_Set_Password_Dialog = new Set_Password_Dialog(m_chPasswordInt);
 			if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
@@ -768,4 +839,88 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 			p_Set_Password_Dialog->deleteLater();
 		}
 	}
+}
+
+// При нажатии на кнопку 'Добавить' сервер.
+void MainWindow::on_pushButton_Add_clicked()
+{
+	Set_Server_Dialog* p_Set_Server_Dialog;
+	Set_Server_Dialog::NumAddrPassw* p_NumAddrPassw;
+	Message_Dialog* p_Message_Dialog;
+	ServersListWidgetItem* p_ServersListWidgetItem;
+	NetHub::IPPortPassword oIPPortPassword;
+	Set_Server_Dialog::NumAddrPassw oNumAddrPassw;
+	QString strHelper;
+	//
+gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877", (char*)"0");
+	p_Set_Server_Dialog->deleteLater();
+	if(p_Set_Server_Dialog->exec() == DIALOGS_ACCEPT)
+	{
+		p_NumAddrPassw = &p_Set_Server_Dialog->GetReceivedValues();
+		if(!p_NumAddrPassw->oNumericAddress.bIsCorrect)
+		{
+			p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_str(), "Неверные данные адрес/порт");
+			p_Message_Dialog->exec();
+			p_Message_Dialog->deleteLater();
+			goto gA;
+		}
+		for(int iItem = 0; iItem < p_ui->listWidget_Servers->count(); iItem++)
+		{
+			p_ServersListWidgetItem = (ServersListWidgetItem*)(p_ui->listWidget_Servers->item(iItem));
+			FillNumericStructWithIPPortStrs(oNumAddrPassw.oNumericAddress,
+											QString(p_ServersListWidgetItem->m_chIP), QString(p_ServersListWidgetItem->m_chPort));
+			if(CheckEqualsNumbers(oNumAddrPassw, *p_NumAddrPassw))
+			{
+				goto gIPE;
+			}
+		}
+		FillNumericStructWithIPPortStrs(oNumAddrPassw.oNumericAddress, QString(m_chIPInt), QString(m_chPortInt));
+		if(CheckEqualsNumbers(oNumAddrPassw, *p_NumAddrPassw))
+		{
+gIPE:       p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_str(), "Комбинация адрес/порт уже в списке");
+			p_Message_Dialog->exec();
+			p_Message_Dialog->deleteLater();
+			goto gA;
+		}
+		strHelper.clear();
+		if(p_NumAddrPassw->oNumericAddress.bIsIPv4)
+		{
+			for(unsigned char uchI = 0; uchI != 4; uchI++)
+			{
+				strHelper += QString::number(p_NumAddrPassw->oNumericAddress.iIPNrs[uchI]);
+				if(uchI != 3)
+				{
+					strHelper += ".";
+				}
+			}
+		}
+		else
+		{
+			for(unsigned char uchI = 0; uchI != 8; uchI++)
+			{
+				strHelper += QString::number(p_NumAddrPassw->oNumericAddress.iIPNrs[uchI], 16);
+				if(uchI != 7)
+				{
+					strHelper += ":";
+				}
+			}
+		}
+		oIPPortPassword.p_chIPNameBuffer = (char*)strHelper.toStdString().c_str();
+		strHelper = QString::number(p_NumAddrPassw->oNumericAddress.iPort);
+		oIPPortPassword.p_chPortNameBuffer = (char*)strHelper.toStdString().c_str();
+		oIPPortPassword.p_chPasswordNameBuffer = p_NumAddrPassw->m_chPassword;
+		p_ui->listWidget_Servers->addItem(new ServersListWidgetItem(&oIPPortPassword, p_NumAddrPassw->oNumericAddress.bIsIPv4, 0));
+		LCHECK_BOOL(SaveClientConfig());
+	}
+}
+
+// При двойном клике на элементе лист-виджета.
+void MainWindow::on_listWidget_Servers_itemDoubleClicked(QListWidgetItem* item)
+{
+	ServersListWidgetItem* p_ServersListWidgetItem;
+	//
+	if(p_Client->CheckServerAlive()) return;
+	p_ServersListWidgetItem = (ServersListWidgetItem*)item;
+	CurrentServerSwap(p_ServersListWidgetItem);
+	LCHECK_BOOL(SaveClientConfig());
 }
