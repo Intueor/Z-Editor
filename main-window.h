@@ -45,8 +45,8 @@ public:
 	/// Процедуры при закрытии окна приложения.
 	void closeEvent(QCloseEvent* event);
 							///< \param[in] event Указатель на событие.
-	/// Установка соединения сигнала на обновление граф. окна с граф. окном.
-	void SetSchViewSignalConnection();
+	/// Установка сигналов сообщения с граф. окном.
+	void SetSchWindowSignalConnections();
 	/// Для внешнего переключения чекбокса кнопки 'Схема'.
 	static void UncheckSchemaCheckbox();
 private:
@@ -85,6 +85,9 @@ private slots:
 	/// Установка кнопок соединения в позицию по состоянию.
 	static void SetConnectionButtonsState(bool bConnected);
 							///< \param[in] bConnected true, если подключено.
+	/// Установка текста строки статуса.
+	static void SetStatusBarText(QString strMsg);
+							///< \param[in] strMsg Строка с сообщением.
 	/// При переключении кнопки 'Schematic'.
 	static void on_actionSchematic_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.
@@ -101,12 +104,18 @@ signals:
 	void RemoteUpdateSchView();
 	/// Сигнал установки блокировки кнопок подключения в позицию по состоянию.
 	void RemoteSetConnectionButtonsState(bool bConnected);
+							///< \param[in] bConnected true, если подключено.
 	/// Сигнал вызова диалога с сообщения.
 	void RemoteMsgDialog(QString strCaption, QString strMsg);
+							///< \param[in] strCaption Заголовок.
+							///< \param[in] strMsg Сообщение.
 	/// Сигнал очистки сцены.
 	void RemoteClearScene();
 	/// Сигнал начала процедур остановки клиента.
 	void RemoteClientStopProcedures();
+	/// Сигнал установки текста строки статуса.
+	void RemoteSetStatusBarText(QString strMsg);
+							///< \param[in] strMsg Сообщение.
 
 public:
 	static int iInitRes; ///< Результат инициализации.

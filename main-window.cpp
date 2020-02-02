@@ -112,8 +112,8 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	//
 	connect(this, SIGNAL(RemoteSetConnectionButtonsState(bool)), this, SLOT(SetConnectionButtonsState(bool)));
 	connect(this, SIGNAL(RemoteMsgDialog(QString, QString)), this, SLOT(MsgDialog(QString, QString)));
-	connect(this, SIGNAL(RemoteClearScene()), p_SchematicWindow, SLOT(SchematicWindow::ClearScene()));
 	connect(this, SIGNAL(RemoteClientStopProcedures()), this, SLOT(ClientStopProcedures()));
+	connect(this, SIGNAL(RemoteSetStatusBarText(QString)), this, SLOT(SetStatusBarText(QString)));
 	//
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
@@ -165,10 +165,6 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	{
 		SetStatusBarText(cstrStatusReady);
 	}
-	// Из-за глюков алигмента на Qt 5.11.2
-	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
-	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
-	//
 }
 
 // Деструктор.
@@ -214,10 +210,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	QMainWindow::closeEvent(event);
 }
 
-// Установка соединения сигнала на обновление граф. окна с граф. окном.
-void MainWindow::SetSchViewSignalConnection()
+// Установка сигналов сообщения с граф. окном.
+void MainWindow::SetSchWindowSignalConnections()
 {
 	connect(this, SIGNAL(RemoteUpdateSchView()), p_SchematicWindow, SLOT(UpdateScene()));
+	connect(this, SIGNAL(RemoteClearScene()), p_SchematicWindow, SLOT(ClearScene()));
 }
 
 // При переключении кнопки 'Schematic'.
@@ -291,7 +288,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				case PROTO_S_SHUTDOWN_INFO:
 				{
 					emit p_This->RemoteMsgDialog("Информация", "Сервер отключил клиенты");
-gD:					SetStatusBarText(cstrStatusReady);
+gD:					emit p_This->RemoteSetStatusBarText(cstrStatusReady);
 					emit p_This->RemoteSetConnectionButtonsState(false);
 					break;
 				}
@@ -699,6 +696,13 @@ void MainWindow::SetConnectionButtonsState(bool bConnected)
 		p_ui->pushButton_Connect->setEnabled(true);
 		p_ui->pushButton_Connect->setFocus();
 	}
+}
+
+// Установка текста строки статуса.
+void MainWindow::SetStatusBarText(QString strMsg)
+{
+	p_QLabelStatusBarText->setText(strMsg);
+	p_ui->statusBar->repaint();
 }
 
 // При переключении кнопки 'Соединение при включении'.

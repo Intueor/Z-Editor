@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 		setlocale(LC_NUMERIC, "en_US.UTF-8");
 		wMainWindow.p_SchematicWindow = &wSchematicWindow; // Передача главному окну указателя на окно схематического обзора для управления.
 		wSchematicWindow.p_MainWindow = &wMainWindow; // И наоборот.
-		wMainWindow.SetSchViewSignalConnection(); // Соединение сигнала на обновление (нужен указатель, установленный выше).
+		wMainWindow.SetSchWindowSignalConnections(); // Соединение сигналов с окном схемы.
 		if(wMainWindow.bSchemaIsOpened) // Если в процессе инициализации главного окна был принят флаг открытия, то первичный показ.
 		{
 			wSchematicWindow.show();
