@@ -80,13 +80,13 @@ private:
 
 private slots:
 	/// Процедуры остановки клиента.
-	static void ClientStopProcedures();
+	static void SlotClientStopProcedures();
 	/// Вызов диалога сообщения.
-	static void MsgDialog(QString strCaption, QString strMsg);
+	static void SlotMsgDialog(QString strCaption, QString strMsg);
 							///< \param[in] strCaption Заголовок.
 							///< \param[in] strMsg Сообщение.
 	/// Установка кнопок соединения в позицию по состоянию.
-	static void SetConnectionButtonsState(bool bConnected);
+	static void SlotSetConnectionButtonsState(bool bConnected);
 							///< \param[in] bConnected true, если подключено.
 	/// При переключении кнопки 'Schematic'.
 	static void on_actionSchematic_triggered(bool checked);
@@ -100,19 +100,19 @@ private slots:
 	static void on_pushButton_Disconnect_clicked();
 
 signals:
-	/// Сигнал обновления граф. окна.
+	/// Обновление граф. окна.
 	void RemoteUpdateSchView();
-	/// Сигнал установки блокировки кнопок подключения в позицию по состоянию.
-	void RemoteSetConnectionButtonsState(bool bConnected);
+	/// Установка блокировки кнопок подключения в позицию по состоянию.
+	void RemoteSlotSetConnectionButtonsState(bool bConnected);
 							///< \param[in] bConnected true, если подключено.
-	/// Сигнал вызова диалога с сообщения.
-	void RemoteMsgDialog(QString strCaption, QString strMsg);
+	/// Вызоа диалога с сообщения.
+	void RemoteSlotMsgDialog(QString strCaption, QString strMsg);
 							///< \param[in] strCaption Заголовок.
 							///< \param[in] strMsg Сообщение.
-	/// Сигнал очистки сцены.
+	/// Очистка сцены.
 	void RemoteClearScene();
-	/// Сигнал начала процедур остановки клиента.
-	void RemoteClientStopProcedures();
+	/// Начало процедур остановки клиента.
+	void RemoteSlotClientStopProcedures();
 
 public:
 	static int iInitRes; ///< Результат инициализации.
@@ -136,7 +136,7 @@ private:
 	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
 	static char chLastClientRequest; ///< Последний запрос клиента.
 	static bool bAutoConnection; ///< Флаг автосоединения при запуске.
-	static bool bBlockButtons; ///< Флаг блокировки кнопок от повторного нажатия при программных переключениях.
+	static bool bBlockConnectionButtons; ///< Флаг блокировки кнопок соединения от повторного нажатия при программных переключениях.
 };
 
 /// Класс добавки данных сервера к стандартному элементу лист-виджета.

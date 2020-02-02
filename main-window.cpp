@@ -26,7 +26,7 @@ char MainWindow::m_chPasswordInt[AUTH_PASSWORD_STR_LEN];
 NetHub::IPPortPassword MainWindow::oIPPortPassword;
 char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
 bool MainWindow::bAutoConnection = false;
-bool MainWindow::bBlockButtons = false;
+bool MainWindow::bBlockConnectionButtons = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -111,9 +111,9 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	LOG_P_0(LOG_CAT_I, "START.");
 	iInitRes = RETVAL_OK;
 	//
-	connect(this, SIGNAL(RemoteSetConnectionButtonsState(bool)), this, SLOT(SetConnectionButtonsState(bool)));
-	connect(this, SIGNAL(RemoteMsgDialog(QString, QString)), this, SLOT(MsgDialog(QString, QString)));
-	connect(this, SIGNAL(RemoteClientStopProcedures()), this, SLOT(ClientStopProcedures()));
+	connect(this, SIGNAL(RemoteSlotSetConnectionButtonsState(bool)), this, SLOT(SlotSetConnectionButtonsState(bool)));
+	connect(this, SIGNAL(RemoteSlotMsgDialog(QString, QString)), this, SLOT(SlotMsgDialog(QString, QString)));
+	connect(this, SIGNAL(RemoteSlotClientStopProcedures()), this, SLOT(SlotClientStopProcedures()));
 	//
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
@@ -195,7 +195,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			ClientStopProcedures();
+			SlotClientStopProcedures();
 		}
 		delete p_Client;
 	}
@@ -252,7 +252,7 @@ void MainWindow::ServerStatusChangedCallback(bool bStatus)
 	{
 		LOG_P_2(LOG_CAT_I, "Ready for conversation");
 	}
-	emit p_This->RemoteSetConnectionButtonsState(bStatus);
+	emit p_This->RemoteSlotSetConnectionButtonsState(bStatus);
 }
 
 // Кэлбэк обработки прихода команд от сервера.
@@ -272,8 +272,8 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				case PROTO_S_PASSW_ERR:
 				{
 					LOG_P_0(LOG_CAT_W, "Wrong password.");
-					emit p_This->RemoteMsgDialog(cstrMsgError, "Неверный пароль");
-					emit p_This->RemoteClientStopProcedures();
+					emit p_This->RemoteSlotMsgDialog(cstrMsgError, "Неверный пароль");
+					emit p_This->RemoteSlotClientStopProcedures();
 					break;
 				}
 			}
@@ -296,13 +296,13 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 			{
 				case PROTO_S_SHUTDOWN_INFO:
 				{
-					emit p_This->RemoteMsgDialog("Информация", "Сервер отключил клиенты");
-gD:					emit p_This->RemoteSetConnectionButtonsState(false);
+					emit p_This->RemoteSlotMsgDialog("Информация", "Сервер отключил клиенты");
+gD:					emit p_This->RemoteSlotSetConnectionButtonsState(false);
 					break;
 				}
 				case PROTO_S_KICK:
 				{
-					emit p_This->RemoteMsgDialog(cstrMsgWarning, "Сервер отключил клиент");
+					emit p_This->RemoteSlotMsgDialog(cstrMsgWarning, "Сервер отключил клиент");
 					goto gD;
 				}
 			}
@@ -648,12 +648,12 @@ void MainWindow::ClientStartProcedures()
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
-	emit p_This->RemoteMsgDialog(cstrMsgWarning, "Соединение невозможно");
+	emit p_This->RemoteSlotMsgDialog(cstrMsgWarning, "Соединение невозможно");
 	SetStatusBarText(cstrStatusReady);
 }
 
 // Процедуры остановки клиента.
-void MainWindow::ClientStopProcedures()
+void MainWindow::SlotClientStopProcedures()
 {
 	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
 	SetStatusBarText("Остановка клиента...");
@@ -671,12 +671,12 @@ void MainWindow::ClientStopProcedures()
 	}
 gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
 	RETVAL_SET(RETVAL_ERR);
-	emit p_This->RemoteMsgDialog(cstrMsgError, "Программное разъединение невозможно");
+	emit p_This->RemoteSlotMsgDialog(cstrMsgError, "Программное разъединение невозможно");
 	SetStatusBarText(cstrStatusConnected);
 }
 
 // Вызов диалога сообщения.
-void MainWindow::MsgDialog(QString strCaption, QString strMsg)
+void MainWindow::SlotMsgDialog(QString strCaption, QString strMsg)
 {
 	Message_Dialog* p_Message_Dialog;
 	//
@@ -686,9 +686,9 @@ void MainWindow::MsgDialog(QString strCaption, QString strMsg)
 }
 
 // Установка кнопок соединения в позицию готовности.
-void MainWindow::SetConnectionButtonsState(bool bConnected)
+void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 {
-	bBlockButtons = true;
+	bBlockConnectionButtons = true;
 	MSleep(WAITING_FOR_INTERFACE);
 	QCoreApplication::processEvents(QEventLoop::AllEvents);
 	if(bConnected)
@@ -705,7 +705,7 @@ void MainWindow::SetConnectionButtonsState(bool bConnected)
 		p_ui->pushButton_Connect->setEnabled(true);
 		p_ui->pushButton_Connect->setFocus();
 	}
-	bBlockButtons = false;
+	bBlockConnectionButtons = false;
 }
 
 // Установка текста строки статуса.
@@ -724,12 +724,12 @@ void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 // При нажатии кнопки 'Соединить'.
 void MainWindow::on_pushButton_Connect_clicked()
 {
-	if(!bBlockButtons) ClientStartProcedures();
+	if(!bBlockConnectionButtons) ClientStartProcedures();
 }
 
 // При нажатии кнопки 'Разъединить'.
 void MainWindow::on_pushButton_Disconnect_clicked()
 {
-	if(!bBlockButtons) ClientStopProcedures();
+	if(!bBlockConnectionButtons) SlotClientStopProcedures();
 }
 
