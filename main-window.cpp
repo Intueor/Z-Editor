@@ -113,7 +113,6 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	connect(this, SIGNAL(RemoteSetConnectionButtonsState(bool)), this, SLOT(SetConnectionButtonsState(bool)));
 	connect(this, SIGNAL(RemoteMsgDialog(QString, QString)), this, SLOT(MsgDialog(QString, QString)));
 	connect(this, SIGNAL(RemoteClientStopProcedures()), this, SLOT(ClientStopProcedures()));
-	connect(this, SIGNAL(RemoteSetStatusBarText(QString)), this, SLOT(SetStatusBarText(QString)));
 	//
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
@@ -249,7 +248,10 @@ void MainWindow::UncheckSchemaCheckbox()
 // Кэлбэк обработки отслеживания статута сервера.
 void MainWindow::ServerStatusChangedCallback(bool bStatus)
 {
-	bStatus = bStatus;
+	if(bStatus)
+	{
+		LOG_P_2(LOG_CAT_I, "Ready for conversation");
+	}
 }
 
 // Кэлбэк обработки прихода команд от сервера.
@@ -294,8 +296,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				case PROTO_S_SHUTDOWN_INFO:
 				{
 					emit p_This->RemoteMsgDialog("Информация", "Сервер отключил клиенты");
-gD:					emit p_This->RemoteSetStatusBarText(cstrStatusReady);
-					emit p_This->RemoteSetConnectionButtonsState(false);
+gD:					emit p_This->RemoteSetConnectionButtonsState(false);
 					break;
 				}
 				case PROTO_S_KICK:
@@ -641,8 +642,7 @@ void MainWindow::ClientStartProcedures()
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			SetStatusBarText(cstrStatusConnected);
-			SetConnectionButtonsState(true);
+			emit p_This->RemoteSetConnectionButtonsState(true);
 			return;
 		}
 		MSleep(USER_RESPONSE_MS);
@@ -665,8 +665,7 @@ void MainWindow::ClientStopProcedures()
 	{
 		if(!p_Client->CheckServerAlive())
 		{
-			SetStatusBarText(cstrStatusReady);
-			SetConnectionButtonsState(false);
+			emit p_This->RemoteSetConnectionButtonsState(false);
 			return;
 		}
 		MSleep(USER_RESPONSE_MS);
@@ -690,17 +689,18 @@ void MainWindow::MsgDialog(QString strCaption, QString strMsg)
 // Установка кнопок соединения в позицию готовности.
 void MainWindow::SetConnectionButtonsState(bool bConnected)
 {
+	QCoreApplication::processEvents();
 	if(bConnected)
 	{
+		SetStatusBarText(cstrStatusConnected);
 		p_ui->pushButton_Connect->setEnabled(false);
 		p_ui->pushButton_Disconnect->setEnabled(true);
-		p_ui->pushButton_Disconnect->setFocus();
 	}
 	else
 	{
+		SetStatusBarText(cstrStatusReady);
 		p_ui->pushButton_Disconnect->setEnabled(false);
 		p_ui->pushButton_Connect->setEnabled(true);
-		p_ui->pushButton_Connect->setFocus();
 	}
 }
 

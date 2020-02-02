@@ -74,6 +74,9 @@ private:
 							///< \param[in] bIsIPv4 Признак протокола IPv4.
 	/// Процедуры запуска клиента.
 	static void ClientStartProcedures();
+	/// Установка текста строки статуса.
+	static void SetStatusBarText(QString strMsg);
+							///< \param[in] strMsg Строка с сообщением.
 
 private slots:
 	/// Процедуры остановки клиента.
@@ -85,9 +88,6 @@ private slots:
 	/// Установка кнопок соединения в позицию по состоянию.
 	static void SetConnectionButtonsState(bool bConnected);
 							///< \param[in] bConnected true, если подключено.
-	/// Установка текста строки статуса.
-	static void SetStatusBarText(QString strMsg);
-							///< \param[in] strMsg Строка с сообщением.
 	/// При переключении кнопки 'Schematic'.
 	static void on_actionSchematic_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.
@@ -113,9 +113,6 @@ signals:
 	void RemoteClearScene();
 	/// Сигнал начала процедур остановки клиента.
 	void RemoteClientStopProcedures();
-	/// Сигнал установки текста строки статуса.
-	void RemoteSetStatusBarText(QString strMsg);
-							///< \param[in] strMsg Сообщение.
 
 public:
 	static int iInitRes; ///< Результат инициализации.
