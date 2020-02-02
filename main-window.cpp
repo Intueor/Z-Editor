@@ -26,6 +26,7 @@ char MainWindow::m_chPasswordInt[AUTH_PASSWORD_STR_LEN];
 NetHub::IPPortPassword MainWindow::oIPPortPassword;
 char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
 bool MainWindow::bAutoConnection = false;
+bool MainWindow::bBlockButtons = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -153,7 +154,6 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
 	p_Client->SetServerStatusChangedCB(ServerStatusChangedCallback);
 	//
-	p_ui->pushButton_Connect->setFocus();
 	p_ui->actionSchematic->setChecked(bSchemaIsOpened);
 	p_ui->actionConnect_at_startup->setChecked(bAutoConnection);
 	if(bAutoConnection)
@@ -252,6 +252,7 @@ void MainWindow::ServerStatusChangedCallback(bool bStatus)
 	{
 		LOG_P_2(LOG_CAT_I, "Ready for conversation");
 	}
+	emit p_This->RemoteSetConnectionButtonsState(bStatus);
 }
 
 // Кэлбэк обработки прихода команд от сервера.
@@ -642,7 +643,6 @@ void MainWindow::ClientStartProcedures()
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			emit p_This->RemoteSetConnectionButtonsState(true);
 			return;
 		}
 		MSleep(USER_RESPONSE_MS);
@@ -665,7 +665,6 @@ void MainWindow::ClientStopProcedures()
 	{
 		if(!p_Client->CheckServerAlive())
 		{
-			emit p_This->RemoteSetConnectionButtonsState(false);
 			return;
 		}
 		MSleep(USER_RESPONSE_MS);
@@ -689,19 +688,24 @@ void MainWindow::MsgDialog(QString strCaption, QString strMsg)
 // Установка кнопок соединения в позицию готовности.
 void MainWindow::SetConnectionButtonsState(bool bConnected)
 {
-	QCoreApplication::processEvents();
+	bBlockButtons = true;
+	MSleep(WAITING_FOR_INTERFACE);
+	QCoreApplication::processEvents(QEventLoop::AllEvents);
 	if(bConnected)
 	{
 		SetStatusBarText(cstrStatusConnected);
 		p_ui->pushButton_Connect->setEnabled(false);
 		p_ui->pushButton_Disconnect->setEnabled(true);
+		p_ui->pushButton_Disconnect->setFocus();
 	}
 	else
 	{
 		SetStatusBarText(cstrStatusReady);
 		p_ui->pushButton_Disconnect->setEnabled(false);
 		p_ui->pushButton_Connect->setEnabled(true);
+		p_ui->pushButton_Connect->setFocus();
 	}
+	bBlockButtons = false;
 }
 
 // Установка текста строки статуса.
@@ -720,12 +724,12 @@ void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 // При нажатии кнопки 'Соединить'.
 void MainWindow::on_pushButton_Connect_clicked()
 {
-	ClientStartProcedures();
+	if(!bBlockButtons) ClientStartProcedures();
 }
 
 // При нажатии кнопки 'Разъединить'.
 void MainWindow::on_pushButton_Disconnect_clicked()
 {
-	ClientStopProcedures();
+	if(!bBlockButtons) ClientStopProcedures();
 }
 

@@ -136,6 +136,7 @@ private:
 	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
 	static char chLastClientRequest; ///< Последний запрос клиента.
 	static bool bAutoConnection; ///< Флаг автосоединения при запуске.
+	static bool bBlockButtons; ///< Флаг блокировки кнопок от повторного нажатия при программных переключениях.
 };
 
 /// Класс добавки данных сервера к стандартному элементу лист-виджета.
