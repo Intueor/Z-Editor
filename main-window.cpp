@@ -639,12 +639,9 @@ void MainWindow::ClientStartProcedures()
 	{
 		goto gCA;
 	}
-	for(unsigned char uchAtt = 0; uchAtt != 64; uchAtt++)
+	for(unsigned char uchAtt = 0; uchAtt != CLIENT_WAITING_ATTEMPTS; uchAtt++)
 	{
-		if(p_Client->CheckServerAlive())
-		{
-			return;
-		}
+		if(p_Client->CheckServerAlive()) return;
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
@@ -663,10 +660,7 @@ void MainWindow::SlotClientStopProcedures()
 	}
 	for(unsigned char uchAtt = 0; uchAtt != CLIENT_WAITING_ATTEMPTS; uchAtt++)
 	{
-		if(!p_Client->CheckServerAlive())
-		{
-			return;
-		}
+		if(!p_Client->CheckServerAlive()) return;
 		MSleep(USER_RESPONSE_MS);
 	}
 gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
