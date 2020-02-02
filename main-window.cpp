@@ -374,7 +374,7 @@ bool MainWindow::LoadClientConfig()
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pSelectedServer,
 					   "Selected_server", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
-		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No 'Selected_server' node.");
+		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No 'Selected_server' node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListName, "Name",
@@ -410,7 +410,7 @@ bool MainWindow::LoadClientConfig()
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No '(Selected_server)IP' node.");
+		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Selected_server)IP' node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListPort, "Port",
@@ -425,7 +425,7 @@ bool MainWindow::LoadClientConfig()
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No '(Selected_server)Port' node.");
+		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Selected_server)Port' node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListPassword, "Password",
@@ -435,7 +435,7 @@ bool MainWindow::LoadClientConfig()
 	} FIND_IN_CHILDLIST_END(p_ListPassword);
 	if(p_chHelper == 0)
 	{
-		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No '(Server)Password' node.");
+		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)Password' node.");
 		return false;
 	}
 	else
@@ -445,7 +445,7 @@ bool MainWindow::LoadClientConfig()
 	FillNumericStructWithIPPortStrs(oNumericAddress, QString(m_chIPInt), QString(m_chPortInt));
 	if(!oNumericAddress.bIsCorrect)
 	{
-		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! Incorrect main adress format.");
+		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "Incorrect main adress format.");
 		return false;
 	}
 	else
@@ -455,7 +455,7 @@ bool MainWindow::LoadClientConfig()
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pServers,
 					   "Servers", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
-		LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No 'Servers' node.");
+		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No 'Servers' node.");
 		return false;
 	}
 	LOG_P_2(LOG_CAT_I, "--- Stored servers info ---");
@@ -491,7 +491,7 @@ bool MainWindow::LoadClientConfig()
 		}
 		else
 		{
-			LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No '(Server)IP' node in servers list.");
+			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)IP' node in servers list.");
 			return false;
 		}
 		oIPPortPasswordHelper.p_chPortNameBuffer = 0;
@@ -506,7 +506,7 @@ bool MainWindow::LoadClientConfig()
 		}
 		else
 		{
-			LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No '(Server)Port' node in servers list.");
+			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)Port' node in servers list.");
 			return false;
 		}
 		oIPPortPasswordHelper.p_chPasswordNameBuffer = 0;
@@ -517,13 +517,13 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListPassword);
 		if(oIPPortPasswordHelper.p_chPasswordNameBuffer == 0)
 		{
-			LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! No '(Server)Password' node in servers list.");
+			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)Password' node in servers list.");
 			return false;
 		}
 		LOG_P_2(LOG_CAT_I, "--- ---");
 		if(!oNumericAddress.bIsCorrect)
 		{
-			LOG_P_0(LOG_CAT_E, "Configuration file is corrupt! Incorrect adress format.");
+			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "Incorrect adress format.");
 			return false;
 		}
 		else
