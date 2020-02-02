@@ -2,6 +2,7 @@
 #include "main-window.h"
 #include "ui_main-window.h"
 #include "../Z-Hub/Dialogs/message-dialog.h"
+#include "Dialogs/set-password-dialog.h"
 
 //== МАКРОСЫ.
 #define LOG_NAME				"main-window"
@@ -69,23 +70,6 @@ ServersListWidgetItem::ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPas
 			this->setToolTip(QString(m_chName) + " - [" + QString(m_chIP) + "]:" + QString(m_chPort));
 		}
 	}
-}
-
-// Получение структуры с указателями на строчные массивы типа IPPortPassword.
-NetHub::IPPortPassword ServersListWidgetItem::GetIPPortPassword()
-{
-	NetHub::IPPortPassword oIPPortPassword;
-	//
-	oIPPortPassword.p_chIPNameBuffer = m_chIP;
-	oIPPortPassword.p_chPortNameBuffer = m_chPort;
-	oIPPortPassword.p_chPasswordNameBuffer = m_chPassword;
-	return oIPPortPassword;
-}
-
-// Копирование массива строки с паролем во внутренний буфер.
-void ServersListWidgetItem::SetPassword(char* p_chPassword)
-{
-	CopyStrArray(p_chPassword, m_chPassword, AUTH_PASSWORD_STR_LEN);
 }
 
 // Получение указателя строку с именем сервера или 0 при пустой строке.
@@ -165,7 +149,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 		SetStatusBarText(cstrStatusReady);
 	}
 #ifndef WIN32
-	// Из-за глюков алигмента на Qt 5.11.2, в более поздней версии нужно убрать.
+	// Из-за глюков алигмента Qt на linux.
 	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	//
@@ -248,10 +232,6 @@ void MainWindow::UncheckSchemaCheckbox()
 // Кэлбэк обработки отслеживания статута сервера.
 void MainWindow::ServerStatusChangedCallback(bool bStatus)
 {
-	if(bStatus)
-	{
-		LOG_P_2(LOG_CAT_I, "Ready for conversation");
-	}
 	emit p_This->RemoteSlotSetConnectionButtonsState(bStatus);
 }
 
@@ -571,7 +551,7 @@ bool MainWindow::SaveClientConfig()
 	p_NodePassword->ToElement()->SetText(m_chPasswordInt);
 	//
 	p_NodeServers = p_NodeRoot->InsertEndChild(xmlDocCConf.NewElement("Servers"));
-	for(int iC=0; iC < p_ui->listWidget_Servers->count(); iC++)
+	for(int iC = p_ui->listWidget_Servers->count() - 1; iC != -1; iC--)
 	{
 		p_NodeServer = p_NodeServers->InsertEndChild(xmlDocCConf.NewElement("Server"));
 		p_chHelper = ((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetName();
@@ -582,13 +562,13 @@ bool MainWindow::SaveClientConfig()
 		}
 		p_NodeServerIP = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("IP"));
 		p_NodeServerIP->ToElement()->SetText(
-					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetIPPortPassword().p_chIPNameBuffer);
+					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->m_chIP);
 		p_NodePort = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Port"));
 		p_NodePort->ToElement()->SetText(
-					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetIPPortPassword().p_chPortNameBuffer);
+					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->m_chPort);
 		p_NodePassword = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Password"));
 		p_NodePassword->ToElement()->SetText(
-					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetIPPortPassword().p_chPasswordNameBuffer);
+					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->m_chPassword);
 	}
 	eResult = xmlDocCConf.SaveFile(C_CONF_PATH);
 	if (eResult != XML_SUCCESS)
@@ -683,6 +663,7 @@ void MainWindow::SlotMsgDialog(QString strCaption, QString strMsg)
 void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 {
 	bBlockConnectionButtons = true;
+	if(!p_Client->CheckConnectionSecured()) bConnected = false;
 	MSleep(WAITING_FOR_INTERFACE);
 	QCoreApplication::processEvents(QEventLoop::AllEvents);
 	if(bConnected)
@@ -727,3 +708,64 @@ void MainWindow::on_pushButton_Disconnect_clicked()
 	if(!bBlockConnectionButtons) SlotClientStopProcedures();
 }
 
+// При нажатии ПКМ на элементе списка серверов.
+void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &pos)
+{
+	QPoint pntGlobalPos;
+	QMenu oMenu;
+	QAction* p_SelectedMenuItem;
+	ServersListWidgetItem* p_ServersListWidgetItem;
+	Set_Password_Dialog* p_Set_Password_Dialog;
+	//
+	p_ServersListWidgetItem = (ServersListWidgetItem*)p_ui->listWidget_Servers->itemAt(pos);
+	if(p_ServersListWidgetItem != 0)
+	{
+		pntGlobalPos = QCursor::pos();
+		oMenu.addAction(tr("Удалить"));
+		oMenu.addAction(tr("Задать пароль"));
+		p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
+		if(p_SelectedMenuItem != 0)
+		{
+			if(p_SelectedMenuItem->text() == tr("Удалить"))
+			{
+				delete p_ServersListWidgetItem;
+				LCHECK_BOOL(SaveClientConfig());
+			}
+			else if(p_SelectedMenuItem->text() == tr("Задать пароль"))
+			{
+				p_Set_Password_Dialog = new Set_Password_Dialog(p_ServersListWidgetItem->m_chPassword);
+				if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
+				{
+					LCHECK_BOOL(SaveClientConfig());
+				}
+				p_Set_Password_Dialog->deleteLater();
+			}
+		}
+	}
+}
+
+// При нажатии ПКМ на метке с именем текущего сервера.
+void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint &pos)
+{
+	pos.isNull(); // Заглушка.
+	QPoint pntGlobalPos;
+	QMenu oMenu;
+	QAction* p_SelectedMenuItem;
+	Set_Password_Dialog* p_Set_Password_Dialog;
+	//
+	pntGlobalPos = QCursor::pos();
+	oMenu.addAction(tr("Задать пароль"));
+	p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
+	if(p_SelectedMenuItem != 0)
+	{
+		if(p_SelectedMenuItem->text() == tr("Задать пароль"))
+		{
+			p_Set_Password_Dialog = new Set_Password_Dialog(m_chPasswordInt);
+			if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
+			{
+				LCHECK_BOOL(SaveClientConfig());
+			}
+			p_Set_Password_Dialog->deleteLater();
+		}
+	}
+}

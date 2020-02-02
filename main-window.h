@@ -98,6 +98,12 @@ private slots:
 	static void on_pushButton_Connect_clicked();
 	/// При нажатии кнопки 'Разъединить'.
 	static void on_pushButton_Disconnect_clicked();
+	/// При нажатии ПКМ на элементе списка серверов.
+	static void on_listWidget_Servers_customContextMenuRequested(const QPoint &pos);
+							///< \param[in] pos Ссылка на координаты точки указателя в виджете.
+	// При нажатии ПКМ на метке с именем текущего сервера.
+	static void on_label_CurrentServer_customContextMenuRequested(const QPoint &pos);
+							///< \param[in] pos Ссылка на координаты точки указателя в виджете.
 
 signals:
 	/// Обновление граф. окна.
@@ -144,7 +150,7 @@ class ServersListWidgetItem : public QObject, public QListWidgetItem
 {
 	Q_OBJECT
 
-private:
+public:
 	char m_chName[SERVER_NAME_STR_LEN]; // Массив имени сервера.
 	char m_chIP[IP_STR_LEN]; // Массив строки IP.
 	char m_chPort[PORT_STR_LEN]; // Массив строки порта.
@@ -158,12 +164,7 @@ public:
 							///< \param[in] bIsIPv4 Признак протокола IPv4.
 							///< \param[in] p_chName Указатель на строку с именем сервера или 0 для пустой строки.
 							///< \param[in] p_ListWidget Указатель на родительский лист-виджет.
-	/// Получение структуры с указателями на строчные массивы типа IPPortPassword.
-	NetHub::IPPortPassword GetIPPortPassword();
 							///< \return Структура с указателями на сохранённые массивы строк с описанием сервера.
-	/// Копирование массива строки с паролем во внутренний буфер.
-	void SetPassword(char* p_chPassword);
-							///< \param[in] p_chPassword Указатель на массив строки с паролем.
 	/// Получение указателя строку с именем сервера или 0 при пустой строке.
 	char* GetName();
 							///< \return Получение структуры с указателями на сохранённые массивы строк с описанием сервера.

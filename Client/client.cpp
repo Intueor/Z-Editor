@@ -108,6 +108,12 @@ bool Client::CheckServerAlive()
 	return bClientAlive;
 }
 
+// Запрос статуса авторизации.
+bool Client::CheckConnectionSecured()
+{
+	return oConvData.bSecured;
+}
+
 // Отправка пакета по соединению немедленно.
 bool Client::SendToConnectionImmediately(NetHub::ConnectionData &a_ConnectionData, unsigned short ushCommand, bool bFullFlag,
 						  char *p_chBuffer, int iLength, bool bResetPointer)

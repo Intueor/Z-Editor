@@ -85,6 +85,9 @@ public:
 	/// Запрос готовности.
 	static bool CheckServerAlive();
 								///< \return true - готов.
+	/// Запрос статуса авторизации.
+	static bool CheckConnectionSecured();
+								///< \return true - авторизован.
 	/// Отправка пакета на сервер немедленно.
 	static bool SendToServerImmediately(unsigned short ushCommand, char* p_chBuffer, int iLength,
 										bool bResetPointer = true, bool bTryLock = true);
