@@ -165,6 +165,12 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	{
 		SetStatusBarText(cstrStatusReady);
 	}
+#ifndef WIN32
+	// Из-за глюков алигмента на Qt 5.11.2, в более поздней версии нужно убрать.
+	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
+	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
+	//
+#endif
 }
 
 // Деструктор.
