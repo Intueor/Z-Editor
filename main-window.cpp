@@ -288,6 +288,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					LCHECK_BOOL(SaveClientConfig());
 				}
 				LOG_P_2(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
+				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 			}
 			else
 			{

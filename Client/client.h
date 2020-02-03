@@ -21,7 +21,6 @@
 #include <WS2tcpip.h>
 #endif
 #include "../Z-Hub/Server/net-hub.h"
-#include "../Z-Hub/Server/proto-parser.h"
 
 //== МАКРОСЫ.
 #define CLIENT_WAITING_ATTEMPTS		128

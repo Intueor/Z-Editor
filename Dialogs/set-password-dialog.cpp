@@ -2,8 +2,8 @@
 #include <QPushButton>
 #include "set-password-dialog.h"
 #include "ui_set-password-dialog.h"
-#include "../Z-Server/main-hub.h"
-#include "../Z-Server/Server/protocol.h"
+#include "../Z-Hub/main-hub.h"
+#include "../Z-Hub/Server/net-hub-defs.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 char* Set_Password_Dialog::p_chPasswordInt;
