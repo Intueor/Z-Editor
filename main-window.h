@@ -137,15 +137,14 @@ signals:
 public:
 	static int iInitRes; ///< Результат инициализации.
 	static SchematicWindow* p_SchematicWindow; ///< Указатель на класс окна схематического обзора.
-	static bool bSchemaIsOpened; ///< Флаг открытого обзора схемы.
 	static WidgetsThrAccess* p_WidgetsThrAccess; ///< Указатель на объект класса доступа к интерфейсу.
+	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
 
 private:
 	LOGDECL
 	LOGDECL_PTHRD_INCLASS_ADD
 	static MainWindow* p_This; ///< Указатель на инициализированного себя.
 	static Ui::MainWindow *p_ui; ///< Указатель на UI.
-	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
 	static const char* cp_chUISettingsName; ///< Указатель на имя файла с установками UI.
 	static QLabel* p_QLabelStatusBarText; ///< Указатель на объект метки статуса.
 	static Client* p_Client; ///< Указатель на объект клиента.
@@ -155,7 +154,6 @@ private:
 	static char m_chPasswordInt[AUTH_PASSWORD_STR_LEN]; ///< Внутренний массив строки пароля.
 	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
 	static char chLastClientRequest; ///< Последний запрос клиента.
-	static bool bAutoConnection; ///< Флаг автосоединения при запуске.
 	static bool bBlockConnectionButtons; ///< Флаг блокировки кнопок соединения от повторного нажатия при программных переключениях.
 };
 

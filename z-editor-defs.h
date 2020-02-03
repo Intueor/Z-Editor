@@ -19,7 +19,6 @@
 
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
-const QString cstrMsgError = "Ошибка";
 const QString cstrMsgWarning = "Внимание";
 const QString cstrMsgDelete = "Удалить";
 const QString cstrMsgSetPassword = "Задать пароль";

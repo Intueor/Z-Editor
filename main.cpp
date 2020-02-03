@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 	int iExecResult;
 	QApplication oApplication(argc, argv);
 	oApplication.setAttribute(Qt::AA_DisableWindowContextHelpButton);
-
 	MainWindow wMainWindow;
 	SchematicWindow wSchematicWindow;
 	//
@@ -22,7 +21,7 @@ int main(int argc, char *argv[])
 		wMainWindow.p_SchematicWindow = &wSchematicWindow; // Передача главному окну указателя на окно схематического обзора для управления.
 		wSchematicWindow.p_MainWindow = &wMainWindow; // И наоборот.
 		wMainWindow.SetSchWindowSignalConnections(); // Соединение сигналов с окном схемы.
-		if(wMainWindow.bSchemaIsOpened) // Если в процессе инициализации главного окна был принят флаг открытия, то первичный показ.
+		if(wMainWindow.p_UISettings->value("Schema").toBool()) // Если в процессе инициализации главного окна был принят флаг открытия, то первичный показ.
 		{
 			wSchematicWindow.show();
 		}

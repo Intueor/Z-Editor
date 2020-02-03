@@ -18,7 +18,6 @@ QSettings* MainWindow::p_UISettings = nullptr;
 const char* MainWindow::cp_chUISettingsName = E_MAINWINDOW_UI_CONF_PATH;
 QLabel* MainWindow::p_QLabelStatusBarText;
 SchematicWindow* MainWindow::p_SchematicWindow = nullptr;
-bool MainWindow::bSchemaIsOpened = false;
 Client* MainWindow::p_Client = nullptr;
 PServerName MainWindow::oPServerName;
 char MainWindow::m_chIPInt[IP_STR_LEN];
@@ -26,7 +25,6 @@ char MainWindow::m_chPortInt[PORT_STR_LEN];
 char MainWindow::m_chPasswordInt[AUTH_PASSWORD_STR_LEN];
 NetHub::IPPortPassword MainWindow::oIPPortPassword;
 char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
-bool MainWindow::bAutoConnection = false;
 bool MainWindow::bBlockConnectionButtons = false;
 
 //== ФУНКЦИИ КЛАССОВ.
@@ -120,8 +118,6 @@ MainWindow::MainWindow(QWidget* p_parent) :
 			LOG_P_1(LOG_CAT_E, "Can`t restore WindowState UI state.");
 			RETVAL_SET(RETVAL_ERR);
 		}
-		bSchemaIsOpened = p_UISettings->value("Schema").toBool();
-		bAutoConnection = p_UISettings->value("AutoConnection").toBool();
 	}
 	else
 	{
@@ -138,10 +134,10 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
 	p_Client->SetServerStatusChangedCB(ServerStatusChangedCallback);
 	//
-	p_ui->actionSchematic->setChecked(bSchemaIsOpened);
-	p_ui->actionConnect_at_startup->setChecked(bAutoConnection);
-	if(bAutoConnection)
+	p_ui->actionSchematic->setChecked(p_UISettings->value("Schema").toBool());
+	if(p_UISettings->value("AutoConnection").toBool())
 	{
+		p_ui->actionConnect_at_startup->setChecked(true);
 		p_ui->pushButton_Connect->click();
 	}
 	else
@@ -186,11 +182,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	// Main.
 	p_UISettings->setValue("Geometry", saveGeometry());
 	p_UISettings->setValue("WindowState", saveState());
-	p_UISettings->setValue("Schema", bSchemaIsOpened);
-	p_UISettings->setValue("AutoConnection", bAutoConnection);
 	// Splitters.
 
-	// Other.
+	//
 	if(p_SchematicWindow != 0)
 	{
 		if(p_SchematicWindow->isVisible())
@@ -206,27 +200,11 @@ void MainWindow::SetSchWindowSignalConnections()
 	connect(this, SIGNAL(RemoteClearScene()), p_SchematicWindow, SLOT(ClearScene()));
 }
 
-// При переключении кнопки 'Schematic'.
-void MainWindow::on_actionSchematic_triggered(bool checked)
-{
-	bSchemaIsOpened = checked;
-	p_UISettings->setValue("Schema", bSchemaIsOpened);
-	if(bSchemaIsOpened)
-	{
-		p_SchematicWindow->show();
-	}
-	else
-	{
-		p_SchematicWindow->hide();
-	}
-}
-
 // Для внешнего отключения чекбокса кнопки 'Схема'.
 void MainWindow::UncheckSchemaCheckbox()
 {
 	p_ui->actionSchematic->setChecked(false);
-	bSchemaIsOpened = false;
-	p_UISettings->setValue("Schema", bSchemaIsOpened);
+	p_UISettings->setValue("Schema", false);
 }
 
 // Кэлбэк обработки отслеживания статута сервера.
@@ -752,10 +730,24 @@ void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 	bBlockConnectionButtons = false;
 }
 
+// При переключении кнопки 'Schematic'.
+void MainWindow::on_actionSchematic_triggered(bool checked)
+{
+	p_UISettings->setValue("Schema", checked);
+	if(checked)
+	{
+		p_SchematicWindow->show();
+	}
+	else
+	{
+		p_SchematicWindow->hide();
+	}
+}
+
 // При переключении кнопки 'Соединение при включении'.
 void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
 {
-	bAutoConnection = checked;
+	p_UISettings->setValue("AutoConnection", checked);
 }
 
 // При нажатии кнопки 'Соединить'.
