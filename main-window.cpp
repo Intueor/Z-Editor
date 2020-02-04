@@ -610,15 +610,15 @@ gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
 
 
 // Проверка на совпадение цифровых IP.
-bool MainWindow::CheckEqualsNumbers(Set_Server_Dialog::NumAddrPassw& a_Numbers1, Set_Server_Dialog::NumAddrPassw& a_Numbers2)
+bool MainWindow::CheckEqualsNumbers(NumericAddress& oNumericAddressOne, NumericAddress& oNumericAddressTwo)
 {
 	unsigned char uchL;
 	//
-	if(a_Numbers1.oNumericAddress.bIsIPv4 != a_Numbers2.oNumericAddress.bIsIPv4)
+	if(oNumericAddressOne.bIsIPv4 != oNumericAddressTwo.bIsIPv4)
 	{
 		return false;
 	}
-	if(a_Numbers1.oNumericAddress.bIsIPv4)
+	if(oNumericAddressOne.bIsIPv4)
 	{
 		uchL = 4;
 	}
@@ -628,12 +628,12 @@ bool MainWindow::CheckEqualsNumbers(Set_Server_Dialog::NumAddrPassw& a_Numbers1,
 	}
 	for(unsigned char uchI = 0; uchI != uchL; uchI++)
 	{
-		if(a_Numbers1.oNumericAddress.iIPNrs[uchI] != a_Numbers2.oNumericAddress.iIPNrs[uchI])
+		if(oNumericAddressOne.iIPNrs[uchI] != oNumericAddressTwo.iIPNrs[uchI])
 		{
 			return false;
 		}
 	}
-	if(a_Numbers1.oNumericAddress.iPort != a_Numbers2.oNumericAddress.iPort)
+	if(oNumericAddressOne.iPort != oNumericAddressTwo.iPort)
 	{
 		return false;
 	}
@@ -838,19 +838,19 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 void MainWindow::on_pushButton_Add_clicked()
 {
 	Set_Server_Dialog* p_Set_Server_Dialog;
-	Set_Server_Dialog::NumAddrPassw* p_NumAddrPassw;
 	Message_Dialog* p_Message_Dialog;
 	ServersListWidgetItem* p_ServersListWidgetItem;
 	NetHub::IPPortPassword oIPPortPassword;
-	Set_Server_Dialog::NumAddrPassw oNumAddrPassw;
+	NumericAddress oNumericAddress, oNumericAddressHelper;
 	QString strHelper;
 	//
 gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877", (char*)"0");
 	p_Set_Server_Dialog->deleteLater();
 	if(p_Set_Server_Dialog->exec() == DIALOGS_ACCEPT)
 	{
-		p_NumAddrPassw = &p_Set_Server_Dialog->GetReceivedValues();
-		if(!p_NumAddrPassw->oNumericAddress.bIsCorrect)
+		FillNumericStructWithIPPortStrs(oNumericAddress, Set_Server_Dialog::oIPPortPasswordStrings.strIP,
+										Set_Server_Dialog::oIPPortPasswordStrings.strPort);
+		if(!oNumericAddress.bIsCorrect)
 		{
 			p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_str(), "Неверные данные адрес/порт");
 			p_Message_Dialog->exec();
@@ -860,15 +860,15 @@ gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877
 		for(int iItem = 0; iItem < p_ui->listWidget_Servers->count(); iItem++)
 		{
 			p_ServersListWidgetItem = (ServersListWidgetItem*)(p_ui->listWidget_Servers->item(iItem));
-			FillNumericStructWithIPPortStrs(oNumAddrPassw.oNumericAddress,
+			FillNumericStructWithIPPortStrs(oNumericAddressHelper,
 											QString(p_ServersListWidgetItem->m_chIP), QString(p_ServersListWidgetItem->m_chPort));
-			if(CheckEqualsNumbers(oNumAddrPassw, *p_NumAddrPassw))
+			if(CheckEqualsNumbers(oNumericAddress, oNumericAddressHelper))
 			{
 				goto gIPE;
 			}
 		}
-		FillNumericStructWithIPPortStrs(oNumAddrPassw.oNumericAddress, QString(m_chIPInt), QString(m_chPortInt));
-		if(CheckEqualsNumbers(oNumAddrPassw, *p_NumAddrPassw))
+		FillNumericStructWithIPPortStrs(oNumericAddressHelper, QString(m_chIPInt), QString(m_chPortInt));
+		if(CheckEqualsNumbers(oNumericAddress, oNumericAddressHelper))
 		{
 gIPE:       p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_str(), "Комбинация адрес/порт уже в списке");
 			p_Message_Dialog->exec();
@@ -876,11 +876,11 @@ gIPE:       p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_s
 			goto gA;
 		}
 		strHelper.clear();
-		if(p_NumAddrPassw->oNumericAddress.bIsIPv4)
+		if(oNumericAddress.bIsIPv4)
 		{
 			for(unsigned char uchI = 0; uchI != 4; uchI++)
 			{
-				strHelper += QString::number(p_NumAddrPassw->oNumericAddress.iIPNrs[uchI]);
+				strHelper += QString::number(oNumericAddress.iIPNrs[uchI]);
 				if(uchI != 3)
 				{
 					strHelper += ".";
@@ -891,7 +891,7 @@ gIPE:       p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_s
 		{
 			for(unsigned char uchI = 0; uchI != 8; uchI++)
 			{
-				strHelper += QString::number(p_NumAddrPassw->oNumericAddress.iIPNrs[uchI], 16);
+				strHelper += QString::number(oNumericAddress.iIPNrs[uchI], 16);
 				if(uchI != 7)
 				{
 					strHelper += ":";
@@ -899,10 +899,10 @@ gIPE:       p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_s
 			}
 		}
 		oIPPortPassword.p_chIPNameBuffer = (char*)strHelper.toStdString().c_str();
-		strHelper = QString::number(p_NumAddrPassw->oNumericAddress.iPort);
+		strHelper = QString::number(oNumericAddress.iPort);
 		oIPPortPassword.p_chPortNameBuffer = (char*)strHelper.toStdString().c_str();
-		oIPPortPassword.p_chPasswordNameBuffer = p_NumAddrPassw->m_chPassword;
-		p_ui->listWidget_Servers->addItem(new ServersListWidgetItem(&oIPPortPassword, p_NumAddrPassw->oNumericAddress.bIsIPv4, 0));
+		oIPPortPassword.p_chPasswordNameBuffer = (char*)Set_Server_Dialog::oIPPortPasswordStrings.strPassword.toStdString().c_str();
+		p_ui->listWidget_Servers->addItem(new ServersListWidgetItem(&oIPPortPassword, oNumericAddress.bIsIPv4, 0));
 		LCHECK_BOOL(SaveClientConfig());
 	}
 }

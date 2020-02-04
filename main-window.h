@@ -80,9 +80,9 @@ private:
 	static void SetStatusBarText(QString strMsg);
 							///< \param[in] strMsg Строка с сообщением.
 	/// Проверка на совпадение цифровых IP.
-	static bool CheckEqualsNumbers(Set_Server_Dialog::NumAddrPassw& a_Numbers1, Set_Server_Dialog::NumAddrPassw& a_Numbers2);
-							///< \param[in] a_Numbers1 Ссылка на превый объект структуры цифрового адреса.
-							///< \param[in] a_Numbers2 Ссылка на второй объект структуры цифрового адреса.
+	static bool CheckEqualsNumbers(NumericAddress& oNumericAddressOne, NumericAddress& oNumericAddressTwo);
+							///< \param[in] oNumericAddressOne Ссылка на первый объект структуры цифрового адреса.
+							///< \param[in] oNumericAddressTwo Ссылка на второй объект структуры цифрового адреса.
 							///< \return true - при совпадении.
 	/// Обмен выбранного сервера списка серверов с текущим сервером.
 	static void CurrentServerSwap(ServersListWidgetItem* p_ServersListWidgetItem);
