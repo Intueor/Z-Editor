@@ -590,6 +590,7 @@ gCO:    if(uchAttempt == 4)
 		MSleep(USER_RESPONSE_MS);
 	}
 	LOG_P_0(LOG_CAT_W, "Server reject conversation.");
+	pf_CBServerStatusChangedInt(false);
 	goto gFN;
 gSA:while(!bExitSignal)
 	{
