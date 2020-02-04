@@ -134,10 +134,10 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
 	p_Client->SetServerStatusChangedCB(ServerStatusChangedCallback);
 	//
-	p_ui->actionSchematic->setChecked(p_UISettings->value("Schema").toBool());
+	p_ui->action_Schematic->setChecked(p_UISettings->value("Schema").toBool());
 	if(p_UISettings->value("AutoConnection").toBool())
 	{
-		p_ui->actionConnect_at_startup->setChecked(true);
+		p_ui->action_ConnectAtStartup->setChecked(true);
 		p_ui->pushButton_Connect->click();
 	}
 	else
@@ -203,7 +203,7 @@ void MainWindow::SetSchWindowSignalConnections()
 // Для внешнего отключения чекбокса кнопки 'Схема'.
 void MainWindow::UncheckSchemaCheckbox()
 {
-	p_ui->actionSchematic->setChecked(false);
+	p_ui->action_Schematic->setChecked(false);
 	p_UISettings->setValue("Schema", false);
 }
 

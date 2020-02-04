@@ -242,23 +242,23 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="menu_View">
     <property name="title">
      <string>Обзоры</string>
     </property>
-    <addaction name="actionSchematic"/>
+    <addaction name="action_Schematic"/>
    </widget>
-   <widget class="QMenu" name="menuConnection">
+   <widget class="QMenu" name="menu_Connection">
     <property name="title">
      <string>Соединение</string>
     </property>
-    <addaction name="actionConnect_at_startup"/>
+    <addaction name="action_ConnectAtStartup"/>
    </widget>
-   <addaction name="menuConnection"/>
-   <addaction name="menuView"/>
+   <addaction name="menu_Connection"/>
+   <addaction name="menu_View"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionSchematic">
+  <action name="action_Schematic">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -266,7 +266,7 @@
     <string>Схематический</string>
    </property>
   </action>
-  <action name="actionConnect_at_startup">
+  <action name="action_ConnectAtStartup">
    <property name="checkable">
     <bool>true</bool>
    </property>
