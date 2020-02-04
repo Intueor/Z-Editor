@@ -19,10 +19,10 @@
 
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
-const QString cstrMsgWarning = "Внимание";
-const QString cstrMsgDelete = "Удалить";
-const QString cstrMsgSetPassword = "Задать пароль";
-const QString cstrMsgSetAsDefault = "Установить как текущий";
-const QString cstrStatusConnected = "Соединён";
+const char m_chMsgWarning[] = "Внимание";
+const char m_chMsgDelete[] = "Удалить";
+const char m_chMsgSetPassword[] = "Задать пароль";
+const char m_chMsgSetAsDefault[] = "Установить как текущий";
+const char m_chStatusConnected[] = "Соединён";
 
 #endif // ZEDITORDEFS_H

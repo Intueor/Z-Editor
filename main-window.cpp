@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	//
 	p_This = this;
 	LOG_CTRL_INIT;
-	LOG_P_0(LOG_CAT_I, "START.");
+	LOG_P_0(LOG_CAT_I, m_chLogStart);
 	iInitRes = RETVAL_OK;
 	//
 	connect(this, SIGNAL(RemoteSlotSetConnectionButtonsState(bool)), this, SLOT(SlotSetConnectionButtonsState(bool)));
@@ -104,24 +104,24 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_ui->statusBar->addWidget(p_QLabelStatusBarText);
 	if(IsFileExists((char*)cp_chUISettingsName))
 	{
-		LOG_P_2(LOG_CAT_I, "Restore UI states.");
+		LOG_P_2(LOG_CAT_I, m_chLogRestoreUI);
 		// Splitters.
 
 		// MainWidow.
 		if(!restoreGeometry(p_UISettings->value("Geometry").toByteArray()))
 		{
-			LOG_P_1(LOG_CAT_E, "Can`t restore Geometry UI state.");
+			LOG_P_1(LOG_CAT_E, m_chLogNoGeometryState);
 			RETVAL_SET(RETVAL_ERR);
 		}
 		if(!restoreState(p_UISettings->value("WindowState").toByteArray()))
 		{
-			LOG_P_1(LOG_CAT_E, "Can`t restore WindowState UI state.");
+			LOG_P_1(LOG_CAT_E, m_chLogNoWindowState);
 			RETVAL_SET(RETVAL_ERR);
 		}
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_W, "mainwidow_ui.ini is missing and will be created by default at the exit from program.");
+		LOG_P_0(LOG_CAT_W, m_chLogMainWindowIniAbsent);
 	}
 	if(!LoadClientConfig())
 	{
@@ -142,7 +142,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	}
 	else
 	{
-		SetStatusBarText(cstrStatusReady);
+		SetStatusBarText(m_chStatusReady);
 	}
 #ifndef WIN32
 	// Из-за глюков алигмента Qt на linux.
@@ -157,11 +157,11 @@ MainWindow::~MainWindow()
 {
 	if(RETVAL == RETVAL_OK)
 	{
-		LOG_P_0(LOG_CAT_I, "EXIT.")
+		LOG_P_0(LOG_CAT_I, m_chLogExit)
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, "EXIT WITH ERROR: " << RETVAL);
+		LOG_P_0(LOG_CAT_E, m_chLogErrorExit << RETVAL);
 	}
 	LOG_CLOSE;
 	delete p_ui;
@@ -170,7 +170,7 @@ MainWindow::~MainWindow()
 // Процедуры при закрытии окна приложения.
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	SetStatusBarText(cstrStatusShutdown);
+	SetStatusBarText(m_chStatusShutdown);
 	if(p_Client)
 	{
 		if(p_Client->CheckServerAlive())
@@ -230,7 +230,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				case PROTO_S_PASSW_ERR:
 				{
 					LOG_P_0(LOG_CAT_W, "Wrong password.");
-					emit p_This->RemoteSlotMsgDialog(cstrMsgError, "Неверный пароль");
+					emit p_This->RemoteSlotMsgDialog(m_chMsgError, "Неверный пароль");
 					emit p_This->RemoteSlotClientStopProcedures();
 					break;
 				}
@@ -260,7 +260,7 @@ gD:					emit p_This->RemoteSlotSetConnectionButtonsState(false);
 				}
 				case PROTO_S_KICK:
 				{
-					emit p_This->RemoteSlotMsgDialog(cstrMsgWarning, "Сервер отключил клиент");
+					emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Сервер отключил клиент");
 					goto gD;
 				}
 			}
@@ -322,18 +322,18 @@ bool MainWindow::LoadClientConfig()
 	eResult = xmlDocCConf.LoadFile(C_CONF_PATH);
 	if (eResult != XML_SUCCESS)
 	{
-		LOG_P_0(LOG_CAT_E, "Can`t open configuration file:" << C_CONF_PATH);
+		LOG_P_0(LOG_CAT_E, m_chLogCantOpenConfig << C_CONF_PATH);
 		return false;
 	}
 	else
 	{
-		LOG_P_2(LOG_CAT_I, "Configuration is loaded.");
+		LOG_P_2(LOG_CAT_I, "Configuration" << m_chLogIsLoaded);
 	}
 	LOG_P_2(LOG_CAT_I, "--- Current server info ---");
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pSelectedServer,
 					   "Selected_server", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
-		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No 'Selected_server' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No 'Selected_server' node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListName, "Name",
@@ -369,7 +369,7 @@ bool MainWindow::LoadClientConfig()
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Selected_server)IP' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Selected_server)IP' node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListPort, "Port",
@@ -384,7 +384,7 @@ bool MainWindow::LoadClientConfig()
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Selected_server)Port' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Selected_server)Port' node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListPassword, "Password",
@@ -394,7 +394,7 @@ bool MainWindow::LoadClientConfig()
 	} FIND_IN_CHILDLIST_END(p_ListPassword);
 	if(p_chHelper == 0)
 	{
-		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)Password' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Password' node.");
 		return false;
 	}
 	else
@@ -404,7 +404,7 @@ bool MainWindow::LoadClientConfig()
 	FillNumericStructWithIPPortStrs(oNumericAddress, QString(m_chIPInt), QString(m_chPortInt));
 	if(!oNumericAddress.bIsCorrect)
 	{
-		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "Incorrect main adress format.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "Incorrect main adress format.");
 		return false;
 	}
 	else
@@ -414,7 +414,7 @@ bool MainWindow::LoadClientConfig()
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pServers,
 					   "Servers", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
-		LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No 'Servers' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No 'Servers' node.");
 		return false;
 	}
 	LOG_P_2(LOG_CAT_I, "--- Stored servers info ---");
@@ -450,7 +450,7 @@ bool MainWindow::LoadClientConfig()
 		}
 		else
 		{
-			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)IP' node in servers list.");
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)IP'" << m_chLogNodeInList);
 			return false;
 		}
 		oIPPortPasswordHelper.p_chPortNameBuffer = 0;
@@ -465,7 +465,7 @@ bool MainWindow::LoadClientConfig()
 		}
 		else
 		{
-			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)Port' node in servers list.");
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Port'" << m_chLogNodeInList);
 			return false;
 		}
 		oIPPortPasswordHelper.p_chPasswordNameBuffer = 0;
@@ -476,13 +476,13 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListPassword);
 		if(oIPPortPasswordHelper.p_chPasswordNameBuffer == 0)
 		{
-			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "No '(Server)Password' node in servers list.");
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Password'" << m_chLogNodeInList);
 			return false;
 		}
 		LOG_P_2(LOG_CAT_I, "--- ---");
 		if(!oNumericAddress.bIsCorrect)
 		{
-			LOG_P_0(LOG_CAT_E, cstrLogCorruptConf.toStdString() << "Incorrect adress format.");
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "Incorrect adress format.");
 			return false;
 		}
 		else
@@ -552,7 +552,7 @@ bool MainWindow::SaveClientConfig()
 	eResult = xmlDocCConf.SaveFile(C_CONF_PATH);
 	if (eResult != XML_SUCCESS)
 	{
-		LOG_P_0(LOG_CAT_E, "Can`t save client configuration data.");
+		LOG_P_0(LOG_CAT_E, m_chLogCantSave << "client configuration data.");
 		return false;
 	}
 	else return true;
@@ -603,9 +603,9 @@ void MainWindow::ClientStartProcedures()
 		if(p_Client->CheckServerAlive()) return;
 		MSleep(USER_RESPONSE_MS);
 	}
-gCA:LOG_P_0(LOG_CAT_W, "Can`t start client.");
-	emit p_This->RemoteSlotMsgDialog(cstrMsgWarning, "Соединение невозможно");
-	SetStatusBarText(cstrStatusReady);
+gCA:LOG_P_0(LOG_CAT_W, m_chLogCantStart << "client.");
+	emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Соединение невозможно");
+	SetStatusBarText(m_chStatusReady);
 }
 
 
@@ -691,10 +691,10 @@ void MainWindow::SlotClientStopProcedures()
 		if(!p_Client->CheckServerAlive()) return;
 		MSleep(USER_RESPONSE_MS);
 	}
-gTS:LOG_P_0(LOG_CAT_E, "Can`t stop client.");
+gTS:LOG_P_0(LOG_CAT_E, m_chLogCantStop << "client.");
 	RETVAL_SET(RETVAL_ERR);
-	emit p_This->RemoteSlotMsgDialog(cstrMsgError, "Программное разъединение невозможно");
-	SetStatusBarText(cstrStatusConnected);
+	emit p_This->RemoteSlotMsgDialog(m_chMsgError, "Программное разъединение невозможно");
+	SetStatusBarText(m_chStatusConnected);
 }
 
 // Вызов диалога сообщения.
@@ -716,14 +716,14 @@ void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 	QCoreApplication::processEvents(QEventLoop::AllEvents);
 	if(bConnected)
 	{
-		SetStatusBarText(cstrStatusConnected);
+		SetStatusBarText(m_chStatusConnected);
 		p_ui->pushButton_Connect->setEnabled(false);
 		p_ui->pushButton_Disconnect->setEnabled(true);
 		p_ui->pushButton_Disconnect->setFocus();
 	}
 	else
 	{
-		SetStatusBarText(cstrStatusReady);
+		SetStatusBarText(m_chStatusReady);
 		p_ui->pushButton_Disconnect->setEnabled(false);
 		p_ui->pushButton_Connect->setEnabled(true);
 		p_ui->pushButton_Connect->setFocus();
@@ -776,21 +776,21 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	if(p_ServersListWidgetItem != 0)
 	{
 		pntGlobalPos = QCursor::pos();
-		oMenu.addAction(cstrMsgDelete);
-		oMenu.addAction(cstrMsgSetPassword);
+		oMenu.addAction(m_chMsgDelete);
+		oMenu.addAction(m_chMsgSetPassword);
 		if(!p_Client->CheckServerAlive())
 		{
-			oMenu.addAction(cstrMsgSetAsDefault);
+			oMenu.addAction(m_chMsgSetAsDefault);
 		}
 		p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == cstrMsgDelete)
+			if(p_SelectedMenuItem->text() == m_chMsgDelete)
 			{
 				delete p_ServersListWidgetItem;
 				LCHECK_BOOL(SaveClientConfig());
 			}
-			else if(p_SelectedMenuItem->text() == cstrMsgSetPassword)
+			else if(p_SelectedMenuItem->text() == m_chMsgSetPassword)
 			{
 				p_Set_Password_Dialog = new Set_Password_Dialog(p_ServersListWidgetItem->m_chPassword);
 				if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
@@ -799,7 +799,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 				}
 				p_Set_Password_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->text() == cstrMsgSetAsDefault)
+			else if(p_SelectedMenuItem->text() == m_chMsgSetAsDefault)
 			{
 				CurrentServerSwap(p_ServersListWidgetItem);
 				LCHECK_BOOL(SaveClientConfig());
@@ -818,11 +818,11 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	Set_Password_Dialog* p_Set_Password_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
-	oMenu.addAction(cstrMsgSetPassword);
+	oMenu.addAction(m_chMsgSetPassword);
 	p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 	if(p_SelectedMenuItem != 0)
 	{
-		if(p_SelectedMenuItem->text() == cstrMsgSetPassword)
+		if(p_SelectedMenuItem->text() == m_chMsgSetPassword)
 		{
 			p_Set_Password_Dialog = new Set_Password_Dialog(m_chPasswordInt);
 			if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
@@ -852,7 +852,7 @@ gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877
 										Set_Server_Dialog::oIPPortPasswordStrings.strPort);
 		if(!oNumericAddress.bIsCorrect)
 		{
-			p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_str(), "Неверные данные адрес/порт");
+			p_Message_Dialog = new Message_Dialog(m_chMsgError, m_chMsgWrongIPPort);
 			p_Message_Dialog->exec();
 			p_Message_Dialog->deleteLater();
 			goto gA;
@@ -870,7 +870,7 @@ gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877
 		FillNumericStructWithIPPortStrs(oNumericAddressHelper, QString(m_chIPInt), QString(m_chPortInt));
 		if(CheckEqualsNumbers(oNumericAddress, oNumericAddressHelper))
 		{
-gIPE:       p_Message_Dialog = new Message_Dialog(cstrMsgError.toStdString().c_str(), "Комбинация адрес/порт уже в списке");
+gIPE:       p_Message_Dialog = new Message_Dialog(m_chMsgError, "Комбинация адрес/порт уже в списке");
 			p_Message_Dialog->exec();
 			p_Message_Dialog->deleteLater();
 			goto gA;
