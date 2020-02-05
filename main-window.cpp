@@ -732,7 +732,7 @@ void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 }
 
 // При переключении кнопки 'Schematic'.
-void MainWindow::on_actionSchematic_triggered(bool checked)
+void MainWindow::on_action_Schematic_triggered(bool checked)
 {
 	p_UISettings->setValue("Schema", checked);
 	if(checked)
@@ -746,7 +746,7 @@ void MainWindow::on_actionSchematic_triggered(bool checked)
 }
 
 // При переключении кнопки 'Соединение при включении'.
-void MainWindow::on_actionConnect_at_startup_triggered(bool checked)
+void MainWindow::on_action_ConnectAtStartup_triggered(bool checked)
 {
 	p_UISettings->setValue("AutoConnection", checked);
 }

@@ -98,10 +98,10 @@ private slots:
 	static void SlotSetConnectionButtonsState(bool bConnected);
 							///< \param[in] bConnected true, если подключено.
 	/// При переключении кнопки 'Schematic'.
-	static void on_actionSchematic_triggered(bool checked);
+	static void on_action_Schematic_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.
 	/// При переключении кнопки 'Соединение при включении'.
-	static void on_actionConnect_at_startup_triggered(bool checked);
+	static void on_action_ConnectAtStartup_triggered(bool checked);
 							///< \param[in] checked Позиция переключателя.
 	/// При нажатии кнопки 'Соединение'.
 	static void on_pushButton_Connect_clicked();
