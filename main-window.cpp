@@ -2,7 +2,7 @@
 #include "main-window.h"
 #include "ui_main-window.h"
 #include "../Z-Hub/Dialogs/message-dialog.h"
-#include "Dialogs/set-password-dialog.h"
+#include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 
 //== МАКРОСЫ.
 #define LOG_NAME				"main-window"
@@ -770,7 +770,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	QMenu oMenu;
 	QAction* p_SelectedMenuItem;
 	ServersListWidgetItem* p_ServersListWidgetItem;
-	Set_Password_Dialog* p_Set_Password_Dialog;
+	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
 	p_ServersListWidgetItem = (ServersListWidgetItem*)p_ui->listWidget_Servers->itemAt(pos);
 	if(p_ServersListWidgetItem != 0)
@@ -792,12 +792,13 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 			}
 			else if(p_SelectedMenuItem->text() == m_chMsgSetPassword)
 			{
-				p_Set_Password_Dialog = new Set_Password_Dialog(p_ServersListWidgetItem->m_chPassword);
-				if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
+				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Пароль сервера",
+																			  p_ServersListWidgetItem->m_chPassword, AUTH_PASSWORD_STR_LEN);
+				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 				{
 					LCHECK_BOOL(SaveClientConfig());
 				}
-				p_Set_Password_Dialog->deleteLater();
+				p_Set_Proposed_String_Dialog->deleteLater();
 			}
 			else if(p_SelectedMenuItem->text() == m_chMsgSetAsDefault)
 			{
@@ -815,7 +816,7 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	QPoint pntGlobalPos;
 	QMenu oMenu;
 	QAction* p_SelectedMenuItem;
-	Set_Password_Dialog* p_Set_Password_Dialog;
+	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
 	oMenu.addAction(m_chMsgSetPassword);
@@ -824,12 +825,12 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	{
 		if(p_SelectedMenuItem->text() == m_chMsgSetPassword)
 		{
-			p_Set_Password_Dialog = new Set_Password_Dialog(m_chPasswordInt);
-			if(p_Set_Password_Dialog->exec() == DIALOGS_ACCEPT)
+			p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Пароль сервера", m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
+			if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 			{
 				LCHECK_BOOL(SaveClientConfig());
 			}
-			p_Set_Password_Dialog->deleteLater();
+			p_Set_Proposed_String_Dialog->deleteLater();
 		}
 	}
 }

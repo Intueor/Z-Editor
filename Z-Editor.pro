@@ -26,7 +26,7 @@ DEFINES += WIN32 _WINDOWS _CRT_SECURE_NO_WARNINGS
 
 SOURCES += \
     ../Z-Hub/Dialogs/set-server-dialog.cpp \
-    Dialogs/set-password-dialog.cpp \
+    ../Z-Hub/Dialogs/set_proposed_string_dialog.cpp \
     main.cpp \
     main-window.cpp \
     schematic-window.cpp \
@@ -44,7 +44,7 @@ SOURCES += \
 
 HEADERS += \
     ../Z-Hub/Dialogs/set-server-dialog.h \
-    Dialogs/set-password-dialog.h \
+    ../Z-Hub/Dialogs/set_proposed_string_dialog.h \
     main-window.h \
     schematic-window.h \
     schematic-view.h \
@@ -67,7 +67,7 @@ HEADERS += \
 
 FORMS += \
     ../Z-Hub/Dialogs/set-server-dialog.ui \
-    Dialogs/set-password-dialog.ui \
+    ../Z-Hub/Dialogs/set_proposed_string_dialog.ui \
     main-window.ui \
     schematic-window.ui \
     ../Z-Hub/Dialogs/message-dialog.ui
