@@ -230,7 +230,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				case PROTO_S_PASSW_ERR:
 				{
 					LOG_P_0(LOG_CAT_W, "Wrong password.");
-					emit p_This->RemoteSlotMsgDialog(m_chMsgError, "Неверный пароль");
+					emit p_This->RemoteSlotMsgDialog(m_chMsgError, "Неверный пароль.");
 					emit p_This->RemoteSlotClientStopProcedures();
 					break;
 				}
@@ -254,13 +254,13 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 			{
 				case PROTO_S_SHUTDOWN_INFO:
 				{
-					emit p_This->RemoteSlotMsgDialog("Информация", "Сервер отключил клиенты");
+					emit p_This->RemoteSlotMsgDialog("Информация", "Сервер отключил клиенты.");
 gD:					emit p_This->RemoteSlotSetConnectionButtonsState(false);
 					break;
 				}
 				case PROTO_S_KICK:
 				{
-					emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Сервер отключил клиент");
+					emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Сервер отключил клиент.");
 					goto gD;
 				}
 			}
@@ -604,7 +604,7 @@ void MainWindow::ClientStartProcedures()
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, m_chLogCantStart << "client.");
-	emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Соединение невозможно");
+	emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Соединение невозможно.");
 	SetStatusBarText(m_chStatusReady);
 }
 
@@ -693,7 +693,7 @@ void MainWindow::SlotClientStopProcedures()
 	}
 gTS:LOG_P_0(LOG_CAT_E, m_chLogCantStop << "client.");
 	RETVAL_SET(RETVAL_ERR);
-	emit p_This->RemoteSlotMsgDialog(m_chMsgError, "Программное разъединение невозможно");
+	emit p_This->RemoteSlotMsgDialog(m_chMsgError, "Программное разъединение невозможно.");
 	SetStatusBarText(m_chStatusConnected);
 }
 
@@ -776,23 +776,23 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	if(p_ServersListWidgetItem != 0)
 	{
 		pntGlobalPos = QCursor::pos();
-		oMenu.addAction(m_chMsgDelete);
-		oMenu.addAction(m_chMsgSetPassword);
+		oMenu.addAction(m_chMenuDelete);
+		oMenu.addAction(m_chMenuSetPassword);
 		if(!p_Client->CheckServerAlive())
 		{
-			oMenu.addAction(m_chMsgSetAsDefault);
+			oMenu.addAction(m_chMenuSetAsDefault);
 		}
 		p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == m_chMsgDelete)
+			if(p_SelectedMenuItem->text() == m_chMenuDelete)
 			{
 				delete p_ServersListWidgetItem;
 				LCHECK_BOOL(SaveClientConfig());
 			}
-			else if(p_SelectedMenuItem->text() == m_chMsgSetPassword)
+			else if(p_SelectedMenuItem->text() == m_chMenuSetPassword)
 			{
-				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Пароль сервера",
+				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword,
 																			  p_ServersListWidgetItem->m_chPassword, AUTH_PASSWORD_STR_LEN);
 				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 				{
@@ -800,7 +800,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->text() == m_chMsgSetAsDefault)
+			else if(p_SelectedMenuItem->text() == m_chMenuSetAsDefault)
 			{
 				CurrentServerSwap(p_ServersListWidgetItem);
 				LCHECK_BOOL(SaveClientConfig());
@@ -819,13 +819,13 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
-	oMenu.addAction(m_chMsgSetPassword);
+	oMenu.addAction(m_chMenuSetPassword);
 	p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 	if(p_SelectedMenuItem != 0)
 	{
-		if(p_SelectedMenuItem->text() == m_chMsgSetPassword)
+		if(p_SelectedMenuItem->text() == m_chMenuSetPassword)
 		{
-			p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Пароль сервера", m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
+			p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword, m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
 			if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 			{
 				LCHECK_BOOL(SaveClientConfig());
@@ -871,7 +871,7 @@ gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877
 		FillNumericStructWithIPPortStrs(oNumericAddressHelper, QString(m_chIPInt), QString(m_chPortInt));
 		if(CheckEqualsNumbers(oNumericAddress, oNumericAddressHelper))
 		{
-gIPE:       p_Message_Dialog = new Message_Dialog(m_chMsgError, "Комбинация адрес/порт уже в списке");
+gIPE:       p_Message_Dialog = new Message_Dialog(m_chMsgError, "Комбинация адрес/порт уже в списке.");
 			p_Message_Dialog->exec();
 			p_Message_Dialog->deleteLater();
 			goto gA;

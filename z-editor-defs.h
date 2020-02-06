@@ -19,10 +19,10 @@
 
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
-const char m_chMsgWarning[] = "Внимание";
-const char m_chMsgDelete[] = "Удалить";
-const char m_chMsgSetPassword[] = "Задать пароль";
-const char m_chMsgSetAsDefault[] = "Установить как текущий";
+const char m_chMenuDelete[] = "Удалить";
+const char m_chMenuSetPassword[] = "Задать пароль";
+const char m_chMenuSetAsDefault[] = "Установить как текущий";
 const char m_chStatusConnected[] = "Соединён";
+const char m_chMsgServerPassword[] = "Пароль сервера.";
 
 #endif // ZEDITORDEFS_H
