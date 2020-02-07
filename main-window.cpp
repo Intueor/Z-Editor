@@ -104,7 +104,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_ui->statusBar->addWidget(p_QLabelStatusBarText);
 	if(IsFileExists((char*)cp_chUISettingsName))
 	{
-		LOG_P_2(LOG_CAT_I, m_chLogRestoreUI);
+		LOG_P_1(LOG_CAT_I, m_chLogRestoreUI);
 		// Splitters.
 
 		// MainWidow.
@@ -216,7 +216,7 @@ void MainWindow::ServerStatusChangedCallback(bool bStatus)
 // Кэлбэк обработки прихода команд от сервера.
 void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 {
-	LOG_P_2(LOG_CAT_I, "Server command: " << ushCommand);
+	LOG_P_1(LOG_CAT_I, "Server command: " << ushCommand);
 	switch(chLastClientRequest)
 	{
 		case CLIENT_REQUEST_CONNECT:
@@ -287,7 +287,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					memcpy(oPServerName.m_chServerName, p_ReceivedData, sizeof(PServerName)); // Загрузка в соотв. структуру.
 					LCHECK_BOOL(SaveClientConfig());
 				}
-				LOG_P_2(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
+				LOG_P_1(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 			}
 			else
@@ -327,9 +327,9 @@ bool MainWindow::LoadClientConfig()
 	}
 	else
 	{
-		LOG_P_2(LOG_CAT_I, "Configuration" << m_chLogIsLoaded);
+		LOG_P_1(LOG_CAT_I, "Configuration" << m_chLogIsLoaded);
 	}
-	LOG_P_2(LOG_CAT_I, "--- Current server info ---");
+	LOG_P_1(LOG_CAT_I, "--- Current server info ---");
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pSelectedServer,
 					   "Selected_server", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
@@ -344,7 +344,7 @@ bool MainWindow::LoadClientConfig()
 	if(p_chHelper != 0)
 	{
 		CopyStrArray(p_chHelper, oPServerName.m_chServerName, SERVER_NAME_STR_LEN);
-		LOG_P_2(LOG_CAT_I, "Name: " << oPServerName.m_chServerName);
+		LOG_P_1(LOG_CAT_I, "Name: " << oPServerName.m_chServerName);
 	}
 	else
 	{
@@ -360,11 +360,11 @@ bool MainWindow::LoadClientConfig()
 		CopyStrArray(p_chHelper, m_chIPInt, IP_STR_LEN);
 		if(NetHub::CheckIPv4(p_chHelper))
 		{
-			LOG_P_2(LOG_CAT_I, "IP: " << m_chIPInt);
+			LOG_P_1(LOG_CAT_I, "IP: " << m_chIPInt);
 		}
 		else
 		{
-			LOG_P_2(LOG_CAT_I, "IP: [" << m_chIPInt << "]");
+			LOG_P_1(LOG_CAT_I, "IP: [" << m_chIPInt << "]");
 		}
 	}
 	else
@@ -380,7 +380,7 @@ bool MainWindow::LoadClientConfig()
 	if(p_chHelper != 0)
 	{
 		CopyStrArray(p_chHelper, m_chPortInt, PORT_STR_LEN);
-		LOG_P_2(LOG_CAT_I, "Port: " << m_chPortInt);
+		LOG_P_1(LOG_CAT_I, "Port: " << m_chPortInt);
 	}
 	else
 	{
@@ -417,7 +417,7 @@ bool MainWindow::LoadClientConfig()
 		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No 'Servers' node.");
 		return false;
 	}
-	LOG_P_2(LOG_CAT_I, "--- Stored servers info ---");
+	LOG_P_1(LOG_CAT_I, "--- Stored servers info ---");
 	PARSE_CHILDLIST(l_pServers.front(), p_ListServers, "Server",
 					FCN_ONE_LEVEL, p_NodeServer)
 	{
@@ -429,7 +429,7 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListName);
 		if(p_chHelper != 0)
 		{
-			LOG_P_2(LOG_CAT_I, "Name: " << p_chHelper);
+			LOG_P_1(LOG_CAT_I, "Name: " << p_chHelper);
 		}
 		oIPPortPasswordHelper.p_chIPNameBuffer = 0;
 		FIND_IN_CHILDLIST(p_NodeServer, p_ListServerIP, "IP",
@@ -441,11 +441,11 @@ bool MainWindow::LoadClientConfig()
 		{
 			if(NetHub::CheckIPv4(oIPPortPasswordHelper.p_chIPNameBuffer))
 			{
-				LOG_P_2(LOG_CAT_I, "Server IP: " << oIPPortPasswordHelper.p_chIPNameBuffer);
+				LOG_P_1(LOG_CAT_I, "Server IP: " << oIPPortPasswordHelper.p_chIPNameBuffer);
 			}
 			else
 			{
-				LOG_P_2(LOG_CAT_I, "Server IP: [" << oIPPortPasswordHelper.p_chIPNameBuffer << "]");
+				LOG_P_1(LOG_CAT_I, "Server IP: [" << oIPPortPasswordHelper.p_chIPNameBuffer << "]");
 			}
 		}
 		else
@@ -461,7 +461,7 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListPort);
 		if(oIPPortPasswordHelper.p_chPortNameBuffer != 0)
 		{
-			LOG_P_2(LOG_CAT_I, "Port: " << oIPPortPasswordHelper.p_chPortNameBuffer);
+			LOG_P_1(LOG_CAT_I, "Port: " << oIPPortPasswordHelper.p_chPortNameBuffer);
 		}
 		else
 		{
@@ -479,7 +479,7 @@ bool MainWindow::LoadClientConfig()
 			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Password'" << m_chLogNodeInList);
 			return false;
 		}
-		LOG_P_2(LOG_CAT_I, "--- ---");
+		LOG_P_1(LOG_CAT_I, "--- ---");
 		if(!oNumericAddress.bIsCorrect)
 		{
 			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "Incorrect adress format.");
