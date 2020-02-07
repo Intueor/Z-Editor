@@ -53,7 +53,7 @@ bool Client::Start(NetHub::IPPortPassword* p_IPPortPassword)
 		oConvData.bFullOnServer = false;
 		bExitAccepted = false;
 		bServerAlive = false;
-		LOG_P_2(LOG_CAT_I, "Starting client thread.");
+		LOG_P_1(LOG_CAT_I, "Starting client thread.");
 		pthread_create(&ClientThr, nullptr, ClientThread, nullptr);
 		return true;
 	}
@@ -93,7 +93,7 @@ bool Client::Stop()
 	{
 		MSleep(WAITING_FOR_SRV_STEP / 2);
 		if(bExitSignal == true) goto gES;
-		LOG_P_2(LOG_CAT_I, "Waiting for answer, attempt nr." << (chAttempt + 1));
+		LOG_P_1(LOG_CAT_I, "Waiting for answer, attempt nr." << (chAttempt + 1));
 	}
 	LOG_P_0(LOG_CAT_W, "Server not response, force disconnect.");
 gNC:bExitSignal = true;
@@ -157,7 +157,7 @@ bool Client::SendToServerImmediately(unsigned short ushCommand, char* p_chBuffer
 	{
 		if(oConvData.bSecured == false)
 		{
-			LOG_P_1(LOG_CAT_W, "Sending rejected due not secured.");
+			LOG_P_0(LOG_CAT_W, "Sending rejected due not secured.");
 			return true;
 		}
 		LOG_P_0(LOG_CAT_E, "Sending failed.");
@@ -183,7 +183,7 @@ bool Client::SendBufferToServer(bool bResetPointer, bool bTryLock)
 	{
 		if(oConvData.bSecured == false)
 		{
-			LOG_P_1(LOG_CAT_W, "Sending rejected due not secured.");
+			LOG_P_0(LOG_CAT_W, "Sending rejected due not secured.");
 			return true;
 		}
 		LOG_P_0(LOG_CAT_E, "Sending failed.");
@@ -259,7 +259,7 @@ int Client::ReleaseDataInPositionC(uint uiPos, bool bTryLock)
 	{
 		LOG_P_0(LOG_CAT_E, "Trying to relese empty position.");
 	}
-	//else if(iRes == RETVAL_OK) LOG_P_2(LOG_CAT_I, "Position has been released.");
+	//else if(iRes == RETVAL_OK) LOG_P_1(LOG_CAT_I, "Position has been released.");
 	return iRes;
 }
 
@@ -299,7 +299,7 @@ void* Client::RecThread(void *p_vPlug)
 	NetHub::ReceivedData oReceivedDataReserve;
 	//
 	bClientAlive = true;
-	LOG_P_2(LOG_CAT_I, "Receiver thread has been started.");
+	LOG_P_1(LOG_CAT_I, "Receiver thread has been started.");
 	while(!bExitSignal)
 	{
 		oConvData.oConnectionData.iStatus = (int)recv(oConvData.oConnectionData.iSocket, oConvData.m_chData,
@@ -329,7 +329,7 @@ gDp:		oConvData.iCurrentFreePocket = oInternalNetHub.FindFreeReceivedPocketsPos(
 				{
 					if(oParsingResult.bStored)
 					{
-						//LOG_P_2(LOG_CAT_I, "Received pocket nr." << (oConvData.iCurrentFreePocket + 1));
+						//LOG_P_1(LOG_CAT_I, "Received pocket nr." << (oConvData.iCurrentFreePocket + 1));
 						oConvData.mReceivedPockets[oConvData.iCurrentFreePocket].bBusy = true;
 					}
 					else
@@ -357,19 +357,19 @@ gDp:		oConvData.iCurrentFreePocket = oInternalNetHub.FindFreeReceivedPocketsPos(
 						}
 						case PROTO_S_BUFFER_FULL:
 						{
-							LOG_P_2(LOG_CAT_W, "Buffer is full on server.");
+							LOG_P_1(LOG_CAT_W, "Buffer is full on server.");
 							oConvData.bFullOnServer = true;
 							goto gI;
 						}
 						case PROTO_A_BUFFER_READY:
 						{
-							LOG_P_2(LOG_CAT_I, "Buffer is ready on server.");
+							LOG_P_1(LOG_CAT_I, "Buffer is ready on server.");
 							oConvData.bFullOnServer = false;
 							goto gI;
 						}
 						case PROTO_S_ACCEPT_LEAVING:
 						{
-							LOG_P_2(LOG_CAT_I, "Leaving accepted.");
+							LOG_P_1(LOG_CAT_I, "Leaving accepted.");
 gBE:						bExitAccepted = true;
 							bExitSignal = true;
 							pthread_mutex_unlock(&ptConnMutex);
@@ -423,13 +423,13 @@ gI:					break;
 			}
 			if(oInternalNetHub.FindFreeReceivedPocketsPos(oConvData.mReceivedPockets) == BUFFER_IS_FULL)
 			{
-				LOG_P_2(LOG_CAT_W, "Buffer is full on client.");
+				LOG_P_1(LOG_CAT_W, "Buffer is full on client.");
 				oConvData.bFullOnClient = true;
 				SendToConnectionImmediately(oConvData.oConnectionData, PROTO_C_BUFFER_FULL);
 			}
 			if(oParsingResult.p_chExtraData != 0)
 			{
-				//LOG_P_2(LOG_CAT_I, MSG_GOT_MERGED);
+				LOG_P_2(LOG_CAT_I, (char*)m_chLogMerged);
 				p_chData = oParsingResult.p_chExtraData;
 				iLength = oParsingResult.iExtraDataLength;
 				goto gDp;
@@ -446,7 +446,7 @@ gI:					break;
 		}
 		pthread_mutex_unlock(&ptConnMutex);
 	}
-gCE:LOG_P_2(LOG_CAT_I, "Exiting receiver thread.");
+gCE:LOG_P_1(LOG_CAT_I, "Exiting receiver thread.");
 	if(pf_CBServerStatusChangedInt != 0)
 	{
 		pf_CBServerStatusChangedInt(false);
@@ -460,8 +460,8 @@ void* Client::ConnectionThread(void* p_vPlug)
 {
 	p_vPlug = p_vPlug;
 	//
-	LOG_P_2(LOG_CAT_I, "Connection thread has been started.");
-	LOG_P_2(LOG_CAT_I, "Connecting...");
+	LOG_P_1(LOG_CAT_I, "Connection thread has been started.");
+	LOG_P_1(LOG_CAT_I, "Connecting...");
 	oConvData.oConnectionData.iStatus = connect(oConvData.oConnectionData.iSocket,
 											(sockaddr*)oConvData.oConnectionData.ai_addr,
 											(int)oConvData.oConnectionData.ai_addrlen);
@@ -474,7 +474,7 @@ void* Client::ConnectionThread(void* p_vPlug)
 		LOG_P_0(LOG_CAT_W, "Connection error: " << strerror(errno));
 	}
 #endif
-	LOG_P_2(LOG_CAT_I, "Exiting connection thread.");
+	LOG_P_1(LOG_CAT_I, "Exiting connection thread.");
 	bConnectionThrAlive = false;
 	RETURN_THREAD;
 }
@@ -502,7 +502,7 @@ void* Client::ClientThread(void *p_vPlug)
 	WSADATA wsadata;
 #endif
 	//
-	LOG_P_2(LOG_CAT_I, "Client thread has been started.");
+	LOG_P_1(LOG_CAT_I, "Client thread has been started.");
 	// Подготовка соединения клиента.
 #ifdef WIN32
 	if(WSAStartup(MAKEWORD(2, 2), &wsadata) != NO_ERROR)
@@ -561,7 +561,7 @@ gCO:    if(uchAttempt == 4)
 		{
 			MSleep(WAITING_FOR_SRV_STEP);
 			oConvData.oConnectionData.iStatus = 1;
-			LOG_P_2(LOG_CAT_I, "Attempt nr." << (int)uchAttempt << ". Waiting for connection...");
+			LOG_P_1(LOG_CAT_I, "Attempt nr." << (int)uchAttempt << ". Waiting for connection...");
 			bConnectionThrAlive = true;
 			pthread_create(&ConnectThr, nullptr, ConnectionThread, 0); // Запуск потока ожидания соединения с сервером.
 		}
@@ -575,16 +575,16 @@ gCO:    if(uchAttempt == 4)
 	//
 	SendToConnectionImmediately(oConvData.oConnectionData, PROTO_C_SEND_PASSW, false, p_IPPortPasswordInt->p_chPasswordNameBuffer,
 								(int)strlen(p_IPPortPasswordInt->p_chPasswordNameBuffer));
-	LOG_P_2(LOG_CAT_I, "Authentification is requested.");
-	LOG_P_2(LOG_CAT_I, "Starting receiver thread.");
+	LOG_P_1(LOG_CAT_I, "Authentification is requested.");
+	LOG_P_1(LOG_CAT_I, "Starting receiver thread.");
 	pthread_create(&RecThr, nullptr, RecThread, nullptr); // Запуск потока приёма.
 	//
-	LOG_P_2(LOG_CAT_I, "Waiting for response.");
+	LOG_P_1(LOG_CAT_I, "Waiting for response.");
 	for(unsigned char uchAtt = 0; uchAtt != CLIENT_WAITING_ATTEMPTS; uchAtt++)
 	{
 		if(bServerAlive)
 		{
-			LOG_P_2(LOG_CAT_I, "Ready for conversation.");
+			LOG_P_1(LOG_CAT_I, "Ready for conversation.");
 			goto gSA;
 		}
 		MSleep(USER_RESPONSE_MS);
@@ -599,7 +599,7 @@ gSA:while(!bExitSignal)
 	}
 	if(bExitAccepted)
 	{
-		LOG_P_2(LOG_CAT_I, "Regulated disconnection.")
+		LOG_P_1(LOG_CAT_I, "Regulated disconnection.")
 	}
 	else
 	{
@@ -607,7 +607,7 @@ gFN:	LOG_P_1(LOG_CAT_W, "Cancelling receiver thread.");
 		pthread_cancel(RecThr);
 	}
 	// Закрытие приёмника.
-exr:LOG_P_2(LOG_CAT_I, "Closing socket...");
+exr:LOG_P_1(LOG_CAT_I, "Closing socket...");
 #ifndef WIN32
 	shutdown(oConvData.oConnectionData.iSocket, SHUT_RDWR);
 	close(oConvData.oConnectionData.iSocket);
@@ -619,7 +619,7 @@ ex:
 	WSACleanup();
 #endif
 	freeaddrinfo(p_Res);
-	LOG_P_2(LOG_CAT_I, "Exiting client thread.");
+	LOG_P_1(LOG_CAT_I, "Exiting client thread.");
 	bClientAlive = false;
 	TryMutexLock;
 	for(uint uiPos = 0; uiPos < S_MAX_STORED_POCKETS; uiPos++)
