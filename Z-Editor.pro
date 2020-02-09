@@ -27,6 +27,12 @@ DEFINES += WIN32 _WINDOWS _CRT_SECURE_NO_WARNINGS
 SOURCES += \
     ../Z-Hub/Dialogs/set-server-dialog.cpp \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.cpp \
+    graphics-element-item.cpp \
+    graphics-frame-item.cpp \
+    graphics-group-item.cpp \
+    graphics-link-item.cpp \
+    graphics-port-item.cpp \
+    graphics-scaler-item.cpp \
     main.cpp \
     main-window.cpp \
     schematic-window.cpp \
@@ -45,6 +51,12 @@ SOURCES += \
 HEADERS += \
     ../Z-Hub/Dialogs/set-server-dialog.h \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.h \
+    graphics-element-item.h \
+    graphics-frame-item.h \
+    graphics-group-item.h \
+    graphics-link-item.h \
+    graphics-port-item.h \
+    graphics-scaler-item.h \
     main-window.h \
     schematic-window.h \
     schematic-view.h \

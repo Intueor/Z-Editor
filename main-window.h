@@ -27,6 +27,9 @@ namespace Ui {
 class SchematicWindow;
 class WidgetsThrAccess;
 class ServersListWidgetItem;
+class GraphicsElementItem;
+class GraphicsLinkItem;
+class GraphicsGroupItem;
 
 // Для избежания ошибки при доступе из другого потока.
 Q_DECLARE_METATYPE(QVector<int>)
@@ -87,6 +90,11 @@ private:
 	/// Обмен выбранного сервера списка серверов с текущим сервером.
 	static void CurrentServerSwap(ServersListWidgetItem* p_ServersListWidgetItem);
 							///< \param[in] p_ServersListWidgetItem Указатель на строку списка для обмена.
+	/// Удалённое (относительно потока) обновление граф. окна и отправка данных о рабочем фрейме.
+	static void RemoteUpdateSchViewAndSendRFrame();
+	/// Удаление линков у элемента.
+	static void EraseLinksFromElement(unsigned long long ullIDInt);
+							///< \param[in] ullIDInt ИД элемента.
 private slots:
 	/// Процедуры остановки клиента.
 	static void SlotClientStopProcedures();
@@ -139,6 +147,9 @@ public:
 	static SchematicWindow* p_SchematicWindow; ///< Указатель на класс окна схематического обзора.
 	static WidgetsThrAccess* p_WidgetsThrAccess; ///< Указатель на объект класса доступа к интерфейсу.
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
+	static Client* p_Client; ///< Указатель на объект клиента.
+	static bool bBlockingGraphics; ///< Признак блокировки главным окном.
+	static bool bFrameRequested; ///< Признак запрошенного кадра с сервера.
 
 private:
 	LOGDECL
@@ -147,7 +158,6 @@ private:
 	static Ui::MainWindow *p_ui; ///< Указатель на UI.
 	static const char* cp_chUISettingsName; ///< Указатель на имя файла с установками UI.
 	static QLabel* p_QLabelStatusBarText; ///< Указатель на объект метки статуса.
-	static Client* p_Client; ///< Указатель на объект клиента.
 	static PServerName oPServerName; ///< Объект структуры для заполнения именем сервера.
 	static char m_chIPInt[IP_STR_LEN]; ///< Внутренний массив строки IP.
 	static char m_chPortInt[PORT_STR_LEN]; ///< Внутренний массив порта.
@@ -155,6 +165,7 @@ private:
 	static NetHub::IPPortPassword oIPPortPassword; ///< Структура с указателями на IP, порт и пароль.
 	static char chLastClientRequest; ///< Последний запрос клиента.
 	static bool bBlockConnectionButtons; ///< Флаг блокировки кнопок соединения от повторного нажатия при программных переключениях.
+	static PSchReadyFrame oPSchReadyFrame; ///< Объект параметров запрашиваемого окна схемы.
 };
 
 /// Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -181,4 +192,46 @@ public:
 	char* GetName();
 							///< \return Получение структуры с указателями на сохранённые массивы строк с описанием сервера.
 };
+
+/// Класс потоко-независимого доступа к интерфейсу.
+class WidgetsThrAccess : public QObject
+{
+	Q_OBJECT
+
+private:
+	static Ui::MainWindow* p_uiInt; ///< Внутренний указатель на главное окно.
+
+public:
+	static GraphicsElementItem* p_ConnGraphicsElementItem; ///< Обменный ук. на графический объект элемента.
+	static GraphicsLinkItem* p_ConnGraphicsLinkItem; ///< Обменный ук. на графический объект линка.
+	static GraphicsGroupItem* p_ConnGraphicsGroupItem; ///< Обменный ук. на графический объект группы.
+	//
+	static PSchElementBase* p_PSchElementBase; ///< Указатель на данные по элементу схемы.
+	static PSchLinkBase* p_PSchLinkBase; ///< Указатель на данные по линку схемы.
+	static PSchGroupBase* p_PSchGroupBase; ///< Указатель на данные по группе схемы.
+
+public:
+	/// Конструктор.
+	WidgetsThrAccess(Ui::MainWindow* p_ui);
+							///< \param[in] p_ui Указатель интерфейс.
+
+public slots:
+	/// Добавление графического объекта элемента.
+	static void AddGraphicsElementItem();
+	/// Удаление графического объекта элемента.
+	static void RemoveGraphicsElementItem();
+	/// Удаление графического объекта группы.
+	static void RemoveGraphicsGroupItem();
+	/// Добавление графического объекта линка.
+	static void AddGraphicsLinkItem();
+	/// Добавление графического объекта группы.
+	static void AddGraphicsGroupItem();
+	/// Установка ширины строки названия группы по указателю p_ConnGraphicsGroupItem.
+	static void GroupLabelWidthSet();
+	/// Установка геометрии групбокса элемента по указателю p_ConnGraphicsElementItem и размеру из oDbPointFrameSize.
+	static void ElementGroupBoxSizeSet();
+	/// Очистка сцены.
+	void ClearScene();
+};
+
 #endif // MAINWINDOW_H

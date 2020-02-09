@@ -26,6 +26,17 @@ char MainWindow::m_chPasswordInt[AUTH_PASSWORD_STR_LEN];
 NetHub::IPPortPassword MainWindow::oIPPortPassword;
 char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
 bool MainWindow::bBlockConnectionButtons = false;
+bool MainWindow::bBlockingGraphics = false;
+bool MainWindow::bFrameRequested = false;
+PSchReadyFrame MainWindow::oPSchReadyFrame;
+Ui::MainWindow* WidgetsThrAccess::p_uiInt = nullptr;
+PSchElementBase* WidgetsThrAccess::p_PSchElementBase = nullptr;
+PSchLinkBase* WidgetsThrAccess::p_PSchLinkBase = nullptr;
+PSchGroupBase* WidgetsThrAccess::p_PSchGroupBase = nullptr;
+GraphicsElementItem* WidgetsThrAccess::p_ConnGraphicsElementItem = nullptr;
+GraphicsLinkItem* WidgetsThrAccess::p_ConnGraphicsLinkItem = nullptr;
+GraphicsGroupItem* WidgetsThrAccess::p_ConnGraphicsGroupItem = nullptr;
+WidgetsThrAccess* MainWindow::p_WidgetsThrAccess = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -150,11 +161,13 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	//
 #endif
+	p_WidgetsThrAccess = new WidgetsThrAccess(p_ui);
 }
 
 // Деструктор.
 MainWindow::~MainWindow()
 {
+	delete p_WidgetsThrAccess;
 	if(RETVAL == RETVAL_OK)
 	{
 		LOG_P_0(LOG_CAT_I, m_chLogExit)
@@ -297,7 +310,570 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 			bProcessed = true;
 			break;
 		}
-		// Следующий раздел...
+		//========  Раздел PROTO_O_SCH_ELEMENT_BASE. ========
+		case PROTO_O_SCH_ELEMENT_BASE:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchElementBase oPSchElementBase;
+				GraphicsElementItem* p_GraphicsElementItem;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				bool bGroupFounded = false;
+				//
+				oPSchElementBase = *(PSchElementBase*)p_ReceivedData;
+				LOG_P_2(LOG_CAT_I, "{In} Element base [" << QString(oPSchElementBase.m_chName).toStdString() << "]");
+				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
+				{
+					if(SchematicWindow::vp_Elements.at(iF)->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+							oPSchElementBase.oPSchElementVars.ullIDInt)
+					{
+						LOG_P_0(LOG_CAT_W, "Duplicate element arrived, ignored.");
+						goto gP;
+					}
+				}
+				p_WidgetsThrAccess->p_PSchElementBase = &oPSchElementBase;
+				p_WidgetsThrAccess->p_ConnGraphicsElementItem = 0;
+				ThrUiAccessET(p_WidgetsThrAccess, AddGraphicsElementItem);
+				while(p_WidgetsThrAccess->p_ConnGraphicsElementItem == 0)
+				{
+					MSleep(INTERFACE_RESPONSE_MS);
+				}
+				p_GraphicsElementItem = p_WidgetsThrAccess->p_ConnGraphicsElementItem;
+				p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchElementGraph.dbObjectZPos);
+				SchematicWindow::vp_Elements.push_front(p_GraphicsElementItem);
+				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
+				{
+					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+					{
+						p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+						if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup)
+						{
+							p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
+							p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+							bGroupFounded = true;
+							if(p_GraphicsElementItem->oPSchElementBaseInt.bRequestGroupUpdate)
+							{
+								GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
+							}
+							break;
+						}
+					}
+					if(!bGroupFounded)
+					{
+						SchematicWindow::vp_LonelyElements.push_front(p_GraphicsElementItem);
+					}
+				}
+gP:				if(oPSchElementBase.oPSchElementVars.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_ELEMENT_VARS. ========
+		case PROTO_O_SCH_ELEMENT_VARS:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchElementVars oPSchElementVars;
+				GraphicsElementItem* p_GraphicsElementItem;
+				//
+				oPSchElementVars = *(PSchElementVars*)p_ReceivedData;
+				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
+				{
+					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+							oPSchElementVars.ullIDInt)
+					{
+						// Установка новых параметров.
+						LOG_P_2(LOG_CAT_I, "{In} Element vars [" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
+						p_GraphicsElementItem->IncomingUpdateElementParameters(p_GraphicsElementItem, oPSchElementVars);
+						goto gC;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_ELEMENT_VARS");
+				//
+gC:				if(oPSchElementVars.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_ELEMENT_NAME. ========
+		case PROTO_O_SCH_ELEMENT_NAME:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchElementName oPSchElementName;
+				GraphicsElementItem* p_GraphicsElementItem;
+				//
+				oPSchElementName = *(PSchElementName*)p_ReceivedData;
+				LOG_P_2(LOG_CAT_I, "{In} Element name [" << QString(oPSchElementName.m_chName).toStdString() << "]");
+				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
+				{
+					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+							oPSchElementName.ullIDInt)
+					{
+						// Установка нового имени.
+						CopyStrArray(oPSchElementName.m_chName, p_GraphicsElementItem->oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
+						p_GraphicsElementItem->p_QGroupBox->setTitle(p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
+						goto gN;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_ELEMENT_NAME");
+gN:				if(oPSchElementName.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_LINK_BASE. ========
+		case PROTO_O_SCH_LINK_BASE:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchLinkBase oPSchLinkBase;
+				GraphicsLinkItem* p_GraphicsLinkItem;
+				GraphicsLinkItem* p_WaitingHelper = nullptr;
+				//
+				oPSchLinkBase = *(PSchLinkBase*)p_ReceivedData;
+				for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
+				{
+					p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+					if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
+						oPSchLinkBase.oPSchLinkVars.ullIDSrc) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
+							 oPSchLinkBase.oPSchLinkVars.ullIDDst) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort ==
+							 oPSchLinkBase.oPSchLinkVars.ushiSrcPort) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort ==
+							 oPSchLinkBase.oPSchLinkVars.ushiDstPort))
+					{
+						LOG_P_0(LOG_CAT_W, "Duplicate link arrived, ignored.");
+						goto gL;
+					}
+				}
+				p_WidgetsThrAccess->p_PSchLinkBase = &oPSchLinkBase;
+				p_WidgetsThrAccess->p_ConnGraphicsLinkItem = 0;
+				ThrUiAccessET(p_WidgetsThrAccess, AddGraphicsLinkItem);
+				p_WidgetsThrAccess->p_ConnGraphicsLinkItem = (GraphicsLinkItem*) -1;
+				p_WaitingHelper = p_WidgetsThrAccess->p_ConnGraphicsLinkItem;
+				while(p_WidgetsThrAccess->p_ConnGraphicsLinkItem == p_WaitingHelper)
+				{
+					MSleep(INTERFACE_RESPONSE_MS);
+				}
+				if (p_WidgetsThrAccess->p_ConnGraphicsLinkItem == nullptr)
+				{
+					LOG_P_0(LOG_CAT_W, "Incorrect link arrived, ignored.");
+					goto gL;
+				}
+				p_GraphicsLinkItem = p_WidgetsThrAccess->p_ConnGraphicsLinkItem;
+				LOG_P_2(LOG_CAT_I, "{In} Link base [" <<
+						QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString()
+						<< "<>" << QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
+						<< "]");
+				SchematicWindow::vp_Links.push_front(p_GraphicsLinkItem);
+				GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItem);
+gL:				if(oPSchLinkBase.oPSchLinkVars.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_LINK_VARS. ========
+		case PROTO_O_SCH_LINK_VARS:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchLinkVars oPSchLinkVars;
+				GraphicsLinkItem* p_GraphicsLinkItem;
+				//
+				oPSchLinkVars = *(PSchLinkVars*)p_ReceivedData;
+				for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
+				{
+					p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+					if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
+						oPSchLinkVars.ullIDSrc) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
+							 oPSchLinkVars.ullIDDst) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort ==
+							 oPSchLinkVars.ushiSrcPort) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort ==
+							 oPSchLinkVars.ushiDstPort))
+					{
+						// Установка новых параметров.
+						LOG_P_2(LOG_CAT_I, "{In} Link vars [" <<
+								QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString() << "<>" <<
+								QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
+								<< "]");
+						p_GraphicsLinkItem->IncomingUpdateLinkParameters(p_GraphicsLinkItem, oPSchLinkVars);
+						goto gS;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_LINK_VARS");
+				//
+gS:				if(oPSchLinkVars.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_GROUP_BASE. ========
+		case PROTO_O_SCH_GROUP_BASE:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchGroupBase oPSchGroupBase;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				GraphicsGroupItem* p_GraphicsGroupItemInt;
+				GraphicsElementItem* p_GraphicsElementItem;
+				GraphicsElementItem* p_GraphicsElementItemInt;
+				//
+				oPSchGroupBase = *(PSchGroupBase*)p_ReceivedData;
+				LOG_P_2(LOG_CAT_I, "{In} Group base [" << QString(oPSchGroupBase.m_chName).toStdString() << "]");
+				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+				{
+					if(SchematicWindow::vp_Groups.at(iF)->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+							oPSchGroupBase.oPSchGroupVars.ullIDInt)
+					{
+						LOG_P_0(LOG_CAT_W, "Duplicate group arrived, ignored.");
+						goto gG;
+					}
+				}
+				p_WidgetsThrAccess->p_PSchGroupBase = &oPSchGroupBase;
+				p_WidgetsThrAccess->p_ConnGraphicsGroupItem = 0;
+				ThrUiAccessET(p_WidgetsThrAccess, AddGraphicsGroupItem);
+				while(p_WidgetsThrAccess->p_ConnGraphicsGroupItem == 0)
+				{
+					MSleep(INTERFACE_RESPONSE_MS);
+				}
+				p_GraphicsGroupItem = p_WidgetsThrAccess->p_ConnGraphicsGroupItem;
+				p_GraphicsGroupItem->setZValue(oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.dbObjectZPos);
+				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
+				// Добавение в группу привязанных элементов.
+				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++) // По всем элементам.
+				{
+					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup ==
+							p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt) // Если элемент принадлежит группе...
+					{
+						bool bAlreadyPresent = false;
+						for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++) // По всем вписанным элементам.
+						{
+							if(p_GraphicsGroupItem->vp_ConnectedElements.at(iF)->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+									p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt) // Если уже вписан - игнор.
+							{
+								bAlreadyPresent = true;
+								break;
+							}
+						}
+						if(bAlreadyPresent == false) // Если новый для группы...
+						{
+							p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem); // Добавление в группу.
+							if(p_GraphicsElementItem->oPSchElementBaseInt.bRequestGroupUpdate)
+							{
+								GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
+							}
+							p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+							// По всем элементам в ожидании групп.
+							for(int iF = 0; iF < SchematicWindow::vp_LonelyElements.count(); iF++)
+							{
+								p_GraphicsElementItemInt = SchematicWindow::vp_LonelyElements.at(iF);
+								if(p_GraphicsElementItemInt == p_GraphicsElementItem)
+									// Если присоединённый элемент был в списке ожидающих...
+								{
+									// Удаление из ожидающих, счётчик на один назад.
+									SchematicWindow::vp_LonelyElements.removeAt(iF);
+									iF--;
+								}
+							}
+						}
+					}
+				}
+				// Добавление в остальные группы всех ожидающих привязанных элементов (подстраховка от рассинхрона,
+				// по тестам - желательно убрать).
+				if(!SchematicWindow::vp_LonelyElements.isEmpty()) // Если вообще есть ожидающие...
+				{
+					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // По всем группам, кроме текущей.
+					{
+						p_GraphicsGroupItemInt = SchematicWindow::vp_Groups.at(iF);
+						if(p_GraphicsGroupItemInt != p_GraphicsGroupItem)
+						{
+							// По всем элементам в ожидании групп.
+							for(int iF = 0; iF < SchematicWindow::vp_LonelyElements.count(); iF++)
+							{
+								p_GraphicsElementItem = SchematicWindow::vp_LonelyElements.at(iF);
+								if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup ==
+										p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
+									// Если элемент принадлежит группе...
+								{
+									bool bAlreadyPresent = false;
+									for(int iF = 0; iF < p_GraphicsGroupItemInt->vp_ConnectedElements.count(); iF++)
+										// По всем вписанным элементам.
+									{
+										if(p_GraphicsGroupItemInt->vp_ConnectedElements.at(iF)->
+												oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+												p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
+											// Если уже вписан - игнор.
+										{
+											bAlreadyPresent = true;
+											break;
+										}
+									}
+									if(bAlreadyPresent == false) // Если новый для группы...
+									{
+										// Добавление в группу.
+										p_GraphicsGroupItemInt->vp_ConnectedElements.push_front(p_GraphicsElementItem);
+										p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+										// Удаление из ожидающих, счётчик на один назад.
+										SchematicWindow::vp_LonelyElements.removeAt(iF);
+										iF--;
+									}
+								}
+							}
+						}
+					}
+				}
+				//
+gG:				if(oPSchGroupBase.oPSchGroupVars.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_GROUP_VARS. ========
+		case PROTO_O_SCH_GROUP_VARS:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchGroupVars oPSchGroupVars;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				//
+				oPSchGroupVars = *(PSchGroupVars*)p_ReceivedData;
+				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+				{
+					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+					if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+							oPSchGroupVars.ullIDInt)
+					{
+						// Установка новых параметров.
+						LOG_P_2(LOG_CAT_I, "{In} Group vars [" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
+						p_GraphicsGroupItem->IncomingUpdateGroupParameters(p_GraphicsGroupItem, oPSchGroupVars);
+						goto gI;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_GROUP_VARS");
+				//
+gI:				if(oPSchGroupVars.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_GROUP_NAME. ========
+		case PROTO_O_SCH_GROUP_NAME:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchGroupName oPSchGroupName;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				//
+				oPSchGroupName = *(PSchGroupName*)p_ReceivedData;
+				LOG_P_2(LOG_CAT_I, "{In} Group name [" << QString(oPSchGroupName.m_chName).toStdString() << "]");
+				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+				{
+					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+					if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+							oPSchGroupName.ullIDInt)
+					{
+						// Установка нового имени.
+						CopyStrArray(oPSchGroupName.m_chName, p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
+						p_GraphicsGroupItem->p_QLabel->setText(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName);
+						goto gGN;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_GROUP_NAME");
+gGN:			if(oPSchGroupName.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_ELEMENT_ERASE. ========
+		case PROTO_O_SCH_ELEMENT_ERASE:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchElementEraser oPSchElementEraser;
+				GraphicsElementItem* p_GraphicsElementItem = nullptr;
+				//
+				oPSchElementEraser = *(PSchElementEraser*)p_ReceivedData;
+				// Работа с линками.
+				EraseLinksFromElement(oPSchElementEraser.ullIDInt);
+				// Работа с элементами.
+				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++) // Поиск по всем элементам...
+				{
+					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+							oPSchElementEraser.ullIDInt) // Найден удаляемый элемент...
+					{
+						LOG_P_2(LOG_CAT_I, "{In} Erase element [" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
+						// Работа с группой.
+						if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
+						{
+							for(int iEGC = 0; iEGC < p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.count(); iEGC++)
+							{
+								if(p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.at(iEGC)->oPSchElementBaseInt.
+										oPSchElementVars.ullIDInt == oPSchElementEraser.ullIDInt)
+								{
+									p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.removeAt(iEGC);
+									if(p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.isEmpty())
+									{
+										SchematicWindow::vp_Groups.removeOne(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+										p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+										break;
+									}
+									GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+									break;
+								}
+							}
+						}
+						// Удалене связанных граф. портов.
+						GraphicsElementItem::RemovePortsByID(oPSchElementEraser.ullIDInt);
+						// Удаление граф. элемента.
+						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
+						SchematicWindow::vp_Elements.removeAt(iF);
+						break;
+					}
+				}
+				if(p_GraphicsElementItem == nullptr)
+				{
+					LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
+				}
+				if(oPSchElementEraser.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_GROUP_ERASE. ========
+		case PROTO_O_SCH_GROUP_ERASE:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchGroupEraser oPSchGroupEraser;
+				GraphicsGroupItem* p_GraphicsGroupItem = nullptr;
+				GraphicsElementItem* p_GraphicsElementItem = nullptr;
+				//
+				oPSchGroupEraser = *(PSchGroupEraser*)p_ReceivedData;
+				// Поиск группы.
+				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // Поиск по всем группам...
+				{
+					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+					if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+							oPSchGroupEraser.ullIDInt) // Найдена удаляемая группа...
+					{
+						LOG_P_2(LOG_CAT_I, "{In} Erase group [" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
+						// Удаление граф. группы.
+						for(int iE = 0; iE < p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
+						{
+							p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
+							EraseLinksFromElement(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt);
+							SchematicWindow::vp_Elements.removeOne(p_GraphicsElementItem);
+							MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
+						}
+						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
+						SchematicWindow::vp_Groups.removeAt(iF);
+						break;
+					}
+				}
+				if(p_GraphicsGroupItem == nullptr)
+				{
+					LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
+				}
+				if(oPSchGroupEraser.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+			// Следующий раздел...
 	}
 	//
 	if(!bProcessed)
@@ -677,6 +1253,47 @@ void MainWindow::CurrentServerSwap(ServersListWidgetItem* p_ServersListWidgetIte
 	delete p_ServersListWidgetItem;
 }
 
+// Удалённое (относительно потока) обновление граф. окна и отправка данных о рабочем фрейме.
+void MainWindow::RemoteUpdateSchViewAndSendRFrame()
+{
+	QRectF oQRectF;
+	//
+	emit p_SchematicWindow->p_MainWindow->RemoteUpdateSchView();
+	oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
+	QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
+	LCHECK_BOOL(p_Client->SendToServerImmediately(
+					PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame), true, false));
+	bFrameRequested = true;
+}
+
+// Удаление линков у элемента.
+void MainWindow::EraseLinksFromElement(unsigned long long ullIDInt)
+{
+	bool bToErase = false;
+	int iLC = SchematicWindow::vp_Links.count();
+	GraphicsLinkItem* p_GraphicsLinkItem;
+	//
+	for(int iL = 0; iL < iLC; iL++) // По всем линкам...
+	{
+		p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iL);
+		if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc == ullIDInt)
+		{
+			bToErase = true; // Линк относится к удаляемому и будет тоже удалён.
+		}
+		else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst == ullIDInt)
+		{
+			bToErase = true; // Линк относится к удаляемому и будет тоже удалён.
+		}
+		if(bToErase) // При устаонве на удаление...
+		{
+			MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem); // Удаление из сцены.
+			SchematicWindow::vp_Links.removeAt(iL); // Удаление указателя из списка.
+			iLC--;
+			iL--;
+		}
+	}
+}
+
 // Процедуры остановки клиента.
 void MainWindow::SlotClientStopProcedures()
 {
@@ -917,4 +1534,73 @@ void MainWindow::on_listWidget_Servers_itemDoubleClicked(QListWidgetItem* item)
 	p_ServersListWidgetItem = (ServersListWidgetItem*)item;
 	CurrentServerSwap(p_ServersListWidgetItem);
 	LCHECK_BOOL(SaveClientConfig());
+}
+
+//== Класс потоко-независимого доступа к интерфейсу.
+// Конструктор.
+WidgetsThrAccess::WidgetsThrAccess(Ui::MainWindow *p_ui)
+{
+	p_uiInt = p_ui;
+}
+
+// Добавление графического объекта элемента.
+void WidgetsThrAccess::AddGraphicsElementItem()
+{
+	p_ConnGraphicsElementItem = new GraphicsElementItem(p_PSchElementBase);
+	MainWindow::p_SchematicWindow->oScene.addItem(p_ConnGraphicsElementItem);
+}
+
+// Удаление графического объекта элемента.
+void WidgetsThrAccess::RemoveGraphicsElementItem()
+{
+	MainWindow::p_SchematicWindow->oScene.removeItem(p_ConnGraphicsElementItem);
+}
+
+// Удаление графического объекта группы.
+void WidgetsThrAccess::RemoveGraphicsGroupItem()
+{
+	MainWindow::p_SchematicWindow->oScene.removeItem(p_ConnGraphicsGroupItem);
+}
+
+// Добавление графического объекта линка.
+void WidgetsThrAccess::AddGraphicsLinkItem()
+{
+	p_ConnGraphicsLinkItem = new GraphicsLinkItem(p_PSchLinkBase);
+	if(p_PSchLinkBase->oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+	{
+		MainWindow::p_SchematicWindow->oScene.addItem(p_ConnGraphicsLinkItem);
+	}
+	else
+	{
+		delete p_ConnGraphicsLinkItem;
+		p_ConnGraphicsLinkItem = nullptr;
+	}
+}
+
+// Установка размеров групбокса элемента по указателю p_ConnGraphicsElementItem и размеру из oDbPointFrameSize.
+void WidgetsThrAccess::ElementGroupBoxSizeSet()
+{
+	p_ConnGraphicsElementItem->p_QGroupBox->setFixedSize(
+				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW - 6,
+				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH - 3);
+}
+
+// Установка ширины строки названия группы по указателю p_ConnGraphicsGroupItem.
+void WidgetsThrAccess::GroupLabelWidthSet()
+{
+	p_ConnGraphicsGroupItem->p_QLabel->setFixedWidth(
+				p_ConnGraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW - 6);
+}
+
+// Добавление графического объекта группы.
+void WidgetsThrAccess::AddGraphicsGroupItem()
+{
+	p_ConnGraphicsGroupItem = new GraphicsGroupItem(p_PSchGroupBase);
+	MainWindow::p_SchematicWindow->oScene.addItem(p_ConnGraphicsGroupItem);
+}
+
+// Очистка сцены.
+void WidgetsThrAccess::ClearScene()
+{
+	MainWindow::p_SchematicWindow->oScene.clear();
 }

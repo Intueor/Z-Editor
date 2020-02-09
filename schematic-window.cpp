@@ -16,8 +16,30 @@ QSettings* SchematicWindow::p_UISettings = nullptr;
 MainWindow* SchematicWindow::p_MainWindow = nullptr;
 QPolygon SchematicWindow::oPolygonForScaler;
 QTimer SchematicWindow::oQTimerSelectionFlashing;
-QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
 bool SchematicWindow::bRefClose = false;
+QBrush SchematicWindow::oQBrushDark;
+QBrush SchematicWindow::oQBrushLight;
+QPen SchematicWindow::oQPenWhite;
+QPen SchematicWindow::oQPenBlack;
+QPen SchematicWindow::oQPenWhiteTransparent;
+QPen SchematicWindow::oQPenBlackTransparent;
+QPen SchematicWindow::oQPenElementFrameFlash;
+QPen SchematicWindow::oQPenGroupFrameFlash;
+QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedElements;
+QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedFreeElements;
+QVector<GraphicsGroupItem*> SchematicWindow::vp_SelectedGroups;
+QVector<GraphicsElementItem*> SchematicWindow::vp_Elements;
+QVector<GraphicsGroupItem*> SchematicWindow::vp_Groups;
+QVector<GraphicsLinkItem*> SchematicWindow::vp_Links;
+QVector<GraphicsPortItem*> SchematicWindow::vp_Ports;
+QVector<GraphicsElementItem*> SchematicWindow::vp_LonelyElements;
+unsigned char SchematicWindow::uchElementSelectionFlashCounter = 1;
+unsigned char SchematicWindow::uchGroupSelectionFlashCounter = 1;
+QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
+qreal SchematicWindow::dbObjectZPos = 1;
+QMenu* SchematicWindow::p_Menu = nullptr;
+Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
+GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс окна обзора.
@@ -105,4 +127,26 @@ void SchematicWindow::closeEvent(QCloseEvent *event)
 	}
 	//
 	QMainWindow::closeEvent(event);
+}
+
+// Получение указателя на окно обзора.
+SchematicView* SchematicWindow::GetSchematicView()
+{
+	return p_ui->oSchematicView;
+}
+
+// Установка временного стиля кистей общего пользования.
+void SchematicWindow::SetTempBrushesStyle(Qt::BrushStyle iStyle)
+{
+	iLStyle = SchematicWindow::oQBrushLight.style();
+	iDStyle = SchematicWindow::oQBrushDark.style();
+	SchematicWindow::oQBrushLight.setStyle(iStyle);
+	SchematicWindow::oQBrushDark.setStyle(iStyle);
+}
+
+// Отмена временного стиля кистей общего пользования.
+void SchematicWindow::RestoreBrushesStyles()
+{
+	SchematicWindow::oQBrushLight.setStyle(iLStyle);
+	SchematicWindow::oQBrushDark.setStyle(iDStyle);
 }
