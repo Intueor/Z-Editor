@@ -292,9 +292,31 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 	//
 	switch(ushType)
 	{
+		//========  Раздел PROTO_O_SCH_STATUS. ========
+		case PROTO_O_SCH_STATUS:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchStatusInfo oPSchStatusInfo;
+				//
+				oPSchStatusInfo = *(PSchStatusInfo*)p_ReceivedData;
+				if(oPSchStatusInfo.bReady)
+				{
+					LOG_P_1(LOG_CAT_I, "Hub is alive.");
+				}
+				else
+				{
+					LOG_P_1(LOG_CAT_I, "Hub is inactive.");
+				}
+			}
+			bProcessed = true;
+			break;
+		}
 		//========  Раздел PROTO_S_SERVER_NAME. ========
 		case PROTO_S_SERVER_NAME:
 		{
+			PSchStatusInfo oPSchReadyInfo;
+			//
 			if(p_ReceivedData != 0)
 			{
 				if(QString(oPServerName.m_chServerName) != QString((char*)p_ReceivedData))
@@ -304,6 +326,8 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				}
 				LOG_P_1(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
+				oPSchReadyInfo.bReady = true;
+				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
 			}
 			else
 			{
