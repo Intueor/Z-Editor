@@ -37,6 +37,7 @@ GraphicsElementItem* WidgetsThrAccess::p_ConnGraphicsElementItem = nullptr;
 GraphicsLinkItem* WidgetsThrAccess::p_ConnGraphicsLinkItem = nullptr;
 GraphicsGroupItem* WidgetsThrAccess::p_ConnGraphicsGroupItem = nullptr;
 WidgetsThrAccess* MainWindow::p_WidgetsThrAccess = nullptr;
+bool MainWindow::bSchemaIsOpened = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -145,7 +146,8 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
 	p_Client->SetServerStatusChangedCB(ServerStatusChangedCallback);
 	//
-	p_ui->action_Schematic->setChecked(p_UISettings->value("Schema").toBool());
+	bSchemaIsOpened = p_UISettings->value("Schema").toBool();
+	p_ui->action_Schematic->setChecked(bSchemaIsOpened);
 	if(p_UISettings->value("AutoConnection").toBool())
 	{
 		p_ui->action_ConnectAtStartup->setChecked(true);
@@ -1176,14 +1178,27 @@ void MainWindow::ClientStartProcedures()
 	}
 	for(unsigned char uchAtt = 0; uchAtt != CLIENT_WAITING_ATTEMPTS; uchAtt++)
 	{
-		if(p_Client->CheckServerAlive()) return;
+		if(p_Client->CheckServerAlive())
+		{
+			AllowSceneObjectsUpdate(true, false);
+			if(bSchemaIsOpened && (!bFrameRequested))
+			{
+				QRectF oQRectF;
+				//
+				oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
+				QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
+				LCHECK_BOOL(p_Client->SendToServerImmediately(PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+				bFrameRequested = true;
+			}
+			LCHECK_BOOL(p_Client->SendBufferToServer(true, false));
+			return;
+		}
 		MSleep(USER_RESPONSE_MS);
 	}
 gCA:LOG_P_0(LOG_CAT_W, m_chLogCantStart << "client.");
 	emit p_This->RemoteSlotMsgDialog(m_chMsgWarning, "Соединение невозможно.");
 	SetStatusBarText(m_chStatusReady);
 }
-
 
 // Проверка на совпадение цифровых IP.
 bool MainWindow::CheckEqualsNumbers(NumericAddress& oNumericAddressOne, NumericAddress& oNumericAddressTwo)
@@ -1294,9 +1309,52 @@ void MainWindow::EraseLinksFromElement(unsigned long long ullIDInt)
 	}
 }
 
+// Блокировка и разблокировка всех объектов сцены.
+void MainWindow::AllowSceneObjectsUpdate(bool bValue, bool bUpdateObjects)
+{
+	MainWindow::bBlockingGraphics = !bValue;
+	if(bUpdateObjects)
+	{
+		for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
+		{
+			GraphicsElementItem* p_GraphicsElementItem;
+			//
+			p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+			if(bValue)
+			{
+				p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.
+														  oPSchElementVars.oSchElementGraph.bBusy);
+			}
+			else
+			{
+				p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, true);
+			}
+		}
+		for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+		{
+			GraphicsGroupItem* p_GraphicsGroupItem;
+			//
+			p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+			if(bValue)
+			{
+				p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.
+														oPSchGroupVars.oSchGroupGraph.bBusy);
+			}
+			else
+			{
+				p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, true);
+			}
+		}
+	}
+	p_SchematicWindow->bSceneIsBlocked = !bValue;
+}
+
 // Процедуры остановки клиента.
 void MainWindow::SlotClientStopProcedures()
 {
+	bFrameRequested = false;
+	LOG_P_2(LOG_CAT_I, "Block scene objects.");
+	AllowSceneObjectsUpdate(false, true);
 	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
 	SetStatusBarText("Остановка клиента...");
 	if(!p_Client->Stop())
@@ -1351,13 +1409,34 @@ void MainWindow::SlotSetConnectionButtonsState(bool bConnected)
 // При переключении кнопки 'Schematic'.
 void MainWindow::on_action_Schematic_triggered(bool checked)
 {
-	p_UISettings->setValue("Schema", checked);
-	if(checked)
+	QRectF oQRectF;
+	bool bServerAlive;
+	//
+	bSchemaIsOpened = checked;
+	p_UISettings->setValue("Schema", bSchemaIsOpened);
+	bServerAlive = p_Client->CheckServerAlive();
+	if(bSchemaIsOpened)
 	{
+		if(bServerAlive)
+		{
+			oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
+			QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
+			LCHECK_BOOL(p_Client->SendToServerImmediately(
+							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+			bFrameRequested = true;
+		}
 		p_SchematicWindow->show();
 	}
 	else
 	{
+		if(bServerAlive)
+		{
+			oQRectF.setRect(0, 0, 0, 0);
+			QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
+			LCHECK_BOOL(p_Client->SendToServerImmediately(
+							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+			bFrameRequested = true;
+		}
 		p_SchematicWindow->hide();
 	}
 }

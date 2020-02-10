@@ -40,6 +40,7 @@ qreal SchematicWindow::dbObjectZPos = 1;
 QMenu* SchematicWindow::p_Menu = nullptr;
 Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
+bool SchematicWindow::bSceneIsBlocked = true;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс окна обзора.
@@ -74,6 +75,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	oScene.setSceneRect(-3000, -3000, 6000, 6000);
 	oScene.setItemIndexMethod(QGraphicsScene::NoIndex);
 	p_ui->oSchematicView->setScene(&oScene);
+	p_ui->oSchematicView->SetSchematicViewFrameChangedCB(SchematicViewFrameChangedCallback);
 	p_ui->oSchematicView->setBackgroundBrush(QBrush(QColor(24, 36, 28, 255), Qt::SolidPattern));
 	//
 	connect(&oQTimerSelectionFlashing, SIGNAL(timeout()), this, SLOT(UpdateSelectionFlash()));
@@ -149,4 +151,21 @@ void SchematicWindow::RestoreBrushesStyles()
 {
 	SchematicWindow::oQBrushLight.setStyle(iLStyle);
 	SchematicWindow::oQBrushDark.setStyle(iDStyle);
+}
+
+// Кэлбэк обработки изменения окна обзора от класса вида.
+void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFrame)
+{
+	PSchReadyFrame oPSchReadyFrame;
+	//
+	if(MainWindow::p_Client != nullptr)
+	{
+		if(!bSceneIsBlocked)
+		{
+			QRealToDbFrame(oQRectFVisibleFrame, oPSchReadyFrame.oDbFrame);
+			LCHECK_BOOL(MainWindow::p_Client->SendToServerImmediately(
+							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+			p_MainWindow->bFrameRequested = true;
+		}
+	}
 }

@@ -95,6 +95,10 @@ private:
 	/// Удаление линков у элемента.
 	static void EraseLinksFromElement(unsigned long long ullIDInt);
 							///< \param[in] ullIDInt ИД элемента.
+	/// Блокировка и разблокировка всех объектов сцены.
+	static void AllowSceneObjectsUpdate(bool bValue, bool bUpdateObjects);
+							///< \param[in] bValue Вкл\выкл.
+							///< \param[in] bUpdateObjects Обновлять ли бл. каждого объекта (при подкл. объекты дают статус сами).
 private slots:
 	/// Процедуры остановки клиента.
 	static void SlotClientStopProcedures();
@@ -166,6 +170,7 @@ private:
 	static char chLastClientRequest; ///< Последний запрос клиента.
 	static bool bBlockConnectionButtons; ///< Флаг блокировки кнопок соединения от повторного нажатия при программных переключениях.
 	static PSchReadyFrame oPSchReadyFrame; ///< Объект параметров запрашиваемого окна схемы.
+	static bool bSchemaIsOpened; ///< Флаг открытого обзора схемы.
 };
 
 /// Класс добавки данных сервера к стандартному элементу лист-виджета.

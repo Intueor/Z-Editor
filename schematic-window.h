@@ -47,6 +47,11 @@ public:
 	/// Отмена временного стиля кистей общего пользования.
 	static void RestoreBrushesStyles();
 
+private:
+	// Кэлбэк обработки изменения окна обзора от класса вида.
+	static void SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFrame);
+							///< \param[in] oQRectFVisibleFrame Структура определения прямоугольника области видимости.
+
 public:
 	static MainWindow* p_MainWindow; ///< Указатель на класс главного окна.
 	QGraphicsScene oScene; ///< Объект сцены.
@@ -75,6 +80,7 @@ public:
 	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static QMenu* p_Menu; ///< Указатель на меню для общего пользования граф. классами.
+	static bool bSceneIsBlocked; ///< Сцена заблокирована.
 
 public slots:
 	/// Обновление сцены.
