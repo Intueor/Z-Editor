@@ -127,8 +127,6 @@ public:
 	QVector<GraphicsElementItem*> vp_ConnectedElements; ///< Вектор указателей на графические элементы, включённые в группу.
 	QLabel* p_QLabel; ///< Указатель на объект метки названия группы.
 
-
-
 private:
 	LOGDECL_MULTIOBJECT
 	LOGDECL_PTHRD_INCLASS_ADD

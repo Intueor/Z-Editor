@@ -56,6 +56,7 @@ public:
 	static MainWindow* p_MainWindow; ///< Указатель на класс главного окна.
 	QGraphicsScene oScene; ///< Объект сцены.
 	static QGraphicsScene* p_QGraphicsScene; ///< Статический указатель на используемый нестатический объект сцены.
+	static SchematicView* p_SchematicView; ///< Статический указатель на объект схематического вида.
 	static QPolygon oPolygonForScaler; ///< Объект полигона для отрисовки скалера.
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
 	static QBrush oQBrushLight; ///< Белая кисть общего пользования.

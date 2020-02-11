@@ -96,9 +96,8 @@ private:
 	static void EraseLinksFromElement(unsigned long long ullIDInt);
 							///< \param[in] ullIDInt ИД элемента.
 	/// Блокировка и разблокировка всех объектов сцены.
-	static void AllowSceneObjectsUpdate(bool bValue, bool bUpdateObjects);
-							///< \param[in] bValue Вкл\выкл.
-							///< \param[in] bUpdateObjects Обновлять ли бл. каждого объекта (при подкл. объекты дают статус сами).
+	static void BlockSchematic(bool bBlock);
+							///< \param[in] bBlock true - заблокировать.
 private slots:
 	/// Процедуры остановки клиента.
 	static void SlotClientStopProcedures();
@@ -153,7 +152,6 @@ public:
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
 	static Client* p_Client; ///< Указатель на объект клиента.
 	static bool bBlockingGraphics; ///< Признак блокировки главным окном.
-	static bool bFrameRequested; ///< Признак запрошенного кадра с сервера.
 
 private:
 	LOGDECL

@@ -27,6 +27,9 @@
 #define ThrUiAccessVT(element,func,type,value)  QMetaObject::invokeMethod(element, #func, Qt::QueuedConnection, Q_ARG(type, value))
 #define ThrUiAccessET(element,func)             QMetaObject::invokeMethod(element, #func, Qt::QueuedConnection)
 //
+#define SchBackgroundActive		QColor(22, 34, 26, 255)
+#define SchBackgroundInactive	QColor(80, 80, 80, 255)
+//
 #define SCH_TYPE_OF_ITEM        0
 #define SCH_TYPE_ITEM_UI        1
 //

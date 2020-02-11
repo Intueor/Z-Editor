@@ -1,6 +1,7 @@
 //== ВКЛЮЧЕНИЯ.
 #include "schematic-window.h"
 #include "ui_schematic-window.h"
+#include <math.h>
 #include <QTimer>
 
 //== МАКРОСЫ.
@@ -41,6 +42,7 @@ QMenu* SchematicWindow::p_Menu = nullptr;
 Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
 bool SchematicWindow::bSceneIsBlocked = true;
+SchematicView* SchematicWindow::p_SchematicView = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс окна обзора.
@@ -53,6 +55,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	MainWindow::p_SchematicWindow = this;
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
+	p_SchematicView = p_ui->oSchematicView;
 	if(IsFileExists((char*)cp_chUISettingsName))
 	{
 		LOG_P_2(LOG_CAT_I, "Restore UI states.");
@@ -76,7 +79,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	oScene.setItemIndexMethod(QGraphicsScene::NoIndex);
 	p_ui->oSchematicView->setScene(&oScene);
 	p_ui->oSchematicView->SetSchematicViewFrameChangedCB(SchematicViewFrameChangedCallback);
-	p_ui->oSchematicView->setBackgroundBrush(QBrush(QColor(24, 36, 28, 255), Qt::SolidPattern));
+	p_ui->oSchematicView->setBackgroundBrush(QBrush(SchBackgroundActive, Qt::SolidPattern));
 	//
 	connect(&oQTimerSelectionFlashing, SIGNAL(timeout()), this, SLOT(UpdateSelectionFlash()));
 	oQTimerSelectionFlashing.start(6);
@@ -96,13 +99,64 @@ SchematicWindow::~SchematicWindow()
 // Обновление от таймера мерцания выбранных элементов.
 void SchematicWindow::UpdateSelectionFlash()
 {
-
+	unsigned char uchC;
+	int iC;
+	//
+	if(!MainWindow::bBlockingGraphics)
+	{
+#ifdef WIN32
+		bool bSelectionPresent = false;
+#endif
+		//
+		uchElementSelectionFlashCounter += 2;
+		uchGroupSelectionFlashCounter += 1;
+		uchC = (sinf((float)(uchElementSelectionFlashCounter) / 81.169f)) * 255;
+		oQPenElementFrameFlash.setColor(QColor(uchC, uchC, uchC));
+		iC = vp_SelectedElements.count();
+#ifdef WIN32
+		if(iC > 0)
+		{
+			bSelectionPresent = true;
+		}
+#endif
+		for(int iE = 0; iE != iC; iE ++)
+		{
+			vp_SelectedElements.at(iE)->p_GraphicsFrameItem->update();
+		}
+		uchC = (sinf((float)(uchGroupSelectionFlashCounter) / 81.169f)) * 255;
+		oQPenGroupFrameFlash.setColor(QColor(uchC, uchC, uchC));
+		iC = vp_SelectedGroups.count();
+#ifdef WIN32
+		if(iC > 0)
+		{
+			bSelectionPresent = true;
+		}
+#endif
+		for(int iE = 0; iE != iC; iE ++)
+		{
+			vp_SelectedGroups.at(iE)->p_GraphicsFrameItem->update();
+		}
+#ifdef WIN32
+		if(bSelectionPresent)
+		{
+			MainWindow::p_SchematicWindow->UpdateScene();
+		}
+#endif
+	}
 }
 
 // Очистка сцены.
 void SchematicWindow::ClearScene()
 {
 	p_QGraphicsScene->clear();
+	vp_Elements.clear();
+	vp_Groups.clear();
+	vp_Links.clear();
+	vp_Ports.clear();
+	vp_LonelyElements.clear();
+	vp_SelectedElements.clear();
+	vp_SelectedFreeElements.clear();
+	vp_SelectedGroups.clear();
 }
 
 // Обновление сцены.
@@ -160,12 +214,11 @@ void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFra
 	//
 	if(MainWindow::p_Client != nullptr)
 	{
-		if(!bSceneIsBlocked)
+		if(!MainWindow::bBlockingGraphics)
 		{
 			QRealToDbFrame(oQRectFVisibleFrame, oPSchReadyFrame.oDbFrame);
 			LCHECK_BOOL(MainWindow::p_Client->SendToServerImmediately(
 							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
-			p_MainWindow->bFrameRequested = true;
 		}
 	}
 }

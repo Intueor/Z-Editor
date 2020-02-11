@@ -27,7 +27,6 @@ NetHub::IPPortPassword MainWindow::oIPPortPassword;
 char MainWindow::chLastClientRequest = CLIENT_REQUEST_UNDEFINED;
 bool MainWindow::bBlockConnectionButtons = false;
 bool MainWindow::bBlockingGraphics = false;
-bool MainWindow::bFrameRequested = false;
 PSchReadyFrame MainWindow::oPSchReadyFrame;
 Ui::MainWindow* WidgetsThrAccess::p_uiInt = nullptr;
 PSchElementBase* WidgetsThrAccess::p_PSchElementBase = nullptr;
@@ -141,6 +140,7 @@ MainWindow::MainWindow(QWidget* p_parent) :
 		RETVAL_SET(RETVAL_ERR);
 		return;
 	}
+	BlockSchematic(true);
 	p_Client = new Client(LOG_MUTEX);
 	p_Client->SetServerCommandArrivedCB(ServerCommandArrivedCallback);
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
@@ -212,7 +212,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::SetSchWindowSignalConnections()
 {
 	connect(this, SIGNAL(RemoteUpdateSchView()), p_SchematicWindow, SLOT(UpdateScene()));
-	connect(this, SIGNAL(RemoteClearScene()), p_SchematicWindow, SLOT(ClearScene()));
 }
 
 // Для внешнего отключения чекбокса кнопки 'Схема'.
@@ -271,6 +270,7 @@ void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 				{
 					emit p_This->RemoteSlotMsgDialog("Информация", "Сервер отключил клиенты.");
 gD:					emit p_This->RemoteSlotSetConnectionButtonsState(false);
+					BlockSchematic(true);
 					break;
 				}
 				case PROTO_S_KICK:
@@ -293,20 +293,24 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 	switch(ushType)
 	{
 		//========  Раздел PROTO_O_SCH_STATUS. ========
-		case PROTO_O_SCH_STATUS:
+		case PROTO_O_SCH_STATUS: // По приходу ответа о статусе среды...
 		{
 			if(p_ReceivedData != 0)
 			{
 				PSchStatusInfo oPSchStatusInfo;
 				//
 				oPSchStatusInfo = *(PSchStatusInfo*)p_ReceivedData;
-				if(oPSchStatusInfo.bReady)
+				if(oPSchStatusInfo.bReady) // Если включена - отправка сообщения о готовности клиента принять фрейм.
 				{
 					LOG_P_1(LOG_CAT_I, "Hub is alive.");
+					BlockSchematic(false);
+					ThrUiAccessET(p_WidgetsThrAccess, ClearScene);
+					RemoteUpdateSchViewAndSendRFrame();
 				}
-				else
+				else // Если отключена - блокировка схем.
 				{
 					LOG_P_1(LOG_CAT_I, "Hub is inactive.");
+					BlockSchematic(true);
 				}
 			}
 			bProcessed = true;
@@ -327,6 +331,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				LOG_P_1(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 				oPSchReadyInfo.bReady = true;
+				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
 				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
 			}
 			else
@@ -1204,15 +1209,14 @@ void MainWindow::ClientStartProcedures()
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			AllowSceneObjectsUpdate(true, false);
-			if(bSchemaIsOpened && (!bFrameRequested))
+			bBlockingGraphics = false;
+			if(bSchemaIsOpened)
 			{
 				QRectF oQRectF;
 				//
 				oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
 				QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 				LCHECK_BOOL(p_Client->SendToServerImmediately(PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
-				bFrameRequested = true;
 			}
 			LCHECK_BOOL(p_Client->SendBufferToServer(true, false));
 			return;
@@ -1297,12 +1301,11 @@ void MainWindow::RemoteUpdateSchViewAndSendRFrame()
 {
 	QRectF oQRectF;
 	//
-	emit p_SchematicWindow->p_MainWindow->RemoteUpdateSchView();
+	emit p_This->RemoteUpdateSchView();
 	oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
 	QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 	LCHECK_BOOL(p_Client->SendToServerImmediately(
 					PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame), true, false));
-	bFrameRequested = true;
 }
 
 // Удаление линков у элемента.
@@ -1334,51 +1337,54 @@ void MainWindow::EraseLinksFromElement(unsigned long long ullIDInt)
 }
 
 // Блокировка и разблокировка всех объектов сцены.
-void MainWindow::AllowSceneObjectsUpdate(bool bValue, bool bUpdateObjects)
+void MainWindow::BlockSchematic(bool bBlock)
 {
-	MainWindow::bBlockingGraphics = !bValue;
-	if(bUpdateObjects)
+	bBlockingGraphics = bBlock;
+	for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 	{
-		for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
+		GraphicsElementItem* p_GraphicsElementItem;
+		//
+		p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+		if(bBlock)
 		{
-			GraphicsElementItem* p_GraphicsElementItem;
-			//
-			p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
-			if(bValue)
-			{
-				p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.
-														  oPSchElementVars.oSchElementGraph.bBusy);
-			}
-			else
-			{
-				p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, true);
-			}
+			p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, true); // Если блокируется схемой - блокировка в любом случае.
 		}
-		for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+		else
 		{
-			GraphicsGroupItem* p_GraphicsGroupItem;
-			//
-			p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
-			if(bValue)
-			{
-				p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.
-														oPSchGroupVars.oSchGroupGraph.bBusy);
-			}
-			else
-			{
-				p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, true);
-			}
+			p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
+													  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy);
+		}
+
+	}
+	for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+	{
+		GraphicsGroupItem* p_GraphicsGroupItem;
+		//
+		p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+		if(bBlock)
+		{
+			p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, true); // Если блокируется схемой - блокировка в любом случае.
+		}
+		else
+		{
+			p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
+													  p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
 		}
 	}
-	p_SchematicWindow->bSceneIsBlocked = !bValue;
+	if(bBlock)
+	{
+		p_SchematicWindow->p_SchematicView->setBackgroundBrush(QBrush(SchBackgroundInactive, Qt::SolidPattern));
+	}
+	else
+	{
+		p_SchematicWindow->p_SchematicView->setBackgroundBrush(QBrush(SchBackgroundActive, Qt::SolidPattern));
+	}
 }
 
 // Процедуры остановки клиента.
 void MainWindow::SlotClientStopProcedures()
 {
-	bFrameRequested = false;
-	LOG_P_2(LOG_CAT_I, "Block scene objects.");
-	AllowSceneObjectsUpdate(false, true);
+	BlockSchematic(true);
 	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
 	SetStatusBarText("Остановка клиента...");
 	if(!p_Client->Stop())
@@ -1444,10 +1450,8 @@ void MainWindow::on_action_Schematic_triggered(bool checked)
 		if(bServerAlive)
 		{
 			oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
-			QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 			LCHECK_BOOL(p_Client->SendToServerImmediately(
 							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
-			bFrameRequested = true;
 		}
 		p_SchematicWindow->show();
 	}
@@ -1456,13 +1460,14 @@ void MainWindow::on_action_Schematic_triggered(bool checked)
 		if(bServerAlive)
 		{
 			oQRectF.setRect(0, 0, 0, 0);
-			QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 			LCHECK_BOOL(p_Client->SendToServerImmediately(
 							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
-			bFrameRequested = true;
 		}
 		p_SchematicWindow->hide();
 	}
+	QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
+	LCHECK_BOOL(p_Client->SendToServerImmediately(
+					PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
 }
 
 // При переключении кнопки 'Соединение при включении'.
@@ -1705,5 +1710,5 @@ void WidgetsThrAccess::AddGraphicsGroupItem()
 // Очистка сцены.
 void WidgetsThrAccess::ClearScene()
 {
-	MainWindow::p_SchematicWindow->oScene.clear();
+	MainWindow::p_SchematicWindow->ClearScene();
 }
