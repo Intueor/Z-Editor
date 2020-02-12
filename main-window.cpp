@@ -110,6 +110,8 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	//
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
 	p_ui->setupUi(this);
+	connect(this, SIGNAL(RemoteClearScene()), p_SchematicWindow, SLOT(ClearScene()));
+	connect(this, SIGNAL(RemoteUpdateSchView()), p_SchematicWindow, SLOT(UpdateScene()));
 	p_QLabelStatusBarText = new QLabel(this);
 	p_QLabelStatusBarText->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 	p_ui->statusBar->addWidget(p_QLabelStatusBarText);
@@ -206,12 +208,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 			p_SchematicWindow->RefClose();
 	}
 	QMainWindow::closeEvent(event);
-}
-
-// Установка сигналов сообщения с граф. окном.
-void MainWindow::SetSchWindowSignalConnections()
-{
-	connect(this, SIGNAL(RemoteUpdateSchView()), p_SchematicWindow, SLOT(UpdateScene()));
 }
 
 // Для внешнего отключения чекбокса кнопки 'Схема'.
@@ -331,7 +327,12 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 				oPSchReadyInfo.bReady = true;
 				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
-				SchematicWindow::ClearScene();
+				p_SchematicWindow->bCleaningSceneNow = true;
+				emit p_This->RemoteClearScene();
+				while(p_SchematicWindow->bCleaningSceneNow)
+				{
+					MSleep(INTERFACE_RESPONSE_MS);
+				}
 				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
 			}
 			else
@@ -1698,8 +1699,3 @@ void WidgetsThrAccess::AddGraphicsGroupItem()
 	MainWindow::p_SchematicWindow->oScene.addItem(p_ConnGraphicsGroupItem);
 }
 
-// Очистка сцены.
-void WidgetsThrAccess::ClearScene()
-{
-	MainWindow::p_SchematicWindow->ClearScene();
-}

@@ -81,7 +81,7 @@ public:
 	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static QMenu* p_Menu; ///< Указатель на меню для общего пользования граф. классами.
-	static bool bSceneIsBlocked; ///< Сцена заблокирована.
+	static bool bCleaningSceneNow; ///< Сцена заблокирована.
 
 public slots:
 	/// Обновление сцены.

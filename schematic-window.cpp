@@ -41,7 +41,7 @@ qreal SchematicWindow::dbObjectZPos = 1;
 QMenu* SchematicWindow::p_Menu = nullptr;
 Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
-bool SchematicWindow::bSceneIsBlocked = true;
+bool SchematicWindow::bCleaningSceneNow = true;
 SchematicView* SchematicWindow::p_SchematicView = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
@@ -94,6 +94,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 SchematicWindow::~SchematicWindow()
 {
 	delete p_ui;
+	p_QGraphicsScene = nullptr;
 }
 
 // Обновление от таймера мерцания выбранных элементов.
@@ -157,6 +158,7 @@ void SchematicWindow::ClearScene()
 	vp_SelectedElements.clear();
 	vp_SelectedFreeElements.clear();
 	vp_SelectedGroups.clear();
+	bCleaningSceneNow = false;
 }
 
 // Обновление сцены.

@@ -50,8 +50,6 @@ public:
 	/// Процедуры при закрытии окна приложения.
 	void closeEvent(QCloseEvent* event);
 							///< \param[in] event Указатель на событие.
-	/// Установка сигналов сообщения с граф. окном.
-	void SetSchWindowSignalConnections();
 	/// Для внешнего переключения чекбокса кнопки 'Схема'.
 	static void UncheckSchemaCheckbox();
 private:
@@ -233,8 +231,6 @@ public slots:
 	static void GroupLabelWidthSet();
 	/// Установка геометрии групбокса элемента по указателю p_ConnGraphicsElementItem и размеру из oDbPointFrameSize.
 	static void ElementGroupBoxSizeSet();
-	/// Очистка сцены.
-	void ClearScene();
 };
 
 #endif // MAINWINDOW_H
