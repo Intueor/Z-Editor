@@ -304,7 +304,6 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				{
 					LOG_P_1(LOG_CAT_I, "Hub is alive.");
 					BlockSchematic(false);
-					ThrUiAccessET(p_WidgetsThrAccess, ClearScene);
 					RemoteUpdateSchViewAndSendRFrame();
 				}
 				else // Если отключена - блокировка схем.
@@ -332,6 +331,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 				oPSchReadyInfo.bReady = true;
 				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
+				SchematicWindow::ClearScene();
 				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
 			}
 			else
