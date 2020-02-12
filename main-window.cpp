@@ -299,6 +299,12 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				if(oPSchStatusInfo.bReady) // Если включена - отправка сообщения о готовности клиента принять фрейм.
 				{
 					LOG_P_1(LOG_CAT_I, "Hub is alive.");
+					p_SchematicWindow->bCleaningSceneNow = true;
+					emit p_This->RemoteClearScene();
+					while(p_SchematicWindow->bCleaningSceneNow)
+					{
+						MSleep(INTERFACE_RESPONSE_MS);
+					}
 					BlockSchematic(false);
 					RemoteUpdateSchViewAndSendRFrame();
 				}
@@ -327,12 +333,6 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 				oPSchReadyInfo.bReady = true;
 				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
-				p_SchematicWindow->bCleaningSceneNow = true;
-				emit p_This->RemoteClearScene();
-				while(p_SchematicWindow->bCleaningSceneNow)
-				{
-					MSleep(INTERFACE_RESPONSE_MS);
-				}
 				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
 			}
 			else
