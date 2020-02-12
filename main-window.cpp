@@ -1210,15 +1210,6 @@ void MainWindow::ClientStartProcedures()
 		if(p_Client->CheckServerAlive())
 		{
 			bBlockingGraphics = false;
-			if(bSchemaIsOpened)
-			{
-				QRectF oQRectF;
-				//
-				oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
-				QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
-				LCHECK_BOOL(p_Client->SendToServerImmediately(PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
-			}
-			LCHECK_BOOL(p_Client->SendBufferToServer(true, false));
 			return;
 		}
 		MSleep(USER_RESPONSE_MS);
