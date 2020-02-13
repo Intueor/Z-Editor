@@ -269,7 +269,8 @@ bool GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bSen
 		oPSchElementVars.oSchElementGraph.dbObjectZPos =
 				p_Element->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
 		oPSchElementVars.ullIDInt = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-		oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS;
+		oPSchElementVars.oSchElementGraph.bBusy = true;
+		oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY;
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 													   sizeof(oPSchElementVars));
 		bAction = true;
@@ -386,6 +387,10 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			// Цвет фона.
 			SchematicWindow::p_Menu->addAction(QString(m_chBackground));
 		}
+	}
+	if(!MainWindow::p_Client->oInternalNetHub.CheckIsBufferFree())
+	{
+		MainWindow::p_Client->SendBufferToServer();
 	}
 	QGraphicsItem::mousePressEvent(event);
 }

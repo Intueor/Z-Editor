@@ -296,12 +296,13 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				PSchStatusInfo oPSchStatusInfo;
 				//
 				oPSchStatusInfo = *(PSchStatusInfo*)p_ReceivedData;
-				if(oPSchStatusInfo.bReady) // Если включена - отправка сообщения о готовности клиента принять фрейм.
+				if(oPSchStatusInfo.bReady) // Если включена - очистка сцены и отправка сообщения о готовности клиента принять фрейм.
 				{
 					LOG_P_1(LOG_CAT_I, "Hub is alive.");
 					p_SchematicWindow->bCleaningSceneNow = true;
 					emit p_This->RemoteClearScene();
-					while(p_SchematicWindow->bCleaningSceneNow)
+					QCoreApplication::processEvents();
+					while(p_SchematicWindow->bCleaningSceneNow) // Ждём, пока сигнал дойдёт и флаг очистки сбросится слотом.
 					{
 						MSleep(INTERFACE_RESPONSE_MS);
 					}

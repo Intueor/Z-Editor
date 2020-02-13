@@ -47,6 +47,7 @@ private:
 		bool bFullOnClient; ///< Флаг переполнения буфера на клиенте.
 		bool bSecured; ///< Флаг защищённого соединения.
 	};
+
 private:
 	static bool bClientAlive; ///< Сигнал присутствия клиента.
 	static bool bExitSignal; ///< Сигнал на общее завершение.
@@ -67,7 +68,10 @@ private:
 	static NetHub::IPPortPassword* p_IPPortPasswordInt; ///< Внутреннй указатель на структуру со строками с установками клиента.
 	LOGDECL
 	LOGDECL_PTHRD_INCLASS_ADD
+
+public:
 	static NetHub oInternalNetHub; ///< Внутренний объект NetHub.
+
 public:
 	/// Конструктор.
 	Client(pthread_mutex_t ptLogMutex);

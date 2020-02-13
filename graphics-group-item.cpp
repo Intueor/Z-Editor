@@ -381,7 +381,6 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			}
 		}
 		GroupToTop(this, true, nullptr, true, false);
-		MainWindow::p_Client->SendBufferToServer();
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -420,6 +419,10 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			// Цвет фона.
 			SchematicWindow::p_Menu->addAction(QString(m_chBackground));
 		}
+	}
+	if(!MainWindow::p_Client->oInternalNetHub.CheckIsBufferFree())
+	{
+		MainWindow::p_Client->SendBufferToServer();
 	}
 	QGraphicsItem::mousePressEvent(event);
 }
