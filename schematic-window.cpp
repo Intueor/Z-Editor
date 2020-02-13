@@ -51,6 +51,19 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 {
 	LOG_CTRL_INIT;
 	//
+	oQBrushLight.setColor(QColor(170, 170, 170, 255));
+	oQBrushLight.setStyle(Qt::SolidPattern);
+	oQBrushDark.setColor(QColor(64, 64, 64, 255));
+	oQBrushDark.setStyle(Qt::SolidPattern);
+	oQPenWhite.setColor(Qt::white);
+	oQPenBlack.setColor(Qt::black);
+	oQPenWhiteTransparent.setColor(QColor(255, 255, 255, 96));
+	oQPenBlackTransparent.setColor(QColor(0, 0, 0, 96));
+	oQPenElementFrameFlash.setColor(Qt::white);
+	oQPenElementFrameFlash.setWidth(3);
+	oQPenGroupFrameFlash.setColor(Qt::white);
+	oQPenGroupFrameFlash.setWidth(3);
+	//
 	p_QGraphicsScene = &this->oScene;
 	MainWindow::p_SchematicWindow = this;
 	p_UISettings = new QSettings(cp_chUISettingsName, QSettings::IniFormat);
