@@ -362,7 +362,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsGroupItem = vp_SortedGroups.at(iE);
 				if(p_GraphicsGroupItem != this)
 				{
-					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, true, DONT_SEND_ELEMENTS);
+					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
 				}
 			}
 		}
@@ -380,7 +380,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				}
 			}
 		}
-		GroupToTop(this, SEND_GROUP, nullptr, true, DONT_SEND_ELEMENTS);
+		GroupToTop(this, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
