@@ -43,12 +43,12 @@ public:
 	/// Подъём элементов группы на первый план с сортировкой.
 	static void SortGroupElementsToTop(GraphicsGroupItem* p_GraphicsGroupItem,
 									   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr, bool bWithSelectedDiff = true,
-									   bool bSend = true, bool bBlokingPatterns = true);
+									   bool bBlokingPatterns = true, bool bSend = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
-							///< \param[in] bSend При true - отправка на сервер и клиентам.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
+							///< \param[in] bSend При true - отправка на сервер и клиентам.
 	/// Сортировка вектора элементов по Z-позиции с приоритетом по выборке.
 	static void SortElementsByZPos(QVector<GraphicsElementItem*>& avp_Elements,
 								   GraphicsElementItem* p_GraphicsElementItemExclude,

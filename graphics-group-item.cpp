@@ -137,7 +137,8 @@ void GraphicsGroupItem::IncomingUpdateGroupParameters(GraphicsGroupItem* p_Graph
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = a_SchGroupVars.oSchGroupGraph.dbObjectZPos;
 		UpdateSelected(p_GraphicsGroupItem, SCH_UPDATE_GROUP_ZPOS | SCH_UPDATE_MAIN);
 		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
-		SortGroupElementsToTop(p_GraphicsGroupItem, nullptr, false, false, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
+		SortGroupElementsToTop(p_GraphicsGroupItem, nullptr, false,
+							   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy, DONT_SEND_ELEMENTS);
 	}
 }
 
@@ -281,8 +282,7 @@ gSE:			pvp_SortedGroups->append(p_GraphicsGroupItem);
 
 // Подъём элементов группы на первый план с сортировкой.
 void GraphicsGroupItem::SortGroupElementsToTop(GraphicsGroupItem* p_GraphicsGroupItem,
-										  GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithSelectedDiff,
-																		   bool bSend, bool bBlokingPatterns)
+										  GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithSelectedDiff, bool bBlokingPatterns, bool bSend)
 {
 	QVector<GraphicsElementItem*> vp_SortedElements;
 	QVector<GraphicsElementItem*> vp_SelectionSortedElements;
@@ -326,7 +326,7 @@ void GraphicsGroupItem::GroupToTop(GraphicsGroupItem* p_GraphicsGroupItem, bool 
 													  sizeof(PSchGroupVars));
 	}
 	if(bSend == false) bSendElements = false;
-	SortGroupElementsToTop(p_GraphicsGroupItem, p_GraphicsElementItemExclude, true, bSendElements, bBlokingPatterns);
+	SortGroupElementsToTop(p_GraphicsGroupItem, p_GraphicsElementItemExclude, true, bBlokingPatterns, bSendElements);
 }
 
 // Переопределение функции обработки нажатия мыши.
@@ -335,23 +335,25 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	bool bLastSt;
 	//
 	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics)
-	{
+	{ //Если группа блокирована занятостью или главным окном - отказ.
 		return;
 	}
 	if(event->button() == Qt::MouseButton::LeftButton)
 	{
-		bLastSt = bSelected;
+		//==== РАБОТА С ВЫБОРКОЙ. ====
+		bLastSt = bSelected; // Запоминаем предыдущее значение выбраности.
 		if(event->modifiers() == Qt::ControlModifier)
-		{
+		{ // При удержании CTRL - инверсия флага выбраности.
 			bSelected = !bSelected;
 		}
 		if(bSelected)
-		{
+		{ // Если ВЫБРАЛИ...
 			if(bLastSt != bSelected)
-			{
+			{ // И раньше было не выбрано - добавление в вектор выбранных групп.
 				SchematicWindow::vp_SelectedGroups.push_front(this);
-				p_GraphicsFrameItem->show();
+				p_GraphicsFrameItem->show(); // Зажигаем рамку.
 			}
+			// СОРТИРОВКА.
 			QVector<GraphicsGroupItem*> vp_SortedGroups;
 			//
 			SortGroupsByZPos(SchematicWindow::vp_SelectedGroups, this, &vp_SortedGroups); // Сортировка групп в выборке.
@@ -360,6 +362,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
 				p_GraphicsGroupItem = vp_SortedGroups.at(iE);
+				// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
 				if(p_GraphicsGroupItem != this)
 				{
 					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
@@ -367,7 +370,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			}
 		}
 		else
-		{
+		{ // ОТМЕНИЛИ ВЫБОР...
 			if(bLastSt != bSelected)
 			{
 				int iN;
@@ -376,7 +379,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				if(iN != -1)
 				{
 					SchematicWindow::vp_SelectedGroups.removeAt(iN);
-					p_GraphicsFrameItem->hide();
+					p_GraphicsFrameItem->hide(); // Гасим рамку.
 				}
 			}
 		}

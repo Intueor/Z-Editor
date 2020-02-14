@@ -318,9 +318,10 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 					if(bInGroup)
 					{
 						GraphicsGroupItem::GroupToTop(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, p_GraphicsElementItem,
-													  ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS); // Если в группе - группу наверх без отправки.
+													  ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS); // Не поднимать текущий выбранный элемент.
 					}
-					ElementToTop(p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, !bInGroup); // Если в группе - не отсылать.
+					 // Текущий выбранный наверх, над группой. Если в группе - не отсылать.
+					ElementToTop(p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, !bInGroup);
 				}
 			}
 		}
