@@ -306,6 +306,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					{
 						MSleep(INTERFACE_RESPONSE_MS);
 					}
+					SchematicWindow::dbObjectZPos = 1;
 					BlockSchematic(false);
 					RemoteUpdateSchViewAndSendRFrame();
 				}

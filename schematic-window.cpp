@@ -37,7 +37,7 @@ QVector<GraphicsElementItem*> SchematicWindow::vp_LonelyElements;
 unsigned char SchematicWindow::uchElementSelectionFlashCounter = 1;
 unsigned char SchematicWindow::uchGroupSelectionFlashCounter = 1;
 QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
-qreal SchematicWindow::dbObjectZPos = 1;
+qreal SchematicWindow::dbObjectZPos;
 QMenu* SchematicWindow::p_Menu = nullptr;
 Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;

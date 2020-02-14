@@ -12,6 +12,8 @@
 #define DONT_SEND_GROUP					false
 #define ELEMENTS_BLOCKING_PATTERN_ON	true
 #define ELEMENTS_BLOCKING_PATTERN_OFF	false
+#define WITH_GROUP						true
+#define WITHOUT_GROUP					false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9

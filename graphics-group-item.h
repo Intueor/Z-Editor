@@ -101,9 +101,8 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] bValue Вкл\Выкл блокировки.
 	/// Отпускание группы.
-	static void ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bWithElements = true);
+	static void ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
-							///< \param[in] bWithElements При true - отпускать и присоединённые элементы.
 
 private:
 	/// Перемещение группы.

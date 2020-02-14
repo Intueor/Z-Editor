@@ -311,8 +311,6 @@ void GraphicsGroupItem::GroupToTop(GraphicsGroupItem* p_GraphicsGroupItem, bool 
 	PSchGroupVars oPSchGroupVars;
 	//
 	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-	oPSchGroupVars.oSchGroupGraph.dbObjectZPos =
-			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
 	p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 	p_GraphicsGroupItem->update();
@@ -321,7 +319,7 @@ void GraphicsGroupItem::GroupToTop(GraphicsGroupItem* p_GraphicsGroupItem, bool 
 		p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, true);
 		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 		oPSchGroupVars.oSchGroupGraph.bBusy = true;
-		oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_ZPOS | SCH_GROUP_BIT_BUSY;
+		oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 													  sizeof(PSchGroupVars));
 	}
@@ -365,7 +363,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
 				if(p_GraphicsGroupItem != this)
 				{
-					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
+					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 				}
 			}
 		}
@@ -383,7 +381,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				}
 			}
 		}
-		GroupToTop(this, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
+		GroupToTop(this, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -487,7 +485,7 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 
 // Отпускание группы.
-void GraphicsGroupItem::ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bWithElements)
+void GraphicsGroupItem::ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	PSchGroupVars oPSchGroupVars;
@@ -503,20 +501,13 @@ void GraphicsGroupItem::ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem, boo
 	oPSchGroupVars.oSchGroupGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
 	oPSchGroupVars.oSchGroupGraph.bBusy = false;
 	oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_BUSY;
-	if(!bWithElements) // Если без элементов - смещаться будут на клиентах.
-	{
-		oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_ELEMENTS_SHIFT;
-	}
-	else // Если с элементами - отправка Z-позиции.
-	{
-		oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_ZPOS;
-	}
+	oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_ZPOS;
 	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 												  sizeof(PSchGroupVars));
 	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
-		p_GraphicsElementItem->ReleaseElement(p_GraphicsElementItem, false); // Если без элементов, то только на сервер при отпусткании.
+		p_GraphicsElementItem->ReleaseElement(p_GraphicsElementItem, WITHOUT_GROUP);
 	}
 }
 
@@ -541,11 +532,11 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsGroupItem = vp_SortedGroups.at(iE);
 				if(p_GraphicsGroupItem != this)
 				{
-					ReleaseGroup(p_GraphicsGroupItem, false);
+					ReleaseGroup(p_GraphicsGroupItem);
 				}
 			}
 		}
-		ReleaseGroup(this, false);
+		ReleaseGroup(this);
 		MainWindow::p_Client->SendBufferToServer();
 	}
 	QGraphicsItem::mouseReleaseEvent(event);

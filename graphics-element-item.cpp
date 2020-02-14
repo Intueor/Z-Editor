@@ -265,11 +265,9 @@ void GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bBlo
 	p_Element->update();
 	if(bSend)
 	{
-		oPSchElementVars.oSchElementGraph.dbObjectZPos =
-				p_Element->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
 		oPSchElementVars.ullIDInt = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		oPSchElementVars.oSchElementGraph.bBusy = true;
-		oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY;
+		oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_BUSY;
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 													   sizeof(oPSchElementVars));
 	}
@@ -318,10 +316,10 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 					if(bInGroup)
 					{
 						GraphicsGroupItem::GroupToTop(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, p_GraphicsElementItem,
-													  ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS); // Не поднимать текущий выбранный элемент.
+													  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать текущий выбранный элемент.
 					}
-					 // Текущий выбранный наверх, над группой. Если в группе - не отсылать.
-					ElementToTop(p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, !bInGroup);
+					 // Текущий выбранный наверх, над группой.
+					ElementToTop(p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 				}
 			}
 		}
@@ -342,9 +340,9 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		bInGroup = (p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 		if(bInGroup) // Если присутствует - поднятие, исключая текущий элемент.
 		{
-			GraphicsGroupItem::GroupToTop(p_GraphicsGroupItemRel, SEND_GROUP, this, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
+			GraphicsGroupItem::GroupToTop(p_GraphicsGroupItemRel, SEND_GROUP, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 		}
-		ElementToTop(this, ELEMENTS_BLOCKING_PATTERN_ON, !bInGroup); // Если в группе - не отсылать.
+		ElementToTop(this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Если в группе - не отсылать.
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
