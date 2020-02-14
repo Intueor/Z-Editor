@@ -255,10 +255,9 @@ void GraphicsElementItem::advance(int iStep)
 }
 
 // Поднятие элемента на первый план.
-bool GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bSend, bool bBlokingPattern)
+void GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bBlokingPattern, bool bSend)
 {
 	PSchElementVars oPSchElementVars;
-	bool bAction = false;
 	//
 	p_Element->setZValue(SchematicWindow::dbObjectZPos);
 	p_Element->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
@@ -273,11 +272,9 @@ bool GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bSen
 		oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY;
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 													   sizeof(oPSchElementVars));
-		bAction = true;
 	}
 	p_Element->SetBlockingPattern(p_Element, bBlokingPattern);
 	SchematicView::UpdateLinksZPos();
-	return bAction;
 }
 
 // Переопределение функции обработки нажатия мыши.
@@ -292,18 +289,20 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	}
 	if(event->button() == Qt::MouseButton::LeftButton)
 	{
+		//==== РАБОТА С ВЫБОРКОЙ. ====
 		bLastSt = bSelected; // Запоминаем предыдущее значение выбраности.
 		if(event->modifiers() == Qt::ControlModifier)
 		{ // При удержании CTRL - инверсия флага выбраности.
 			bSelected = !bSelected;
 		}
 		if(bSelected)
-		{ // Если выбрано...
+		{ // Если ВЫБРАЛИ...
 			if(bLastSt != bSelected)
 			{ // И раньше было не выбрано - добавление в вектор выбранных элементов.
 				SchematicWindow::vp_SelectedElements.push_front(this);
-				p_GraphicsFrameItem->show();
+				p_GraphicsFrameItem->show(); // Зажигаем рамку.
 			}
+			// СОРТИРОВКА.
 			QVector<GraphicsElementItem*> vp_SortedElements;
 			//
 			GraphicsGroupItem::SortElementsByZPos(SchematicWindow::vp_SelectedElements, this, &vp_SortedElements); // Сортировка элементов в выборке.
@@ -312,22 +311,21 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
 				p_GraphicsElementItem = vp_SortedElements.at(iE);
-				bInGroup = (p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 				// Отправка наверх всех выбранных элементов кроме текущего (его потом, в последнюю очередь, над всеми).
 				if(p_GraphicsElementItem != this)
 				{
+					bInGroup = (p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 					if(bInGroup)
 					{
-						GraphicsGroupItem::GroupToTop(p_GraphicsElementItem->p_GraphicsGroupItemRel, true,
-													  p_GraphicsElementItem, true, false); // НАДО бы вписать в кэш.
+						GraphicsGroupItem::GroupToTop(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, p_GraphicsElementItem,
+													  ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS); // Если в группе - группу наверх без отправки.
 					}
-					ElementToTop(p_GraphicsElementItem, true,
-								 bInGroup); // При присутствии в группе - отправка только до сервера. НАДО бы вписать в кэш.
+					ElementToTop(p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, !bInGroup); // Если в группе - не отсылать.
 				}
 			}
 		}
 		else
-		{
+		{ // ОТМЕНИЛИ ВЫБОР...
 			if(bLastSt != bSelected)
 			{
 				int iN;
@@ -336,16 +334,16 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				if(iN != -1)
 				{
 					SchematicWindow::vp_SelectedElements.removeAt(iN);
-					p_GraphicsFrameItem->hide();
+					p_GraphicsFrameItem->hide(); // Гасим рамку.
 				}
 			}
 		}
 		bInGroup = (p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
-		if(bInGroup) // Если присутствует - поднятие с отправкой, исключая текущий элемент.
+		if(bInGroup) // Если присутствует - поднятие, исключая текущий элемент.
 		{
-			GraphicsGroupItem::GroupToTop(p_GraphicsGroupItemRel, true, this, true, false); // НАДО бы вписать в кэш.
+			GraphicsGroupItem::GroupToTop(p_GraphicsGroupItemRel, SEND_GROUP, this, ELEMENTS_BLOCKING_PATTERN_ON, DONT_SEND_ELEMENTS);
 		}
-		ElementToTop(this, !bInGroup); // Если в группе - не отсылать. НАДО бы вписать в кэш.
+		ElementToTop(this, ELEMENTS_BLOCKING_PATTERN_ON, !bInGroup); // Если в группе - не отсылать.
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -460,14 +458,14 @@ void GraphicsElementItem::ReleaseElement(GraphicsElementItem* p_GraphicsElementI
 												   sizeof(PSchElementVars));
 }
 
-// Подготовка отсылки обновления параметров группы, задействованные элементы - только на сервер.
-void GraphicsElementItem::UpdateGroupAndAffectedElementsOnServer(GraphicsGroupItem* p_GraphicsGroupItem)
+// Подготовка отсылки обновления параметров группы, задействованные элементы.
+void GraphicsElementItem::UpdateGroupAndAffectedElements(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	PSchGroupVars oPSchGroupVars;
 	PSchElementVars oPSchElementVars;
 	GraphicsElementItem* p_GraphicsElementItem;
 	//
-	GraphicsGroupItem::GroupToTop(p_GraphicsGroupItem, false, nullptr, false, false);
+	GraphicsGroupItem::GroupToTop(p_GraphicsGroupItem, DONT_SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, DONT_SEND_ELEMENTS);
 	oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 	oPSchGroupVars.oSchGroupGraph.oDbObjectFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 	oPSchGroupVars.oSchGroupGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
@@ -523,7 +521,7 @@ bool GraphicsElementItem::AddFreeSelectedElementsToGroup(GraphicsGroupItem* p_Gr
 	if(bAction)
 	{
 		GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
-		UpdateGroupAndAffectedElementsOnServer(p_GraphicsGroupItem);
+		UpdateGroupAndAffectedElements(p_GraphicsGroupItem);
 		SchematicView::UpdateLinksZPos();
 	}
 	if(bForceSelected)

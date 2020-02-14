@@ -292,13 +292,13 @@ void GraphicsGroupItem::SortGroupElementsToTop(GraphicsGroupItem* p_GraphicsGrou
 	SortElementsByZPos(p_GraphicsGroupItem->vp_ConnectedElements, p_GraphicsElementItemExclude, &vp_SortedElements, pvp_SelectionSortedElements);
 	for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 	{
-		GraphicsElementItem::ElementToTop(vp_SortedElements.at(iF), bSend, bBlokingPatterns);
+		GraphicsElementItem::ElementToTop(vp_SortedElements.at(iF), bBlokingPatterns, bSend);
 	}
 	if(bWithSelectedDiff)
 	{
 		for(int iF = vp_SelectionSortedElements.count() - 1; iF != -1; iF--)
 		{
-			GraphicsElementItem::ElementToTop(vp_SelectionSortedElements.at(iF), bSend, bBlokingPatterns);
+			GraphicsElementItem::ElementToTop(vp_SelectionSortedElements.at(iF), bBlokingPatterns, bSend);
 		}
 	}
 	SchematicView::UpdateLinksZPos();
@@ -362,7 +362,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsGroupItem = vp_SortedGroups.at(iE);
 				if(p_GraphicsGroupItem != this)
 				{
-					GroupToTop(p_GraphicsGroupItem, true, nullptr, true, false);
+					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, true, DONT_SEND_ELEMENTS);
 				}
 			}
 		}
@@ -380,7 +380,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				}
 			}
 		}
-		GroupToTop(this, true, nullptr, true, false);
+		GroupToTop(this, SEND_GROUP, nullptr, true, DONT_SEND_ELEMENTS);
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -603,7 +603,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = this;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 				GraphicsElementItem::UpdateGroupFrameByElements(this);
-				GraphicsElementItem::UpdateGroupAndAffectedElementsOnServer(this);
+				GraphicsElementItem::UpdateGroupAndAffectedElements(this);
 				MainWindow::p_Client->SendBufferToServer();
 				SchematicView::UpdateLinksZPos();
 			}

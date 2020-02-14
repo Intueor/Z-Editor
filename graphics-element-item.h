@@ -31,11 +31,10 @@ public:
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
 	/// Поднятие элемента на первый план и отсылка сообщения на сервер по умолчанию.
-	static bool ElementToTop(GraphicsElementItem* p_Element, bool bSend = true, bool bBlokingPattern = true);
+	static void ElementToTop(GraphicsElementItem* p_Element, bool bBlokingPattern = true, bool bSend = true);
 							///< \param[in] p_Element Указатель на граф. элемент.
-							///< \param[in] bSend При true - отправка.
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
-							///< \return true, если добавлялись пакеты в буфер.
+							///< \param[in] bSend При true - отправка.
 	/// Переопределение функции обработки нажатия мыши.
 	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 							///< \param[in] event Указатель на событие.
@@ -88,8 +87,8 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
 							///< \return true, если добавлялись пакеты в буфер.
-	/// Подготовка отсылки обновления параметров группы, задействованные элементы - только на сервер.
-	static void UpdateGroupAndAffectedElementsOnServer(GraphicsGroupItem* p_GraphicsGroupItem);
+	/// Подготовка отсылки обновления параметров группы, задействованные элементы.
+	static void UpdateGroupAndAffectedElements(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 
 protected:

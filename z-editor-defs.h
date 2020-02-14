@@ -6,6 +6,12 @@
 #define E_MAINWINDOW_UI_CONF_PATH       "../Z-Editor/settings/mainwindow_ui.ini"
 #define E_SCHEMATICWINDOW_UI_CONF_PATH  "../Z-Editor/settings/schematicwindow_ui.ini"
 #define WAITING_FOR_INTERFACE			500
+#define SEND_ELEMENTS					true
+#define DONT_SEND_ELEMENTS				false
+#define SEND_GROUP						true
+#define DONT_SEND_GROUP					false
+#define ELEMENTS_BLOCKING_PATTERN_ON	true
+#define ELEMENTS_BLOCKING_PATTERN_OFF	false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9
