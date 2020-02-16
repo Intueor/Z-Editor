@@ -102,6 +102,7 @@ const char m_chNewElement[] = "Новый элемент";
 const char m_chGroup[] = "Группа";
 const char m_chElement[] = "Элемент";
 const char m_chMenuRename[] = "Переименовать";
+const char m_chMenuRenameSelection[] = "Переименовать выборку";
 const char m_chDelete[] = "Удалить";
 const char m_chPorts[] = "Порты";
 const char m_chAddToGroup[] = "Добавить в группу";

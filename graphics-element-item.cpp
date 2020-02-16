@@ -351,10 +351,28 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			SchematicWindow::p_Menu = new QMenu;
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
-			SchematicWindow::p_Menu->addSection(QString(m_chElement) +
-							" [" + QString(this->oPSchElementBaseInt.m_chName) + "]")->setDisabled(true);
+			QString strCaption;
+			bool bNoSelection = SchematicWindow::vp_SelectedElements.isEmpty();
+			//
+			if(bNoSelection)
+			{
+				strCaption = QString(m_chElement) +
+						" [" + QString(this->oPSchElementBaseInt.m_chName) + "]";
+			}
+			else
+			{
+				strCaption = "Выборка элементов";
+			}
+			SchematicWindow::p_Menu->addSection(strCaption)->setDisabled(true);
 			// Имя.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuRename));
+			if(bNoSelection)
+			{
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename));
+			}
+			else
+			{
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection));
+			}
 			// Удалить.
 			SchematicWindow::p_Menu->addAction(QString(m_chDelete));
 			// Порты.
