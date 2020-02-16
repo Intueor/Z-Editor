@@ -351,7 +351,7 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			SchematicWindow::p_Menu = new QMenu;
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
-			SchematicWindow::p_Menu->addAction(QString(m_chElement) +
+			SchematicWindow::p_Menu->addSection(QString(m_chElement) +
 							" [" + QString(this->oPSchElementBaseInt.m_chName) + "]")->setDisabled(true);
 			// Имя.
 			SchematicWindow::p_Menu->addAction(QString(m_chMenuRename));
@@ -577,11 +577,13 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				{
 					memset(&oPSchElementName, 0, sizeof(oPSchElementName));
 					CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
+					CopyStrArray(m_chName, oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 					oPSchElementName.ullIDInt = oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 					oPSchElementName.bLastInQueue = true;
 					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
 																  sizeof(oPSchElementName));
 					p_QGroupBox->setTitle(oPSchElementName.m_chName);
+
 					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();

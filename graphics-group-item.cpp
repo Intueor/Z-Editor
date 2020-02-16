@@ -390,7 +390,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			SchematicWindow::p_Menu = new QMenu;
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
-			SchematicWindow::p_Menu->addAction(QString(m_chGroup) +
+			SchematicWindow::p_Menu->addSection(QString(m_chGroup) +
 											   " [" + QString(this->oPSchGroupBaseInt.m_chName) + "]")->setDisabled(true);
 			// Имя.
 			SchematicWindow::p_Menu->addAction(QString(m_chMenuRename));
@@ -558,6 +558,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				{
 					memset(&oPSchGroupName, 0, sizeof(oPSchGroupName));
 					CopyStrArray(m_chName, oPSchGroupName.m_chName, SCH_OBJ_NAME_STR_LEN);
+					CopyStrArray(m_chName, oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 					oPSchGroupName.ullIDInt = oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
 																  sizeof(oPSchGroupName));
