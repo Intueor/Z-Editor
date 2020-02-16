@@ -621,7 +621,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
 			{
-
+				GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(this);
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chRemoveFromGroup))
 			{

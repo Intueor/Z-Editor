@@ -539,9 +539,12 @@ bool GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* 
 	{
 		GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
 		GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
-														  p_GraphicsElementItemInitial, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
-		ElementToTopAPFS(p_GraphicsElementItemInitial, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
-										 ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
+										  p_GraphicsElementItemInitial, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
+		if(p_GraphicsElementItemInitial != nullptr)
+		{
+			ElementToTopAPFS(p_GraphicsElementItemInitial, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
+							 ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
+		}
 		SchematicView::UpdateLinksZPos();
 	}
 	if(bForceSelected)
