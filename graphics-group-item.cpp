@@ -638,6 +638,8 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = this;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 				GraphicsElementItem::UpdateGroupFrameByElements(this);
+				GroupToTopAPFS(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
+														  nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 				SchematicView::UpdateLinksZPos();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
