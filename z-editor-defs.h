@@ -6,14 +6,22 @@
 #define E_MAINWINDOW_UI_CONF_PATH       "../Z-Editor/settings/mainwindow_ui.ini"
 #define E_SCHEMATICWINDOW_UI_CONF_PATH  "../Z-Editor/settings/schematicwindow_ui.ini"
 #define WAITING_FOR_INTERFACE			500
-#define SEND_ELEMENTS					true
-#define DONT_SEND_ELEMENTS				false
-#define SEND_GROUP						true
-#define DONT_SEND_GROUP					false
-#define ELEMENTS_BLOCKING_PATTERN_ON	true
-#define ELEMENTS_BLOCKING_PATTERN_OFF	false
-#define WITH_GROUP						true
-#define WITHOUT_GROUP					false
+#define SEND_ELEMENTS						true
+#define DONT_SEND_ELEMENTS					false
+#define SEND_GROUP							true
+#define DONT_SEND_GROUP						false
+#define ELEMENTS_BLOCKING_PATTERN_ON		true
+#define ELEMENTS_BLOCKING_PATTERN_OFF		false
+#define WITH_GROUP							true
+#define WITHOUT_GROUP						false
+#define SEND_NEW_ELEMENTS_TO_GROUP				true
+#define DONT_SEND_NEW_ELEMENTS_TO_GROUP		false
+#define ADD_SEND_BUSY						true
+#define ADD_SEND_ZPOS						false
+#define ADD_SEND_FRAME						true
+#define DONT_ADD_SEND_FRAME					false
+#define GET_SELECTED_ELEMENTS_UP			true
+#define DONT_GET_SELECTED_ELEMENTS_UP		false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9
@@ -105,9 +113,8 @@ const char m_chMenuRename[] = "Переименовать";
 const char m_chMenuRenameSelection[] = "Переименовать выборку";
 const char m_chDelete[] = "Удалить";
 const char m_chPorts[] = "Порты";
-const char m_chAddToGroup[] = "Добавить в группу";
 const char m_chRemoveFromGroup[] = "Удалить из группы";
-const char m_chAddFreeSelected[] = "Добавить выбранные свободные элементы";
+const char m_chAddFreeSelected[] = "Добавить выбранные свободные элементы в группу";
 const char m_chBackground[] = "Изменить цвет фона";
 const char m_chDisband[] = "Расформировать";
 const char m_chAddElement[] = "Создать элемент в группе";

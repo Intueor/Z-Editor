@@ -13,6 +13,7 @@
 LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsElementItem)
 LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsElementItem)
 QString GraphicsElementItem::strAddGroupName;
+QVector<GraphicsElementItem*>* GraphicsElementItem::vp_NewElementsForGroup = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического элемента.
@@ -254,8 +255,10 @@ void GraphicsElementItem::advance(int iStep)
 	iStep = iStep; // Заглушка.
 }
 
-// Поднятие элемента на первый план.
-void GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bBlokingPattern, bool bSend)
+// Поднятие элемента на первый план и подготовка отсылки.
+void GraphicsElementItem::ElementToTopAndPrepareForSending(GraphicsElementItem* p_Element, bool bAddNewelementstoGroupSending,
+														   bool bAddBusyOrZPosToSending,
+														   bool bBlokingPattern, bool bSend)
 {
 	PSchElementVars oPSchElementVars;
 	//
@@ -266,8 +269,28 @@ void GraphicsElementItem::ElementToTop(GraphicsElementItem* p_Element, bool bBlo
 	if(bSend)
 	{
 		oPSchElementVars.ullIDInt = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-		oPSchElementVars.oSchElementGraph.bBusy = true;
-		oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_BUSY;
+		if(bAddBusyOrZPosToSending)
+		{
+			oPSchElementVars.oSchElementGraph.bBusy = true;
+			oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_BUSY;
+		}
+		else
+		{
+			oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS;
+			oPSchElementVars.oSchElementGraph.dbObjectZPos = p_Element->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
+		}
+		if(bAddNewelementstoGroupSending)
+		{
+			if(vp_NewElementsForGroup != nullptr)
+			{
+				if(vp_NewElementsForGroup->contains(p_Element))
+				{
+					oPSchElementVars.oSchElementGraph.uchChangesBits |= SCH_ELEMENT_BIT_GROUP;
+					oPSchElementVars.ullIDGroup = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDGroup;
+					vp_NewElementsForGroup->removeOne(p_Element);
+				}
+			}
+		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 													   sizeof(oPSchElementVars));
 	}
@@ -315,11 +338,14 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 					bInGroup = (p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 					if(bInGroup)
 					{
-						GraphicsGroupItem::GroupToTop(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, p_GraphicsElementItem,
-													  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать текущий выбранный элемент.
+						GraphicsGroupItem::GroupToTopAndPrepareForSending(p_GraphicsElementItem->p_GraphicsGroupItemRel,
+																		  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+																		  DONT_ADD_SEND_FRAME, p_GraphicsElementItem,
+																		  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать выбранный элемент.
 					}
 					 // Текущий выбранный наверх, над группой.
-					ElementToTop(p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+					ElementToTopAndPrepareForSending(p_GraphicsElementItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+													 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 				}
 			}
 		}
@@ -340,9 +366,11 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		bInGroup = (p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 		if(bInGroup) // Если присутствует - поднятие, исключая текущий элемент.
 		{
-			GraphicsGroupItem::GroupToTop(p_GraphicsGroupItemRel, SEND_GROUP, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+			GraphicsGroupItem::GroupToTopAndPrepareForSending(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+															  DONT_ADD_SEND_FRAME, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 		}
-		ElementToTop(this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Если в группе - не отсылать.
+		ElementToTopAndPrepareForSending(this, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+										 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Если в группе - не отсылать.
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -389,7 +417,7 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			{
 				if(SchematicWindow::vp_SelectedGroups.count() == 1)
 				{
-					strAddGroupName = QString(m_chAddToGroup) + " [" +
+					strAddGroupName = QString(m_chAddFreeSelected) + " [" +
 							QString(SchematicWindow::vp_SelectedGroups.at(0)->oPSchGroupBaseInt.m_chName) + "]";
 					SchematicWindow::p_Menu->addAction(strAddGroupName);
 				}
@@ -472,39 +500,16 @@ void GraphicsElementItem::ReleaseElementAndPrepareForSending(GraphicsElementItem
 												   sizeof(PSchElementVars));
 }
 
-// Подготовка отсылки обновления параметров группы, задействованные элементы.
-void GraphicsElementItem::UpdateGroupAndAffectedElements(GraphicsGroupItem* p_GraphicsGroupItem)
-{
-	PSchGroupVars oPSchGroupVars;
-	PSchElementVars oPSchElementVars;
-	GraphicsElementItem* p_GraphicsElementItem;
-	//
-	GraphicsGroupItem::GroupToTop(p_GraphicsGroupItem, DONT_SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, DONT_SEND_ELEMENTS);
-	oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-	oPSchGroupVars.oSchGroupGraph.oDbObjectFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
-	oPSchGroupVars.oSchGroupGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
-	oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_ZPOS;
-	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
-	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++) // По всем присоединённым элементам.
-	{
-		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
-			oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-			oPSchElementVars.oSchElementGraph.dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
-			oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS;
-			MainWindow::p_Client->AddPocketToOutputBufferC(
-						PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(oPSchElementVars));
-	}
-}
-
-// Добавление свободных элементов в группу.
-bool GraphicsElementItem::AddFreeSelectedElementsToGroup(GraphicsGroupItem* p_GraphicsGroupItem,
+// Добавление свободных элементов в группу и подготовка к отправке.
+bool GraphicsElementItem::AddFreeSelectedElementsToGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem,
 														 GraphicsElementItem* p_GraphicsElementItemInitial)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	bool bForceSelected = false;
 	bool bAction;
-	PSchElementVars oPSchElementVars;
 	//
+	vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
+
 	if(p_GraphicsElementItemInitial != nullptr)
 	{
 		if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItemInitial))
@@ -519,29 +524,32 @@ bool GraphicsElementItem::AddFreeSelectedElementsToGroup(GraphicsGroupItem* p_Gr
 		p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 		{
-			p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
-			p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup =
-					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-			oPSchElementVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchElementVars.oSchElementGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
-			oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
-			MainWindow::p_Client->AddPocketToOutputBufferC(
-						PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
-			bAction = true;
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
+			{
+				p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
+				p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup =
+						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+				vp_NewElementsForGroup->append(p_GraphicsElementItem);
+				bAction = true;
+			}
 		}
 	}
 	if(bAction)
 	{
 		GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
-		UpdateGroupAndAffectedElements(p_GraphicsGroupItem);
+		GraphicsGroupItem::GroupToTopAndPrepareForSending(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
+														  p_GraphicsElementItemInitial, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
+		ElementToTopAndPrepareForSending(p_GraphicsElementItemInitial, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
+										 ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 		SchematicView::UpdateLinksZPos();
 	}
 	if(bForceSelected)
 	{
 		SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItemInitial);
 	}
+	delete vp_NewElementsForGroup;
+	vp_NewElementsForGroup = nullptr;
 	return bAction;
 }
 
@@ -617,7 +625,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			}
 			else if(p_SelectedMenuItem->text() == strAddGroupName)
 			{
-				AddFreeSelectedElementsToGroup(SchematicWindow::vp_SelectedGroups.at(0), this);
+				AddFreeSelectedElementsToGroupAndPrepareForSending(SchematicWindow::vp_SelectedGroups.at(0), this);
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chRemoveFromGroup))
 			{

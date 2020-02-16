@@ -313,7 +313,7 @@ bool SchematicView::DetachSelected()
 		}
 		for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 		{
-			// Модифицированный вариант ElementToTop - под нужды отправки группы и Z-позиции всем.
+			// Модифицированный вариант ElementToTopAndPrepareForSending - под нужды отправки группы и Z-позиции всем.
 			p_GraphicsElementItem = vp_SortedElements.at(iF);
 			p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;

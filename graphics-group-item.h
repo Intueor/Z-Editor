@@ -40,11 +40,14 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-	/// Подъём элементов группы на первый план с сортировкой.
-	static void SortGroupElementsToTop(GraphicsGroupItem* p_GraphicsGroupItem,
-									   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr, bool bWithSelectedDiff = true,
-									   bool bBlokingPatterns = true, bool bSend = true);
+	/// Подъём элементов группы на первый план с сортировкой и подготовкой отсылки.
+	static void SortGroupElementsToTopAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem,
+														   bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true,
+														   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr, bool bWithSelectedDiff = true,
+														   bool bBlokingPatterns = true, bool bSend = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
+							///< \param[in] bAddNewelementstoGroupSending При true - передача включёнными в список элементами параметра текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
@@ -66,12 +69,16 @@ public:
 							///< \param[in] аvp_Groups Ссылка на вектор указателей на группы.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
-	/// Поднятие группы на первый план.
-	static void GroupToTop(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
-						   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-						   bool bBlokingPatterns = true, bool bSendElements = true);
+	/// Поднятие группы на первый план и подготовка к отсылке.
+	static void GroupToTopAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+											   bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+											   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+											   bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
-							///< \param[in] bSend При true - отправка на сервер и клиентам.
+							///< \param[in] bSend При true - отправка на сервер.
+							///< \param[in] bAddNewelementstoGroupSending При true - передача включёнными элементами параметра текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
+							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.

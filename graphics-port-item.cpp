@@ -89,9 +89,9 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			p_ParentInt->p_GraphicsGroupItemRel->GroupToTop(p_ParentInt->p_GraphicsGroupItemRel);
+			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel);
 		}
-		GraphicsElementItem::ElementToTop(p_ParentInt);
+		GraphicsElementItem::ElementToTopAndPrepareForSending(p_ParentInt);
 	}
 	QGraphicsItem::mousePressEvent(event);
 }

@@ -137,8 +137,9 @@ void GraphicsGroupItem::IncomingUpdateGroupParameters(GraphicsGroupItem* p_Graph
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = a_SchGroupVars.oSchGroupGraph.dbObjectZPos;
 		UpdateSelected(p_GraphicsGroupItem, SCH_UPDATE_GROUP_ZPOS | SCH_UPDATE_MAIN);
 		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
-		SortGroupElementsToTop(p_GraphicsGroupItem, nullptr, false,
-							   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy, DONT_SEND_ELEMENTS);
+		SortGroupElementsToTopAndPrepareForSending(p_GraphicsGroupItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY, nullptr,
+												   DONT_GET_SELECTED_ELEMENTS_UP,
+												   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy, DONT_SEND_ELEMENTS);
 	}
 }
 
@@ -280,9 +281,11 @@ gSE:			pvp_SortedGroups->append(p_GraphicsGroupItem);
 	}
 }
 
-// Подъём элементов группы на первый план с сортировкой.
-void GraphicsGroupItem::SortGroupElementsToTop(GraphicsGroupItem* p_GraphicsGroupItem,
-										  GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithSelectedDiff, bool bBlokingPatterns, bool bSend)
+// Подъём элементов группы на первый план с сортировкой и подготовкой отсылки.
+void GraphicsGroupItem::SortGroupElementsToTopAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem,
+																   bool bAddNewelementstoGroupSending, bool bAddBusyOrZPosToSending,
+																   GraphicsElementItem* p_GraphicsElementItemExclude,
+																   bool bWithSelectedDiff, bool bBlokingPatterns, bool bSend)
 {
 	QVector<GraphicsElementItem*> vp_SortedElements;
 	QVector<GraphicsElementItem*> vp_SelectionSortedElements;
@@ -292,21 +295,24 @@ void GraphicsGroupItem::SortGroupElementsToTop(GraphicsGroupItem* p_GraphicsGrou
 	SortElementsByZPos(p_GraphicsGroupItem->vp_ConnectedElements, p_GraphicsElementItemExclude, &vp_SortedElements, pvp_SelectionSortedElements);
 	for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 	{
-		GraphicsElementItem::ElementToTop(vp_SortedElements.at(iF), bBlokingPatterns, bSend);
+		GraphicsElementItem::ElementToTopAndPrepareForSending(vp_SortedElements.at(iF), bAddNewelementstoGroupSending,
+															  bAddBusyOrZPosToSending, bBlokingPatterns, bSend);
 	}
 	if(bWithSelectedDiff)
 	{
 		for(int iF = vp_SelectionSortedElements.count() - 1; iF != -1; iF--)
 		{
-			GraphicsElementItem::ElementToTop(vp_SelectionSortedElements.at(iF), bBlokingPatterns, bSend);
+			GraphicsElementItem::ElementToTopAndPrepareForSending(vp_SelectionSortedElements.at(iF), bAddNewelementstoGroupSending,
+																  bAddBusyOrZPosToSending, bBlokingPatterns, bSend);
 		}
 	}
 	SchematicView::UpdateLinksZPos();
 }
 
-// Поднятие группы на первый план.
-void GraphicsGroupItem::GroupToTop(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
-														 GraphicsElementItem* p_GraphicsElementItemExclude, bool bBlokingPatterns, bool bSendElements)
+// Поднятие группы на первый план и подготовка к отсылке.
+void GraphicsGroupItem::GroupToTopAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
+													   bool bAddNewelementstoGroupSending, bool bAddBusyOrZPosToSending, bool bAddFrame,
+													   GraphicsElementItem* p_GraphicsElementItemExclude, bool bBlokingPatterns, bool bSendElements)
 {
 	PSchGroupVars oPSchGroupVars;
 	//
@@ -316,15 +322,29 @@ void GraphicsGroupItem::GroupToTop(GraphicsGroupItem* p_GraphicsGroupItem, bool 
 	p_GraphicsGroupItem->update();
 	if(bSend)
 	{
-		p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, true);
+		p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, bBlokingPatterns);
 		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-		oPSchGroupVars.oSchGroupGraph.bBusy = true;
-		oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
+		if(bAddBusyOrZPosToSending)
+		{
+			oPSchGroupVars.oSchGroupGraph.bBusy = true;
+			oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
+		}
+		else
+		{
+			oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_ZPOS;
+			oPSchGroupVars.oSchGroupGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
+		}
+		if(bAddFrame)
+		{
+			oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_FRAME;
+			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 													  sizeof(PSchGroupVars));
 	}
 	if(bSend == false) bSendElements = false;
-	SortGroupElementsToTop(p_GraphicsGroupItem, p_GraphicsElementItemExclude, true, bBlokingPatterns, bSendElements);
+	SortGroupElementsToTopAndPrepareForSending(p_GraphicsGroupItem, bAddNewelementstoGroupSending, bAddBusyOrZPosToSending,
+											   p_GraphicsElementItemExclude, GET_SELECTED_ELEMENTS_UP, bBlokingPatterns, bSendElements);
 }
 
 // Переопределение функции обработки нажатия мыши.
@@ -363,7 +383,8 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
 				if(p_GraphicsGroupItem != this)
 				{
-					GroupToTop(p_GraphicsGroupItem, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+					GroupToTopAndPrepareForSending(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+												   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 				}
 			}
 		}
@@ -381,7 +402,8 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 				}
 			}
 		}
-		GroupToTop(this, SEND_GROUP, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+		GroupToTopAndPrepareForSending(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+									   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -597,7 +619,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			{
 
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chAddToGroup))
+			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
 			{
 
 			}
@@ -616,12 +638,11 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = this;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 				GraphicsElementItem::UpdateGroupFrameByElements(this);
-				GraphicsElementItem::UpdateGroupAndAffectedElements(this);
 				SchematicView::UpdateLinksZPos();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
 			{
-				GraphicsElementItem::AddFreeSelectedElementsToGroup(this);
+				GraphicsElementItem::AddFreeSelectedElementsToGroupAndPrepareForSending(this);
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chBackground))
 			{

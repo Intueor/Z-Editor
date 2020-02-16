@@ -30,9 +30,12 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-	/// Поднятие элемента на первый план и отсылка сообщения на сервер по умолчанию.
-	static void ElementToTop(GraphicsElementItem* p_Element, bool bBlokingPattern = true, bool bSend = true);
+	/// Поднятие элемента на первый план и подготовка отсылки.
+	static void ElementToTopAndPrepareForSending(GraphicsElementItem* p_Element, bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true,
+												 bool bBlokingPattern = true, bool bSend = true);
 							///< \param[in] p_Element Указатель на граф. элемент.
+							///< \param[in] bAddNewelementstoGroupSending При true - передача элементом параметра текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
 	/// Переопределение функции обработки нажатия мыши.
@@ -81,16 +84,12 @@ public:
 	/// Удаление всех графических элементов портов с элемента по ID.
 	static void RemovePortsByID(unsigned long long ullID);
 							///< \param[in] ullID ID элемента.
-	/// Добавление свободных элементов в группу.
-	static bool AddFreeSelectedElementsToGroup(GraphicsGroupItem* p_GraphicsGroupItem,
+	/// Добавление свободных элементов в группу и подготовка к отправке.
+	static bool AddFreeSelectedElementsToGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem,
 											   GraphicsElementItem* p_GraphicsElementItemInitial = nullptr);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
 							///< \return true, если добавлялись пакеты в буфер.
-	/// Подготовка отсылки обновления параметров группы, задействованные элементы.
-	static void UpdateGroupAndAffectedElements(GraphicsGroupItem* p_GraphicsGroupItem);
-							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
-
 protected:
 	/// Переопределение функции шага событий элемента.
 	void advance(int iStep) override;
@@ -113,6 +112,7 @@ private:
 	GraphicsScalerItem* p_GraphicsScalerItem; ///< Указатель на графический объект скалера.
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
 	static QString strAddGroupName; ///< Рабочая строка для добавления имени группы.
+	static QVector<GraphicsElementItem*>* vp_NewElementsForGroup; ///< Вектор для заполнения новыми элементами для группы, очищается при добавлении.
 };
 
 #endif // GRAPHICSELEMENTITEM_H
