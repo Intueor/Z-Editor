@@ -158,41 +158,32 @@ void SchematicView::UpdateLinksZPos()
 	}
 }
 
-// Удаление графического элемента из группы и отправка её фрейма только на сервер.
-bool SchematicView::PrepareChangingFrameAndRemoveElementFromGroup(GraphicsElementItem* p_GraphicsElementItem)
-{
-	bool bGroupMustBeErased = false;
-	GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItem->p_GraphicsGroupItemRel;
-	PSchGroupVars oPSchGroupVars;
-	//
-	p_GraphicsGroupItem->vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление из группы.
-	if(p_GraphicsGroupItem->vp_ConnectedElements.isEmpty())
-	{
-		bGroupMustBeErased = true;
-	}
-	else
-	{
-		GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem); // При непустой группе - коррекция её фрейма.
-		oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
-				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
-		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-		oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
-		MainWindow::p_Client->AddPocketToOutputBufferC(
-					PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
-	}
-	return bGroupMustBeErased;
-}
-
 // Подготовка удаления графического элемента из сцены и группы, возврат флага на удаление группы элемента.
 bool SchematicView::PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem)
 {
 	bool bGroupMustBeErased = false;
+	GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItem->p_GraphicsGroupItemRel;
+	PSchGroupVars oPSchGroupVars;
 	// Удалене связанных портов.
 	GraphicsElementItem::RemovePortsByID(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt);
 	// Если элемент в группе...
 	if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
 	{
-		bGroupMustBeErased = PrepareChangingFrameAndRemoveElementFromGroup(p_GraphicsElementItem);
+		p_GraphicsGroupItem->vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление из группы.
+		if(p_GraphicsGroupItem->vp_ConnectedElements.isEmpty())
+		{
+			bGroupMustBeErased = true;
+		}
+		else
+		{
+			GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem); // При непустой группе - коррекция её фрейма.
+			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
+					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+			oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+			oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
+			MainWindow::p_Client->AddPocketToOutputBufferC(
+						PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
+		}
 	}
 	// Удаление связанных линков.
 	for(int iE = 0; iE < SchematicWindow::vp_Links.count(); iE++)
@@ -261,8 +252,8 @@ void SchematicView::DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
 }
 
-// Остоединение выбранного.
-bool SchematicView::DetachSelected()
+// Остоединение выбранных элементов от группы и подготовка отправки всех изменеий на сервер.
+bool SchematicView::DetachSelectedAPFS()
 {
 	bool bAction = false;
 	GraphicsElementItem* p_GraphicsElementItem;
@@ -270,8 +261,17 @@ bool SchematicView::DetachSelected()
 	PSchGroupVars oPSchGroupVars;
 	QVector<GraphicsGroupItem*> vp_AffectedGroups;
 	PSchElementVars oPSchElementVars;
+	QVector<GraphicsElementItem*> vp_SelectedGroupedElements;
 	//
-	GraphicsGroupItem::SortElementsByZPos(SchematicWindow::vp_SelectedElements, nullptr, &vp_SortedElements); // Сортировка элементов в выборке.
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+	{
+		GraphicsElementItem* pGraphicsElementItemSelected = SchematicWindow::vp_SelectedElements.at(iF);
+		if(pGraphicsElementItemSelected->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
+		{
+			vp_SelectedGroupedElements.append(pGraphicsElementItemSelected);
+		}
+	}
+	GraphicsGroupItem::SortElementsByZPos(vp_SelectedGroupedElements, nullptr, &vp_SortedElements);
 	for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = vp_SortedElements.at(iF);
@@ -279,17 +279,20 @@ bool SchematicView::DetachSelected()
 		{
 			GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItem->p_GraphicsGroupItemRel;
 			//
-			if(PrepareChangingFrameAndRemoveElementFromGroup(p_GraphicsElementItem))  // Остоединение элемента и подготовка сообщения об этом.
+			p_GraphicsGroupItem->vp_ConnectedElements.removeOne(p_GraphicsElementItem);
+			if(p_GraphicsGroupItem->vp_ConnectedElements.isEmpty()) // Если уже пустая...
 			{
 				SchematicWindow::vp_Groups.removeOne(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+				// Пустая группа удалится на сервере сама.
 			}
 			else
-			{ // Если не была удалена группа как пустая...
+			{ // Иначе...
 				if(!vp_AffectedGroups.contains(p_GraphicsGroupItem)) // Может быть игнор на случай остоединения более одного элемента от группы.
 				{
 					vp_AffectedGroups.append(p_GraphicsGroupItem); // Добавление в затронутые.
 				}
+				GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
 			}
 			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
@@ -302,18 +305,15 @@ bool SchematicView::DetachSelected()
 		{
 			GraphicsGroupItem* p_GraphicsGroupItem = vp_AffectedGroups.at(iG);
 			//
-			oPSchGroupVars.oSchGroupGraph.dbObjectZPos =
-					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
 			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 			oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_ZPOS;
+			oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
 			MainWindow::p_Client->AddPocketToOutputBufferC(
 						PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
 		}
 		for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 		{
-			// Модифицированный вариант ElementToTopAPFS - под нужды отправки группы и Z-позиции всем.
 			p_GraphicsElementItem = vp_SortedElements.at(iF);
 			p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;

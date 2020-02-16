@@ -34,8 +34,8 @@ public:
 	/// Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
 	static void DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-	/// Остоединение выбранного.
-	static bool DetachSelected();
+	/// Остоединение выбранных элементов от группы и подготовка отправки всех изменеий на сервер.
+	static bool DetachSelectedAPFS();
 							///< \return true, если добавлялись пакеты в буфер.
 	/// Удаление выбранного и подготовка отправки по запросу.
 	static void DeleteSelectedAPFS();
@@ -65,17 +65,11 @@ protected:
 	/// Переопределение функции обработки нажатия на клавиши.
 	void keyPressEvent(QKeyEvent* event);
 							///< \param[in] p_Event Указатель на событие клавиши.
-
 private:
 	/// Подготовка удаления графического элемента из сцены и группы, возврат флага на удаление группы элемента.
 	static bool PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \return true, если был удалён пустой графический объект группы.
-	/// Удаление графического элемента из группы и отправка её фрейма только на сервер.
-	static bool PrepareChangingFrameAndRemoveElementFromGroup(GraphicsElementItem* p_GraphicsElementItem);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \return true, если группа осталась пуста.
-
 private:
 	static bool bLMousePressed; ///< Признак нажатия на ЛКМ.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.

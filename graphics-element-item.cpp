@@ -639,7 +639,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 					SchematicWindow::vp_SelectedElements.append(this);
 					bForceSelected = true;
 				}
-				SchematicView::DetachSelected();
+				SchematicView::DetachSelectedAPFS();
 				if(bForceSelected)
 				{
 					SchematicWindow::vp_SelectedElements.removeOne(this);
