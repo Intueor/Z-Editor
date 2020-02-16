@@ -41,7 +41,7 @@ public:
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
 	/// Подъём элементов группы на первый план с сортировкой и подготовкой отсылки.
-	static void SortGroupElementsToTopAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem,
+	static void SortGroupElementsToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 														   bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true,
 														   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr, bool bWithSelectedDiff = true,
 														   bool bBlokingPatterns = true, bool bSend = true);
@@ -69,8 +69,8 @@ public:
 							///< \param[in] аvp_Groups Ссылка на вектор указателей на группы.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
-	/// Поднятие группы на первый план и подготовка к отсылке.
-	static void GroupToTopAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+	/// Поднятие группы на первый план и подготовка к отсылке по запросу.
+	static void GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
 											   bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 											   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 											   bool bBlokingPatterns = true, bool bSendElements = true);
@@ -107,8 +107,8 @@ public:
 	static void SetBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] bValue Вкл\Выкл блокировки.
-	/// Отпускание группы и подготовка отправки.
-	static void ReleaseGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr);
+	/// Отпускание группы и подготовка отправки по запросу.
+	static void ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
 

@@ -89,9 +89,9 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel);
+			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel);
 		}
-		GraphicsElementItem::ElementToTopAndPrepareForSending(p_ParentInt);
+		GraphicsElementItem::ElementToTopAPFS(p_ParentInt);
 	}
 	QGraphicsItem::mousePressEvent(event);
 }
@@ -201,7 +201,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel);
 			}
 		}
 		TrySendBufferToServer;

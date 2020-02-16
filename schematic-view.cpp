@@ -50,7 +50,7 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 }
 
 // Создание нового элемента и подготовка отсылки параметров.
-GraphicsElementItem* SchematicView::CreateNewElementAndPrepareForSending(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup)
+GraphicsElementItem* SchematicView::CreateNewElementAPFS(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup)
 {
 	PSchElementBase oPSchElementBase;
 	unsigned char uchR = rand() % 255;
@@ -108,7 +108,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 		{
 			if(p_SelectedMenuItem->text() == strHelper)
 			{
-				CreateNewElementAndPrepareForSending(strHelper, pntMapped);
+				CreateNewElementAPFS(strHelper, pntMapped);
 				MainWindow::p_Client->SendBufferToServer();
 			}
 		}
@@ -217,7 +217,7 @@ bool SchematicView::PrepareForRemoveElementFromScene(GraphicsElementItem* p_Grap
 }
 
 // Подготовка отсылки параметров и удаление группы.
-void SchematicView::DeleteGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem)
+void SchematicView::DeleteGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	PSchGroupEraser oPSchGroupEraser;
 	GraphicsElementItem* p_GraphicsElementItem;
@@ -238,7 +238,7 @@ void SchematicView::DeleteGroupAndPrepareForSending(GraphicsGroupItem* p_Graphic
 }
 
 // Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
-void SchematicView::DeleteElementAndPrepareForSending(GraphicsElementItem* p_GraphicsElementItem)
+void SchematicView::DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem)
 {
 	PSchElementEraser oPSchElementEraser;
 	PSchGroupEraser oPSchGroupEraser;
@@ -313,7 +313,7 @@ bool SchematicView::DetachSelected()
 		}
 		for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 		{
-			// Модифицированный вариант ElementToTopAndPrepareForSending - под нужды отправки группы и Z-позиции всем.
+			// Модифицированный вариант ElementToTopAPFS - под нужды отправки группы и Z-позиции всем.
 			p_GraphicsElementItem = vp_SortedElements.at(iF);
 			p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
@@ -331,8 +331,8 @@ bool SchematicView::DetachSelected()
 	return bAction;
 }
 
-// Удаление выбранного и подготовка отправки.
-void SchematicView::DeleteSelectedAndPrepareForSending()
+// Удаление выбранного и подготовка отправки по запросу.
+void SchematicView::DeleteSelectedAPFS()
 {
 	QVector<GraphicsElementItem*> vp_SortedElements;
 	QVector<GraphicsGroupItem*> vp_SortedGroups;
@@ -340,12 +340,12 @@ void SchematicView::DeleteSelectedAndPrepareForSending()
 	GraphicsGroupItem::SortGroupsByZPos(SchematicWindow::vp_SelectedGroups, nullptr, &vp_SortedGroups); // Сортировка групп в выборке.
 	for(int iF = 0; iF != vp_SortedGroups.count(); iF++)
 	{
-		DeleteGroupAndPrepareForSending(vp_SortedGroups.at(iF));
+		DeleteGroupAPFS(vp_SortedGroups.at(iF));
 	}
 	GraphicsGroupItem::SortElementsByZPos(SchematicWindow::vp_SelectedElements, nullptr, &vp_SortedElements); // Сортировка элементов в выборке.
 	for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 	{
-		DeleteElementAndPrepareForSending(vp_SortedElements.at(iF));
+		DeleteElementAPFS(vp_SortedElements.at(iF));
 	}
 	SchematicWindow::vp_SelectedGroups.clear();
 	SchematicWindow::vp_SelectedElements.clear();
@@ -358,7 +358,7 @@ void SchematicView::keyPressEvent(QKeyEvent* event)
 	{
 	case Qt::Key_Delete:
 	{
-		DeleteSelectedAndPrepareForSending();
+		DeleteSelectedAPFS();
 		break;
 	}
 	}

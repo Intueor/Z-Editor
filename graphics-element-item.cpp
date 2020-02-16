@@ -255,8 +255,8 @@ void GraphicsElementItem::advance(int iStep)
 	iStep = iStep; // Заглушка.
 }
 
-// Поднятие элемента на первый план и подготовка отсылки.
-void GraphicsElementItem::ElementToTopAndPrepareForSending(GraphicsElementItem* p_Element, bool bAddNewelementstoGroupSending,
+// Поднятие элемента на первый план и подготовка отсылки по запросу.
+void GraphicsElementItem::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddNewelementstoGroupSending,
 														   bool bAddBusyOrZPosToSending,
 														   bool bBlokingPattern, bool bSend)
 {
@@ -338,13 +338,13 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 					bInGroup = (p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 					if(bInGroup)
 					{
-						GraphicsGroupItem::GroupToTopAndPrepareForSending(p_GraphicsElementItem->p_GraphicsGroupItemRel,
+						GraphicsGroupItem::GroupToTopAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel,
 																		  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 																		  DONT_ADD_SEND_FRAME, p_GraphicsElementItem,
 																		  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать выбранный элемент.
 					}
 					 // Текущий выбранный наверх, над группой.
-					ElementToTopAndPrepareForSending(p_GraphicsElementItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+					ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 													 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 				}
 			}
@@ -366,10 +366,10 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		bInGroup = (p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
 		if(bInGroup) // Если присутствует - поднятие, исключая текущий элемент.
 		{
-			GraphicsGroupItem::GroupToTopAndPrepareForSending(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+			GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 															  DONT_ADD_SEND_FRAME, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 		}
-		ElementToTopAndPrepareForSending(this, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+		ElementToTopAPFS(this, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 										 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Если в группе - не отсылать.
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
@@ -473,8 +473,8 @@ void GraphicsElementItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 	UpdateSelected(this, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN | SCH_UPDATE_GROUP);
 }
 
-// Отпускание элемента и подготовка отправки.
-void GraphicsElementItem::ReleaseElementAndPrepareForSending(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup)
+// Отпускание элемента и подготовка отправки по запросу.
+void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup)
 {
 	PSchElementVars oPSchElementVars;
 	//
@@ -484,7 +484,7 @@ void GraphicsElementItem::ReleaseElementAndPrepareForSending(GraphicsElementItem
 	{
 		if(bWithGroup)
 		{
-			p_GraphicsElementItem->p_GraphicsGroupItemRel->ReleaseGroupAndPrepareForSending(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+			p_GraphicsElementItem->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 			return;
 		}
 	}
@@ -500,8 +500,8 @@ void GraphicsElementItem::ReleaseElementAndPrepareForSending(GraphicsElementItem
 												   sizeof(PSchElementVars));
 }
 
-// Добавление свободных элементов в группу и подготовка к отправке.
-bool GraphicsElementItem::AddFreeSelectedElementsToGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem,
+// Добавление свободных элементов в группу и подготовка к отправке по запросу.
+bool GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 														 GraphicsElementItem* p_GraphicsElementItemInitial)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
@@ -538,9 +538,9 @@ bool GraphicsElementItem::AddFreeSelectedElementsToGroupAndPrepareForSending(Gra
 	if(bAction)
 	{
 		GraphicsElementItem::UpdateGroupFrameByElements(p_GraphicsGroupItem);
-		GraphicsGroupItem::GroupToTopAndPrepareForSending(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
+		GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
 														  p_GraphicsElementItemInitial, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
-		ElementToTopAndPrepareForSending(p_GraphicsElementItemInitial, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
+		ElementToTopAPFS(p_GraphicsElementItemInitial, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
 										 ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 		SchematicView::UpdateLinksZPos();
 	}
@@ -574,11 +574,11 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iE);
 				if(p_GraphicsElementItem != this)
 				{
-					ReleaseElementAndPrepareForSending(p_GraphicsElementItem);
+					ReleaseElementAPFS(p_GraphicsElementItem);
 				}
 			}
 		}
-		ReleaseElementAndPrepareForSending(this);
+		ReleaseElementAPFS(this);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);
@@ -617,7 +617,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				{
 					SchematicWindow::vp_SelectedElements.append(this);
 				}
-				SchematicView::DeleteSelectedAndPrepareForSending();
+				SchematicView::DeleteSelectedAPFS();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chPorts))
 			{
@@ -625,7 +625,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			}
 			else if(p_SelectedMenuItem->text() == strAddGroupName)
 			{
-				AddFreeSelectedElementsToGroupAndPrepareForSending(SchematicWindow::vp_SelectedGroups.at(0), this);
+				AddFreeSelectedElementsToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0), this);
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chRemoveFromGroup))
 			{

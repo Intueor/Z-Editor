@@ -29,18 +29,18 @@ public:
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
 								///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
 	/// Подготовка отсылки параметров и удаление группы.
-	static void DeleteGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem);
+	static void DeleteGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 	/// Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
-	static void DeleteElementAndPrepareForSending(GraphicsElementItem* p_GraphicsElementItem);
+	static void DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 	/// Остоединение выбранного.
 	static bool DetachSelected();
 							///< \return true, если добавлялись пакеты в буфер.
-	/// Удаление выбранного и подготовка отправки.
-	static void DeleteSelectedAndPrepareForSending();
+	/// Удаление выбранного и подготовка отправки по запросу.
+	static void DeleteSelectedAPFS();
 	/// Создание нового элемента и подготовка отсылки параметров.
-	static GraphicsElementItem* CreateNewElementAndPrepareForSending(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup = 0);
+	static GraphicsElementItem* CreateNewElementAPFS(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup = 0);
 							///< \param[in] a_strNameBase Ссылка на строку с базой нового имени.
 							///< \param[in] a_pntMapped Ссылка на координаты.
 							///< \param[in] ullIDGroup ИД группы или ноль для отдельного элемента.

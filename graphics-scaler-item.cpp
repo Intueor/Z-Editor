@@ -70,9 +70,9 @@ void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel, true, p_ParentInt);
+			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, true, p_ParentInt);
 		}
-		GraphicsElementItem::ElementToTopAndPrepareForSending(p_ParentInt);
+		GraphicsElementItem::ElementToTopAPFS(p_ParentInt);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mousePressEvent(event);
@@ -146,7 +146,7 @@ void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt);
 			}
 		}
 		p_ParentInt->SetBlockingPattern(p_ParentInt, false);

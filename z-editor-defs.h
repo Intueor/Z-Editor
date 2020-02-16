@@ -14,7 +14,7 @@
 #define ELEMENTS_BLOCKING_PATTERN_OFF		false
 #define WITH_GROUP							true
 #define WITHOUT_GROUP						false
-#define SEND_NEW_ELEMENTS_TO_GROUP				true
+#define SEND_NEW_ELEMENTS_TO_GROUP			true
 #define DONT_SEND_NEW_ELEMENTS_TO_GROUP		false
 #define ADD_SEND_BUSY						true
 #define ADD_SEND_ZPOS						false
