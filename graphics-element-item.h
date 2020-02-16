@@ -73,8 +73,8 @@ public:
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] bSrc Признак запрса создания на источник (false - приёмник).
 							///< \param[in] p_Parent Указатель на объект родителя-элемента.
-	/// Отпускание элемента.
-	static void ReleaseElement(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true);
+	/// Отпускание элемента и подготовка отправки.
+	static void ReleaseElementAndPrepareForSending(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] bWithElements При true - отпускать и содержащую группу.
 							///< \param[in] bServerOnly При true - отправка только на сервер.

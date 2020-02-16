@@ -197,14 +197,14 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
 													   (char*)&p_ParentInt->oPSchElementBaseInt.oPSchElementVars,
 													   sizeof(PSchElementVars));
-		MainWindow::p_Client->SendBufferToServer(true);
 		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroup(p_ParentInt->p_GraphicsGroupItemRel);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel);
 			}
 		}
+		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);
 }

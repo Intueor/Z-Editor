@@ -385,10 +385,7 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			SchematicWindow::p_Menu->addAction(QString(m_chBackground));
 		}
 	}
-	if(!MainWindow::p_Client->oInternalNetHub.CheckIsBufferFree())
-	{
-		MainWindow::p_Client->SendBufferToServer();
-	}
+	TrySendBufferToServer;
 	QGraphicsItem::mousePressEvent(event);
 }
 
@@ -430,8 +427,8 @@ void GraphicsElementItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 	UpdateSelected(this, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN | SCH_UPDATE_GROUP);
 }
 
-// Отпускание элемента.
-void GraphicsElementItem::ReleaseElement(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup)
+// Отпускание элемента и подготовка отправки.
+void GraphicsElementItem::ReleaseElementAndPrepareForSending(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup)
 {
 	PSchElementVars oPSchElementVars;
 	//
@@ -441,7 +438,7 @@ void GraphicsElementItem::ReleaseElement(GraphicsElementItem* p_GraphicsElementI
 	{
 		if(bWithGroup)
 		{
-			p_GraphicsElementItem->p_GraphicsGroupItemRel->ReleaseGroup(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+			p_GraphicsElementItem->p_GraphicsGroupItemRel->ReleaseGroupAndPrepareForSending(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 			return;
 		}
 	}
@@ -551,12 +548,12 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iE);
 				if(p_GraphicsElementItem != this)
 				{
-					ReleaseElement(p_GraphicsElementItem);
+					ReleaseElementAndPrepareForSending(p_GraphicsElementItem);
 				}
 			}
 		}
-		ReleaseElement(this);
-		MainWindow::p_Client->SendBufferToServer();
+		ReleaseElementAndPrepareForSending(this);
+		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);
 	if(SchematicWindow::p_Menu != nullptr)
@@ -594,10 +591,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				{
 					SchematicWindow::vp_SelectedElements.append(this);
 				}
-				if(SchematicView::DeleteSelected())
-				{
-					MainWindow::p_Client->SendBufferToServer();
-				};
+				SchematicView::DeleteSelectedAndPrepareForSending();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chPorts))
 			{
@@ -606,7 +600,6 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			else if(p_SelectedMenuItem->text() == strAddGroupName)
 			{
 				AddFreeSelectedElementsToGroup(SchematicWindow::vp_SelectedGroups.at(0), this);
-				MainWindow::p_Client->SendBufferToServer();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chRemoveFromGroup))
 			{
@@ -617,10 +610,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 					SchematicWindow::vp_SelectedElements.append(this);
 					bForceSelected = true;
 				}
-				if(SchematicView::DetachSelected())
-				{
-					MainWindow::p_Client->SendBufferToServer();
-				};
+				SchematicView::DetachSelected();
 				if(bForceSelected)
 				{
 					SchematicWindow::vp_SelectedElements.removeOne(this);
@@ -630,6 +620,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			{
 
 			}
+			TrySendBufferToServer;
 		}
 		delete SchematicWindow::p_Menu;
 		SchematicWindow::p_Menu = nullptr;

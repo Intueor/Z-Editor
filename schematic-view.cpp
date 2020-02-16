@@ -331,10 +331,9 @@ bool SchematicView::DetachSelected()
 	return bAction;
 }
 
-// Удаление выбранного.
-bool SchematicView::DeleteSelected()
+// Удаление выбранного и подготовка отправки.
+void SchematicView::DeleteSelectedAndPrepareForSending()
 {
-	bool bAction = false;
 	QVector<GraphicsElementItem*> vp_SortedElements;
 	QVector<GraphicsGroupItem*> vp_SortedGroups;
 	//
@@ -342,17 +341,14 @@ bool SchematicView::DeleteSelected()
 	for(int iF = 0; iF != vp_SortedGroups.count(); iF++)
 	{
 		DeleteGroupAndPrepareForSending(vp_SortedGroups.at(iF));
-		bAction = true;
 	}
 	GraphicsGroupItem::SortElementsByZPos(SchematicWindow::vp_SelectedElements, nullptr, &vp_SortedElements); // Сортировка элементов в выборке.
 	for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 	{
 		DeleteElementAndPrepareForSending(vp_SortedElements.at(iF));
-		bAction = true;
 	}
 	SchematicWindow::vp_SelectedGroups.clear();
 	SchematicWindow::vp_SelectedElements.clear();
-	return bAction;
 }
 
 // Переопределение функции обработки нажатия на клавиши.
@@ -362,7 +358,7 @@ void SchematicView::keyPressEvent(QKeyEvent* event)
 	{
 	case Qt::Key_Delete:
 	{
-		DeleteSelected();
+		DeleteSelectedAndPrepareForSending();
 		break;
 	}
 	}

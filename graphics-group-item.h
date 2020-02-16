@@ -100,9 +100,10 @@ public:
 	static void SetBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] bValue Вкл\Выкл блокировки.
-	/// Отпускание группы.
-	static void ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem);
+	/// Отпускание группы и подготовка отправки.
+	static void ReleaseGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
+							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
 
 private:
 	/// Перемещение группы.

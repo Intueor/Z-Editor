@@ -421,10 +421,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			SchematicWindow::p_Menu->addAction(QString(m_chBackground));
 		}
 	}
-	if(!MainWindow::p_Client->oInternalNetHub.CheckIsBufferFree())
-	{
-		MainWindow::p_Client->SendBufferToServer();
-	}
+	TrySendBufferToServer;
 	QGraphicsItem::mousePressEvent(event);
 }
 
@@ -484,8 +481,8 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 	MoveGroup(this, oQPointFRes, false);
 }
 
-// Отпускание группы.
-void GraphicsGroupItem::ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem)
+// Отпускание группы и подготовка отправки.
+void GraphicsGroupItem::ReleaseGroupAndPrepareForSending(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	PSchGroupVars oPSchGroupVars;
@@ -507,7 +504,10 @@ void GraphicsGroupItem::ReleaseGroup(GraphicsGroupItem* p_GraphicsGroupItem)
 	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
-		p_GraphicsElementItem->ReleaseElement(p_GraphicsElementItem, WITHOUT_GROUP);
+		if(p_GraphicsElementItem != p_GraphicsElementItemExclude)
+		{
+			p_GraphicsElementItem->ReleaseElementAndPrepareForSending(p_GraphicsElementItem, WITHOUT_GROUP);
+		}
 	}
 }
 
@@ -532,12 +532,12 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsGroupItem = vp_SortedGroups.at(iE);
 				if(p_GraphicsGroupItem != this)
 				{
-					ReleaseGroup(p_GraphicsGroupItem);
+					ReleaseGroupAndPrepareForSending(p_GraphicsGroupItem);
 				}
 			}
 		}
-		ReleaseGroup(this);
-		MainWindow::p_Client->SendBufferToServer();
+		ReleaseGroupAndPrepareForSending(this);
+		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);
 	if(SchematicWindow::p_Menu != nullptr)
@@ -573,7 +573,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				{
 					SchematicWindow::vp_SelectedGroups.append(this);
 				}
-				SchematicView::DeleteSelected();
+				SchematicView::DeleteSelectedAndPrepareForSending();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chPorts))
 			{
@@ -599,21 +599,18 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 				GraphicsElementItem::UpdateGroupFrameByElements(this);
 				GraphicsElementItem::UpdateGroupAndAffectedElements(this);
-				MainWindow::p_Client->SendBufferToServer();
 				SchematicView::UpdateLinksZPos();
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
 			{
-				if(GraphicsElementItem::AddFreeSelectedElementsToGroup(this))
-				{
-					MainWindow::p_Client->SendBufferToServer();
-				};
+				GraphicsElementItem::AddFreeSelectedElementsToGroup(this);
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chBackground))
 			{
 
 			}
 		}
+		TrySendBufferToServer;
 		delete SchematicWindow::p_Menu;
 		SchematicWindow::p_Menu = nullptr;
 	}

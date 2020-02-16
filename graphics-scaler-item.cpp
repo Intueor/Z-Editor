@@ -70,9 +70,10 @@ void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			p_ParentInt->p_GraphicsGroupItemRel->GroupToTop(p_ParentInt->p_GraphicsGroupItemRel);
+			p_ParentInt->p_GraphicsGroupItemRel->GroupToTop(p_ParentInt->p_GraphicsGroupItemRel, true, p_ParentInt);
 		}
 		GraphicsElementItem::ElementToTop(p_ParentInt);
+		TrySendBufferToServer;
 	}
 	QGraphicsItem::mousePressEvent(event);
 }
@@ -141,21 +142,21 @@ void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 							PROTO_O_SCH_LINK_VARS, (char*)&p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars, sizeof(PSchLinkVars));
 			}
 		}
-		p_ParentInt->SetBlockingPattern(p_ParentInt, false);
-		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_FRAME | SCH_ELEMENT_BIT_BUSY;
-		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = false;
-		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
-													   (char*)&p_ParentInt->oPSchElementBaseInt.oPSchElementVars,
-													   sizeof(PSchElementVars));
-		MainWindow::p_Client->SendBufferToServer();
-
 		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroup(p_ParentInt->p_GraphicsGroupItemRel);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAndPrepareForSending(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt);
 			}
 		}
+		p_ParentInt->SetBlockingPattern(p_ParentInt, false);
+		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uchChangesBits =
+				SCH_ELEMENT_BIT_FRAME | SCH_ELEMENT_BIT_BUSY | SCH_ELEMENT_BIT_ZPOS;
+		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = false;
+		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
+													   (char*)&p_ParentInt->oPSchElementBaseInt.oPSchElementVars,
+													   sizeof(PSchElementVars));
+		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);
 }

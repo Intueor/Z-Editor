@@ -37,9 +37,8 @@ public:
 	/// Остоединение выбранного.
 	static bool DetachSelected();
 							///< \return true, если добавлялись пакеты в буфер.
-	/// Удаление выбранного.
-	static bool DeleteSelected();
-							///< \return true, если добавлялись пакеты в буфер.
+	/// Удаление выбранного и подготовка отправки.
+	static void DeleteSelectedAndPrepareForSending();
 	/// Создание нового элемента и подготовка отсылки параметров.
 	static GraphicsElementItem* CreateNewElementAndPrepareForSending(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup = 0);
 							///< \param[in] a_strNameBase Ссылка на строку с базой нового имени.
