@@ -625,29 +625,45 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chDisband))
 			{
+				bool bForceSelected = false;
 				QVector<GraphicsElementItem*> vp_SortedElements;
+				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
-				SortElementsByZPos(vp_ConnectedElements, nullptr, &vp_SortedElements);
-				for(int iF = 0; iF != vp_SortedElements.count(); iF++)
+				if(!SchematicWindow::vp_SelectedGroups.contains(this))
 				{
-					GraphicsElementItem* p_GraphicsElementItem = vp_SortedElements.at(iF);
-					PSchElementVars oPSchElementVars;
-					//
-					p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-					SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-					p_GraphicsElementItem->update();
-					oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-					oPSchElementVars.ullIDGroup = 0;
-					oPSchElementVars.oSchElementGraph.dbObjectZPos =
-							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
-					oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
-					MainWindow::p_Client->AddPocketToOutputBufferC(
-								PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
-					SchematicView::UpdateLinksZPos();
+					SchematicWindow::vp_SelectedGroups.append(this);
+					bForceSelected = true;
 				}
-				SchematicWindow::vp_Groups.removeOne(this);
-				MainWindow::p_SchematicWindow->oScene.removeItem(this);
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+				{
+					p_GraphicsGroupItem = SchematicWindow::vp_SelectedGroups.at(iF);
+					SortElementsByZPos(p_GraphicsGroupItem->vp_ConnectedElements, nullptr, &vp_SortedElements);
+					for(int iF = 0; iF != vp_SortedElements.count(); iF++)
+					{
+						GraphicsElementItem* p_GraphicsElementItem = vp_SortedElements.at(iF);
+						PSchElementVars oPSchElementVars;
+						//
+						p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+						SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+						p_GraphicsElementItem->update();
+						oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+						oPSchElementVars.ullIDGroup = 0;
+						oPSchElementVars.oSchElementGraph.dbObjectZPos =
+								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
+						oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
+						MainWindow::p_Client->AddPocketToOutputBufferC(
+									PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
+						SchematicView::UpdateLinksZPos();
+					}
+					SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
+					MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
+					vp_SortedElements.clear();
+				}
+				if(bForceSelected)
+				{
+					SchematicWindow::vp_SelectedGroups.removeOne(this);
+				}
 			}
 			else if(p_SelectedMenuItem->text() == QString(m_chAddElement))
 			{
