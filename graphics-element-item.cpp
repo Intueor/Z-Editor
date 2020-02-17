@@ -341,7 +341,7 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 						GraphicsGroupItem::GroupToTopAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel,
 																		  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 																		  DONT_ADD_SEND_FRAME, p_GraphicsElementItem,
-																		  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать выбранный элемент.
+																		  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать элемент.
 					}
 					 // Текущий выбранный наверх, над группой.
 					ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
@@ -411,6 +411,11 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 					SchematicWindow::p_Menu->addAction(QString(m_chPorts));
 					break;
 				}
+			}
+			// Создать группу.
+			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+			{
+				SchematicWindow::p_Menu->addAction(m_chCreateGroup);
 			}
 			// В группу.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
@@ -509,7 +514,6 @@ bool GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* 
 	bool bAction;
 	//
 	vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
-
 	if(p_GraphicsElementItemInitial != nullptr)
 	{
 		if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItemInitial))
@@ -609,7 +613,6 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
 																  sizeof(oPSchElementName));
 					p_QGroupBox->setTitle(oPSchElementName.m_chName);
-
 					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
@@ -625,6 +628,59 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			else if(p_SelectedMenuItem->text() == QString(m_chPorts))
 			{
 
+			}
+			else if(p_SelectedMenuItem->text() == QString(m_chCreateGroup))
+			{
+				bool bForceSelected = false;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				PSchGroupBase oPSchGroupBase;
+				QString strName = QString(m_chNewGroup);
+				GraphicsElementItem* p_GraphicsElementItem;
+				unsigned char uchR = rand() % 255;
+				unsigned char uchG = rand() % 255;
+				unsigned char uchB = rand() % 255;
+				vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
+				//
+				if(!SchematicWindow::vp_SelectedElements.contains(this))
+				{
+					SchematicWindow::vp_SelectedElements.append(this);
+					bForceSelected = true;
+				}
+				oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
+				strName += ": " + QString::number(oPSchGroupBase.oPSchGroupVars.ullIDInt);
+				CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+				SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB).rgb();
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.bBusy = false;
+				p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
+				MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsGroupItem);
+				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+				{
+					p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+					{
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
+						p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+						p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItem);
+						vp_NewElementsForGroup->append(p_GraphicsElementItem);
+					}
+				}
+				UpdateGroupFrameByElements(p_GraphicsGroupItem);
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
+						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+				MainWindow::p_Client->AddPocketToOutputBufferC(
+							PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
+				GraphicsGroupItem::SortGroupElementsToTopAPFS(p_GraphicsGroupItem, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
+														   nullptr, DONT_GET_SELECTED_ELEMENTS_UP, DONT_APPLY_BLOCKINGPATTERN, SEND_ELEMENTS);
+				SchematicView::UpdateLinksZPos();
+				if(bForceSelected)
+				{
+					SchematicWindow::vp_SelectedElements.removeOne(this);
+				}
+				delete vp_NewElementsForGroup;
+				vp_NewElementsForGroup = nullptr;
 			}
 			else if(p_SelectedMenuItem->text() == strAddGroupName)
 			{

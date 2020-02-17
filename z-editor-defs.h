@@ -17,6 +17,8 @@
 #define SEND_NEW_ELEMENTS_TO_GROUP			true
 #define DONT_SEND_NEW_ELEMENTS_TO_GROUP		false
 #define ADD_SEND_BUSY						true
+#define APPLY_BLOCKINGPATTERN				true
+#define DONT_APPLY_BLOCKINGPATTERN			false
 #define ADD_SEND_ZPOS						false
 #define ADD_SEND_FRAME						true
 #define DONT_ADD_SEND_FRAME					false
@@ -107,6 +109,7 @@ const char m_chMenuSetAsDefault[] = "Установить как текущий"
 const char m_chStatusConnected[] = "Соединён";
 const char m_chMsgServerPassword[] = "Пароль сервера.";
 const char m_chNewElement[] = "Новый элемент";
+const char m_chNewGroup[] = "Новая группа";
 const char m_chGroup[] = "Группа";
 const char m_chElement[] = "Элемент";
 const char m_chMenuRename[] = "Переименовать";
@@ -114,6 +117,7 @@ const char m_chMenuRenameSelection[] = "Переименовать выборк�
 const char m_chDelete[] = "Удалить";
 const char m_chPorts[] = "Порты";
 const char m_chRemoveFromGroup[] = "Удалить из группы выбранные элементы";
+const char m_chCreateGroup[] = "Создать группу с выбранными элементами";
 const char m_chAddFreeSelected[] = "Добавить выбранные свободные элементы в группу";
 const char m_chBackground[] = "Изменить цвет фона";
 const char m_chDisband[] = "Расформировать";
