@@ -2,9 +2,7 @@
 #include <math.h>
 #include "schematic-view.h"
 #include "schematic-window.h"
-
-//== МАКРОСЫ.
-#define SCH_INTERNAL_POS_UNCHANGED          -2147483647
+#include "z-editor-defs.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 bool SchematicView::bLMousePressed = false;
@@ -75,33 +73,55 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(QString& a_strNameBase,
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX = a_pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY = a_pntMapped.y();
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB).rgb();
-	MainWindow::p_Client->AddPocketToOutputBufferC(
-				PROTO_O_SCH_ELEMENT_BASE, (char*)&oPSchElementBase, sizeof(PSchElementBase));
 	p_GraphicsElementItem = new GraphicsElementItem(&oPSchElementBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchElementGraph.dbObjectZPos);
 	SchematicWindow::vp_Elements.push_front(p_GraphicsElementItem);
 	MainWindow::p_SchematicWindow->oScene.update();
+	MainWindow::p_Client->AddPocketToOutputBufferC(
+				PROTO_O_SCH_ELEMENT_BASE, (char*)&oPSchElementBase, sizeof(PSchElementBase));
 	return p_GraphicsElementItem;
 }
 
-// Переопределение функции обработки нажатия на кнопку мыши.
+// Переопределение функции обработки нажатия на кнопку мыши.p_GraphicsFrameItem->show(); // Зажигаем рамку.
 void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 {
+	QPointF pntMapped;
+	GraphicsElementItem* p_GraphicsElementItem;
+	GraphicsGroupItem* p_GraphicsGroupItem;
+	//
+	pntMapped = this->mapToScene(p_Event->x(), p_Event->y());
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		bLMousePressed = true;
-		iXInt = SCH_INTERNAL_POS_UNCHANGED;
+		iXInt = iYInt = SCH_INTERNAL_POS_UNCHANGED;
+		if(MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform())) goto gEx;
+		if(p_Event->modifiers() == Qt::ControlModifier)
+		{
+			for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+			{
+				p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+				p_GraphicsElementItem->p_GraphicsFrameItem->hide();
+				p_GraphicsElementItem->bSelected = false;
+			}
+			SchematicWindow::vp_SelectedElements.clear();
+			for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+			{
+				p_GraphicsGroupItem = SchematicWindow::vp_SelectedGroups.at(iF);
+				p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
+				p_GraphicsGroupItem->bSelected = false;
+			}
+			SchematicWindow::vp_SelectedGroups.clear();
+		}
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
 		QMenu oMenu;
 		QAction* p_SelectedMenuItem;
-		QPointF pntMapped;
-		QString strHelper = QString(m_chNewElement);
+		QString strHelper;
 		//
-		pntMapped = this->mapToScene(p_Event->x(), p_Event->y());
 		if(MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform())) goto gEx;
+		strHelper = QString(m_chNewElement);
 		oMenu.addAction(strHelper);
 		p_SelectedMenuItem = oMenu.exec(p_Event->globalPos());
 		if(p_SelectedMenuItem != 0)
@@ -122,7 +142,7 @@ void SchematicView::mouseReleaseEvent(QMouseEvent* p_Event)
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		bLMousePressed = false;
-		if(iXInt == SCH_INTERNAL_POS_UNCHANGED)
+		if((iXInt == SCH_INTERNAL_POS_UNCHANGED) & (iYInt == SCH_INTERNAL_POS_UNCHANGED))
 		{
 			goto gNE;
 		}

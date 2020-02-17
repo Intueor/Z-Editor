@@ -652,6 +652,8 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 						oPSchElementVars.oSchElementGraph.dbObjectZPos =
 								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
 						oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
+						p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
 						MainWindow::p_Client->AddPocketToOutputBufferC(
 									PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
 						SchematicView::UpdateLinksZPos();
