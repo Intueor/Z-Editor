@@ -10,6 +10,8 @@
 //
 #define SEND_ELEMENTS						true
 #define DONT_SEND_ELEMENTS					false
+#define SEND_ELEMENT						true
+#define DONT_SEND_ELEMENT					false
 #define SEND_GROUP							true
 #define DONT_SEND_GROUP						false
 #define ELEMENTS_BLOCKING_PATTERN_ON		true
@@ -18,6 +20,8 @@
 #define WITHOUT_GROUP						false
 #define SEND_NEW_ELEMENTS_TO_GROUP			true
 #define DONT_SEND_NEW_ELEMENTS_TO_GROUP		false
+#define SEND_ELEMENT_GROUP_CHANGE			true
+#define DONT_SEND_ELEMENT_GROUP_CHANGE		false
 #define ADD_SEND_BUSY						true
 #define APPLY_BLOCKINGPATTERN				true
 #define DONT_APPLY_BLOCKINGPATTERN			false
@@ -26,6 +30,10 @@
 #define DONT_ADD_SEND_FRAME					false
 #define GET_SELECTED_ELEMENTS_UP			true
 #define DONT_GET_SELECTED_ELEMENTS_UP		false
+#define WITH_FRAME							true
+#define WITHOUT_FRAME						false
+#define WITH_POSITION						true
+#define WITHOUT_POSITION					false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9

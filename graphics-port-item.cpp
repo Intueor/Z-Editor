@@ -89,9 +89,11 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel);
+			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
+																ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, p_ParentInt, APPLY_BLOCKINGPATTERN, SEND_ELEMENTS);
 		}
-		GraphicsElementItem::ElementToTopAPFS(p_ParentInt);
+		GraphicsElementItem::ElementToTopAPFS(p_ParentInt, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY, APPLY_BLOCKINGPATTERN, SEND_ELEMENT);
+		TrySendBufferToServer;
 	}
 	QGraphicsItem::mousePressEvent(event);
 }
@@ -191,19 +193,14 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(
 					PROTO_O_SCH_LINK_VARS, (char*)p_PSchLinkVarsInt, sizeof(PSchLinkVars));
-		p_ParentInt->SetBlockingPattern(p_ParentInt, false);
-		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_BUSY;
-		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = false;
-		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
-													   (char*)&p_ParentInt->oPSchElementBaseInt.oPSchElementVars,
-													   sizeof(PSchElementVars));
 		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITHOUT_FRAME);
 			}
 		}
+		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);

@@ -31,10 +31,10 @@ public:
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
 	/// Поднятие элемента на первый план и подготовка отсылки по запросу.
-	static void ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true,
+	static void ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange = false, bool bAddBusyOrZPosToSending = true,
 												 bool bBlokingPattern = true, bool bSend = true);
 							///< \param[in] p_Element Указатель на граф. элемент.
-							///< \param[in] bAddNewelementstoGroupSending При true - передача элементом параметра текущей группы.
+							///< \param[in] bAddElementGroupID При true - передача элементом изменения текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
@@ -77,9 +77,10 @@ public:
 							///< \param[in] bSrc Признак запрса создания на источник (false - приёмник).
 							///< \param[in] p_Parent Указатель на объект родителя-элемента.
 	/// Отпускание элемента и подготовка отправки по запросу.
-	static void ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true);
+	static void ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true, bool bWithPosition = true);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] bWithElements При true - отпускать и содержащую группу.
+							///< \param[in] bWithPosition При true - передатьна сервер координаты элемента.
 	/// Удаление всех графических элементов портов с элемента по ID.
 	static void RemovePortsByID(unsigned long long ullID);
 							///< \param[in] ullID ID элемента.

@@ -256,7 +256,7 @@ void GraphicsElementItem::advance(int iStep)
 }
 
 // Поднятие элемента на первый план и подготовка отсылки по запросу.
-void GraphicsElementItem::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddNewelementstoGroupSending,
+void GraphicsElementItem::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange,
 														   bool bAddBusyOrZPosToSending,
 														   bool bBlokingPattern, bool bSend)
 {
@@ -279,7 +279,7 @@ void GraphicsElementItem::ElementToTopAPFS(GraphicsElementItem* p_Element, bool 
 			oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS;
 			oPSchElementVars.oSchElementGraph.dbObjectZPos = p_Element->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
 		}
-		if(bAddNewelementstoGroupSending)
+		if(bAddElementGroupChange)
 		{
 			if(vp_NewElementsForGroup != nullptr)
 			{
@@ -344,8 +344,8 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 																		  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать элемент.
 					}
 					 // Текущий выбранный наверх, над группой.
-					ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
-													 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+					ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
+													 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT);
 				}
 			}
 		}
@@ -369,8 +369,8 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 			GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 															  DONT_ADD_SEND_FRAME, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 		}
-		ElementToTopAPFS(this, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
-										 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Если в группе - не отсылать.
+		ElementToTopAPFS(this, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
+										 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT); // Если в группе - не отсылать.
 	}
 	else if(event->button() == Qt::MouseButton::RightButton)
 	{
@@ -479,7 +479,7 @@ void GraphicsElementItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 
 // Отпускание элемента и подготовка отправки по запросу.
-void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup)
+void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup, bool bWithPosition)
 {
 	PSchElementVars oPSchElementVars;
 	//
@@ -493,14 +493,18 @@ void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElem
 			return;
 		}
 	}
-	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX = p_GraphicsElementItem->x();
-	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY = p_GraphicsElementItem->y();
 	p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, false);
-	oPSchElementVars.oSchElementGraph.oDbObjectPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos;
 	oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 	oPSchElementVars.oSchElementGraph.dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
 	oPSchElementVars.oSchElementGraph.bBusy = false;
-	oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_POS | SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY;
+	oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY;
+	if(bWithPosition)
+	{
+		oPSchElementVars.oSchElementGraph.uchChangesBits |= SCH_ELEMENT_BIT_POS;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX = p_GraphicsElementItem->x();
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY = p_GraphicsElementItem->y();
+		oPSchElementVars.oSchElementGraph.oDbObjectPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos;
+	}
 	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 												   sizeof(PSchElementVars));
 }
@@ -546,8 +550,8 @@ bool GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* 
 										  p_GraphicsElementItemInitial, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 		if(p_GraphicsElementItemInitial != nullptr)
 		{
-			ElementToTopAPFS(p_GraphicsElementItemInitial, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
-							 ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
+			ElementToTopAPFS(p_GraphicsElementItemInitial, SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_ZPOS,
+							 ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENT);
 		}
 		SchematicView::UpdateLinksZPos();
 	}

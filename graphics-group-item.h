@@ -42,11 +42,11 @@ public:
 							///< \param[in] p_Widget Указатель на виджет.
 	/// Подъём элементов группы на первый план с сортировкой и подготовкой отсылки.
 	static void SortGroupElementsToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
-														   bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true,
+														   bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true,
 														   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr, bool bWithSelectedDiff = true,
 														   bool bBlokingPatterns = true, bool bSend = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
-							///< \param[in] bAddNewelementstoGroupSending При true - передача включёнными в список элементами параметра текущей группы.
+							///< \param[in] bAddNewElementsToGroupSending При true - передача включёнными в список элементами параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
@@ -71,12 +71,12 @@ public:
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
 	/// Поднятие группы на первый план и подготовка к отсылке по запросу.
 	static void GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
-											   bool bAddNewelementstoGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+											   bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 											   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 											   bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
-							///< \param[in] bAddNewelementstoGroupSending При true - передача включёнными элементами параметра текущей группы.
+							///< \param[in] bAddNewElementsToGroupSending При true - передача включёнными элементами параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
 							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
@@ -108,10 +108,11 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] bValue Вкл\Выкл блокировки.
 	/// Отпускание группы и подготовка отправки по запросу.
-	static void ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr);
+	static void ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+								 bool bWithFrame = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
-
+							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
 private:
 	/// Перемещение группы.
 	static void MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);

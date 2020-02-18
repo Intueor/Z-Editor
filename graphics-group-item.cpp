@@ -283,7 +283,7 @@ gSE:			pvp_SortedGroups->append(p_GraphicsGroupItem);
 
 // Подъём элементов группы на первый план с сортировкой и подготовкой отсылки.
 void GraphicsGroupItem::SortGroupElementsToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
-																   bool bAddNewelementstoGroupSending, bool bAddBusyOrZPosToSending,
+																   bool bAddNewElementsToGroupSending, bool bAddBusyOrZPosToSending,
 																   GraphicsElementItem* p_GraphicsElementItemExclude,
 																   bool bWithSelectedDiff, bool bBlokingPatterns, bool bSend)
 {
@@ -295,14 +295,14 @@ void GraphicsGroupItem::SortGroupElementsToTopAPFS(GraphicsGroupItem* p_Graphics
 	SortElementsByZPos(p_GraphicsGroupItem->vp_ConnectedElements, p_GraphicsElementItemExclude, &vp_SortedElements, pvp_SelectionSortedElements);
 	for(int iF = 0; iF != vp_SortedElements.count(); iF++)
 	{
-		GraphicsElementItem::ElementToTopAPFS(vp_SortedElements.at(iF), bAddNewelementstoGroupSending,
+		GraphicsElementItem::ElementToTopAPFS(vp_SortedElements.at(iF), bAddNewElementsToGroupSending,
 															  bAddBusyOrZPosToSending, bBlokingPatterns, bSend);
 	}
 	if(bWithSelectedDiff)
 	{
 		for(int iF = vp_SelectionSortedElements.count() - 1; iF != -1; iF--)
 		{
-			GraphicsElementItem::ElementToTopAPFS(vp_SelectionSortedElements.at(iF), bAddNewelementstoGroupSending,
+			GraphicsElementItem::ElementToTopAPFS(vp_SelectionSortedElements.at(iF), bAddNewElementsToGroupSending,
 																  bAddBusyOrZPosToSending, bBlokingPatterns, bSend);
 		}
 	}
@@ -311,7 +311,7 @@ void GraphicsGroupItem::SortGroupElementsToTopAPFS(GraphicsGroupItem* p_Graphics
 
 // Поднятие группы на первый план и подготовка к отсылке по запросу.
 void GraphicsGroupItem::GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
-													   bool bAddNewelementstoGroupSending, bool bAddBusyOrZPosToSending, bool bAddFrame,
+													   bool bAddNewElementsToGroupSending, bool bAddBusyOrZPosToSending, bool bAddFrame,
 													   GraphicsElementItem* p_GraphicsElementItemExclude, bool bBlokingPatterns, bool bSendElements)
 {
 	PSchGroupVars oPSchGroupVars;
@@ -343,7 +343,7 @@ void GraphicsGroupItem::GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, b
 													  sizeof(PSchGroupVars));
 	}
 	if(bSend == false) bSendElements = false;
-	SortGroupElementsToTopAPFS(p_GraphicsGroupItem, bAddNewelementstoGroupSending, bAddBusyOrZPosToSending,
+	SortGroupElementsToTopAPFS(p_GraphicsGroupItem, bAddNewElementsToGroupSending, bAddBusyOrZPosToSending,
 											   p_GraphicsElementItemExclude, GET_SELECTED_ELEMENTS_UP, bBlokingPatterns, bSendElements);
 }
 
@@ -522,22 +522,26 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 
 // Отпускание группы и подготовка отправки по запросу.
-void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude)
+void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithFrame)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	PSchGroupVars oPSchGroupVars;
 	//
 	if(p_GraphicsGroupItem->oQBrush.style() == Qt::SolidPattern)
 		return;
-	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX = p_GraphicsGroupItem->x();
-	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY = p_GraphicsGroupItem->y();
-	oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
-			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 	oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 	p_GraphicsGroupItem->SetBlockingPattern(p_GraphicsGroupItem, false);
 	oPSchGroupVars.oSchGroupGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
 	oPSchGroupVars.oSchGroupGraph.bBusy = false;
-	oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_BUSY;
+	oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
+	if(bWithFrame)
+	{
+		oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_FRAME;
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX = p_GraphicsGroupItem->x();
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY = p_GraphicsGroupItem->y();
+		oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
+				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+	}
 	oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_ZPOS;
 	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 												  sizeof(PSchGroupVars));
@@ -546,7 +550,7 @@ void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
 		if(p_GraphicsElementItem != p_GraphicsElementItemExclude)
 		{
-			p_GraphicsElementItem->ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP);
+			p_GraphicsElementItem->ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP, bWithFrame);
 		}
 	}
 }
