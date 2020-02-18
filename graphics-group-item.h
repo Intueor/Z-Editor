@@ -109,10 +109,11 @@ public:
 							///< \param[in] bValue Вкл\Выкл блокировки.
 	/// Отпускание группы и подготовка отправки по запросу.
 	static void ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-								 bool bWithFrame = true);
+								 bool bWithFrame = true, bool bWithElementPositions = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
 							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
+							///< \param[in] bWithElementPositions При true - передать на сервер позиции элементов.
 private:
 	/// Перемещение группы.
 	static void MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);

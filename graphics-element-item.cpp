@@ -479,7 +479,7 @@ void GraphicsElementItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 
 // Отпускание элемента и подготовка отправки по запросу.
-void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup, bool bWithPosition)
+void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup, bool bWithPosition, bool bWithFrame)
 {
 	PSchElementVars oPSchElementVars;
 	//
@@ -504,6 +504,11 @@ void GraphicsElementItem::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElem
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX = p_GraphicsElementItem->x();
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY = p_GraphicsElementItem->y();
 		oPSchElementVars.oSchElementGraph.oDbObjectPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos;
+	}
+	if(bWithFrame)
+	{
+		oPSchElementVars.oSchElementGraph.uchChangesBits |= SCH_ELEMENT_BIT_FRAME;
+		oPSchElementVars.oSchElementGraph.oDbObjectFrame = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame;
 	}
 	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 												   sizeof(PSchElementVars));

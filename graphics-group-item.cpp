@@ -522,7 +522,8 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 
 // Отпускание группы и подготовка отправки по запросу.
-void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithFrame)
+void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithFrame,
+										 bool bWithElementPositions)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	PSchGroupVars oPSchGroupVars;
@@ -550,7 +551,7 @@ void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
 		if(p_GraphicsElementItem != p_GraphicsElementItemExclude)
 		{
-			p_GraphicsElementItem->ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP, bWithFrame);
+			p_GraphicsElementItem->ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP, bWithElementPositions);
 		}
 	}
 }

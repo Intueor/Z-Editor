@@ -34,6 +34,10 @@
 #define WITHOUT_FRAME						false
 #define WITH_POSITION						true
 #define WITHOUT_POSITION					false
+#define WITH_ELEMENTS_POSITION				true
+#define WITHOUT_ELEMENTS_POSITION			false
+#define WITH_FRAME							true
+#define WITHOUT_FRAME						false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9

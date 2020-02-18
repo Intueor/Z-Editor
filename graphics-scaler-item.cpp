@@ -146,16 +146,11 @@ void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITH_FRAME,
+																	  WITHOUT_ELEMENTS_POSITION);
 			}
 		}
-		p_ParentInt->SetBlockingPattern(p_ParentInt, false);
-		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uchChangesBits =
-				SCH_ELEMENT_BIT_FRAME | SCH_ELEMENT_BIT_BUSY | SCH_ELEMENT_BIT_ZPOS;
-		p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = false;
-		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
-													   (char*)&p_ParentInt->oPSchElementBaseInt.oPSchElementVars,
-													   sizeof(PSchElementVars));
+		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION, WITH_FRAME);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(event);

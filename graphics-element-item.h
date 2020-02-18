@@ -77,10 +77,12 @@ public:
 							///< \param[in] bSrc Признак запрса создания на источник (false - приёмник).
 							///< \param[in] p_Parent Указатель на объект родителя-элемента.
 	/// Отпускание элемента и подготовка отправки по запросу.
-	static void ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true, bool bWithPosition = true);
+	static void ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true, bool bWithPosition = true,
+								   bool bWithFrame = false);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] bWithElements При true - отпускать и содержащую группу.
 							///< \param[in] bWithPosition При true - передатьна сервер координаты элемента.
+							///< \param[in] bWithFrame При true - передатьна сервер фрейма элемента.
 	/// Удаление всех графических элементов портов с элемента по ID.
 	static void RemovePortsByID(unsigned long long ullID);
 							///< \param[in] ullID ID элемента.

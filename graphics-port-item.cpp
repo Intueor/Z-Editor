@@ -183,13 +183,13 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		{
 			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = x() - p_SchElementGraph->oDbObjectFrame.dbX;
 			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = y() - p_SchElementGraph->oDbObjectFrame.dbY;
-			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits |= SCH_LINK_BIT_SCR_PORT_POS;
+			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
 		}
 		else
 		{
 			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = x() - p_SchElementGraph->oDbObjectFrame.dbX;
 			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = y() - p_SchElementGraph->oDbObjectFrame.dbY;
-			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits |= SCH_LINK_BIT_DST_PORT_POS;
+			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(
 					PROTO_O_SCH_LINK_VARS, (char*)p_PSchLinkVarsInt, sizeof(PSchLinkVars));
@@ -197,7 +197,8 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITHOUT_FRAME);
+				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITHOUT_FRAME,
+																	  WITHOUT_ELEMENTS_POSITION);
 			}
 		}
 		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);
