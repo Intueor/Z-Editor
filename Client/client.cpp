@@ -429,7 +429,6 @@ gI:					break;
 			}
 			if(oParsingResult.p_chExtraData != 0)
 			{
-				LOG_P_2(LOG_CAT_I, (char*)m_chLogMerged);
 				p_chData = oParsingResult.p_chExtraData;
 				iLength = oParsingResult.iExtraDataLength;
 				goto gDp;
