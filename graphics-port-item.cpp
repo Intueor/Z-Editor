@@ -10,6 +10,7 @@
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsPortItem)
 LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsPortItem)
+bool GraphicsPortItem::bAltPressed;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического отображения порта.
@@ -20,6 +21,7 @@ GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bS
 	//
 	p_ParentInt = p_Parent;
 	bIsSrc = bSrc;
+	bAltPressed = false;
 	p_PSchLinkVarsInt = &p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars;
 	p_GraphicsLinkItemInt = p_GraphicsLinkItem;
 	setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
@@ -79,13 +81,13 @@ void GraphicsPortItem::advance(int iStep)
 }
 
 // Переопределение функции обработки нажатия мыши.
-void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	if(p_SchElementGraph->bBusy|| MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
-	if(event->button() == Qt::MouseButton::LeftButton)
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
@@ -94,30 +96,16 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		}
 		GraphicsElementItem::ElementToTopAPFS(p_ParentInt, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY, APPLY_BLOCKINGPATTERN, SEND_ELEMENT);
 		TrySendBufferToServer;
+		bAltPressed = (p_Event->modifiers() == Qt::AltModifier);
 	}
-	QGraphicsItem::mousePressEvent(event);
+	QGraphicsItem::mousePressEvent(p_Event);
 }
 
-// Переопределение функции обработки перемещения мыши.
-void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+// Коррекция точки порта по краю элемента.
+void GraphicsPortItem::BindToEdge()
 {
-	DbPoint oDbPointRB;
-	DbPoint oDbPointCurrent;
-	DbPoint oDbPointOld;
 	bool bXInside = false;
 	bool bYInside = false;
-	//
-	if(p_SchElementGraph->bBusy|| MainWindow::bBlockingGraphics)
-	{
-		return;
-	}
-	oDbPointOld.dbX = pos().x(); // Исходный X.
-	oDbPointOld.dbY = pos().y(); // Исходный Y.
-	oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-	oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
-	QGraphicsItem::mouseMoveEvent(event); // Даём мышке уйти.
-	oDbPointCurrent.dbX = pos().x(); // Текущий X.
-	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
 	if(oDbPointCurrent.dbX <= p_SchElementGraph->oDbObjectFrame.dbX) // Если текущий X меньше левого края элемента...
 	{
 		oDbPointCurrent.dbX = p_SchElementGraph->oDbObjectFrame.dbX; // Установка на левый край.
@@ -156,6 +144,11 @@ gI: if(bXInside && bYInside)
 			oDbPointCurrent.dbY = oDbPointOld.dbY;
 		}
 	}
+}
+
+// Установка порта в позицию.
+void GraphicsPortItem::SetToPos()
+{
 	setPos(oDbPointCurrent.dbX, oDbPointCurrent.dbY);
 	if(bIsSrc)
 	{
@@ -170,14 +163,41 @@ gI: if(bXInside && bYInside)
 	p_ParentInt->UpdateSelected(p_ParentInt, SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN, nullptr, p_GraphicsLinkItemInt);
 }
 
+// Переопределение функции обработки перемещения мыши.
+void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
+{
+	//
+	if(p_SchElementGraph->bBusy|| MainWindow::bBlockingGraphics)
+	{
+		return;
+	}
+	oDbPointOld.dbX = pos().x(); // Исходный X.
+	oDbPointOld.dbY = pos().y(); // Исходный Y.
+	oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
+	oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
+	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
+	oDbPointCurrent.dbX = pos().x(); // Текущий X.
+	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
+	if(!bAltPressed)
+	{
+		BindToEdge();
+	}
+	SetToPos();
+}
+
 // Переопределение функции обработки отпускания мыши.
-void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
-	if(event->button() == Qt::MouseButton::LeftButton)
+	if(bAltPressed)
+	{
+		BindToEdge();
+		SetToPos();
+	}
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		if(bIsSrc)
 		{
@@ -204,5 +224,5 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);
 		TrySendBufferToServer;
 	}
-	QGraphicsItem::mouseReleaseEvent(event);
+	QGraphicsItem::mouseReleaseEvent(p_Event);
 }

@@ -372,9 +372,9 @@ void SchematicView::DeleteSelectedAPFS()
 }
 
 // Переопределение функции обработки нажатия на клавиши.
-void SchematicView::keyPressEvent(QKeyEvent* event)
+void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 {
-	switch (event->key())
+	switch (p_Event->key())
 	{
 	case Qt::Key_Delete:
 	{

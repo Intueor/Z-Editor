@@ -34,8 +34,8 @@ public:
 	/// Деструктор.
 	~SchematicWindow();
 	/// Процедуры при закрытии окна обзора.
-	void closeEvent(QCloseEvent* event);
-							///< \param[in] event Указатель на событие.
+	void closeEvent(QCloseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 	/// Закрытие с флагом внешнего управления.
 	void RefClose();
 	/// Получение указателя на окно обзора.

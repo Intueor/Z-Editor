@@ -48,8 +48,8 @@ public:
 	/// Деструктор.
 	~MainWindow();
 	/// Процедуры при закрытии окна приложения.
-	void closeEvent(QCloseEvent* event);
-							///< \param[in] event Указатель на событие.
+	void closeEvent(QCloseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 	/// Для внешнего переключения чекбокса кнопки 'Схема'.
 	static void UncheckSchemaCheckbox();
 private:

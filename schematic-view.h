@@ -63,7 +63,7 @@ protected:
 							///< \param[in] iX Координаты X.
 							///< \param[in] iY Координаты Y.
 	/// Переопределение функции обработки нажатия на клавиши.
-	void keyPressEvent(QKeyEvent* event);
+	void keyPressEvent(QKeyEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие клавиши.
 private:
 	/// Подготовка удаления графического элемента из сцены и группы, возврат флага на удаление группы элемента.

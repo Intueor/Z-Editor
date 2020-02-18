@@ -83,14 +83,14 @@ public:
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 	/// Переопределение функции обработки нажатия мыши.
-	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-							///< \param[in] event Указатель на событие.
+	void mousePressEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
 	/// Переопределение функции обработки перемещения мыши.
-	void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-							///< \param[in] event Указатель на событие.
+	void mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
 	/// Переопределение функции обработки отпускания мыши.
-	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-							///< \param[in] event Указатель на событие.
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
 	/// Обновление выбранных граф. объектов.
 	static void UpdateSelected(GraphicsGroupItem* p_GraphicsGroupItem, unsigned short ushBits);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.

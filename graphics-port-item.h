@@ -26,14 +26,19 @@ public:
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
 	/// Переопределение функции обработки нажатия мыши.
-	void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-							///< \param[in] event Указатель на событие.
+	void mousePressEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
 	/// Переопределение функции обработки перемещения мыши.
-	void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-							///< \param[in] event Указатель на событие.
+	void mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
 	/// Переопределение функции обработки отпускания мыши.
-	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-							///< \param[in] event Указатель на событие.
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
+private:
+	/// Коррекция точки порта по краю элемента.
+	void BindToEdge();
+	// Установка порта в позицию.
+	void SetToPos();
 
 protected:
 	/// Переопределение функции шага событий элемента.
@@ -51,6 +56,10 @@ private:
 	LOGDECL_PTHRD_INCLASS_ADD
 	uint uiPortInt; ///< Внутренняя переменная номера порта.
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
+	static bool bAltPressed; ///< Флаг нажатого модификатора Alt.
+	DbPoint oDbPointRB; ///< Точка правого нижнего края элемента.
+	DbPoint oDbPointCurrent; ///< Текщая точка.
+	DbPoint oDbPointOld; ///< Старая точка.
 };
 
 #endif // GRAPHICSPORTITEM_H

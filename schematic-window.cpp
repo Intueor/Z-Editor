@@ -188,7 +188,7 @@ void SchematicWindow::RefClose()
 }
 
 // Процедуры при закрытии окна обзора.
-void SchematicWindow::closeEvent(QCloseEvent *event)
+void SchematicWindow::closeEvent(QCloseEvent *p_Event)
 {
 	p_UISettings->setValue("Geometry", saveGeometry());
 	p_UISettings->setValue("WindowState", saveState());
@@ -197,7 +197,7 @@ void SchematicWindow::closeEvent(QCloseEvent *event)
 		p_MainWindow->UncheckSchemaCheckbox();
 	}
 	//
-	QMainWindow::closeEvent(event);
+	QMainWindow::closeEvent(p_Event);
 }
 
 // Получение указателя на окно обзора.

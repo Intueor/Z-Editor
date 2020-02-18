@@ -185,7 +185,7 @@ MainWindow::~MainWindow()
 }
 
 // Процедуры при закрытии окна приложения.
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent *p_Event)
 {
 	SetStatusBarText(m_chStatusShutdown);
 	if(p_Client)
@@ -207,7 +207,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		if(p_SchematicWindow->isVisible())
 			p_SchematicWindow->RefClose();
 	}
-	QMainWindow::closeEvent(event);
+	QMainWindow::closeEvent(p_Event);
 }
 
 // Для внешнего отключения чекбокса кнопки 'Схема'.

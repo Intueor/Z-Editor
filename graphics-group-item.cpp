@@ -348,7 +348,7 @@ void GraphicsGroupItem::GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, b
 }
 
 // Переопределение функции обработки нажатия мыши.
-void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	bool bLastSt;
 	//
@@ -356,11 +356,11 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 	{ //Если группа блокирована занятостью или главным окном - отказ.
 		return;
 	}
-	if(event->button() == Qt::MouseButton::LeftButton)
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		//==== РАБОТА С ВЫБОРКОЙ. ====
 		bLastSt = bSelected; // Запоминаем предыдущее значение выбраности.
-		if(event->modifiers() == Qt::ControlModifier)
+		if(p_Event->modifiers() == Qt::ControlModifier)
 		{ // При удержании CTRL - инверсия флага выбраности.
 			bSelected = !bSelected;
 		}
@@ -405,7 +405,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		GroupToTopAPFS(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 									   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	}
-	else if(event->button() == Qt::MouseButton::RightButton)
+	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
 		if(SchematicWindow::p_Menu == nullptr)
 		{
@@ -462,7 +462,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		}
 	}
 	TrySendBufferToServer;
-	QGraphicsItem::mousePressEvent(event);
+	QGraphicsItem::mousePressEvent(p_Event);
 }
 
 // Перемещение группы.
@@ -489,7 +489,7 @@ void GraphicsGroupItem::MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPoint
 }
 
 // Переопределение функции обработки перемещения мыши.
-void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	int iC;
 	QPointF oQPointFInit;
@@ -500,7 +500,7 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 		return;
 	}
 	oQPointFInit = pos();
-	QGraphicsItem::mouseMoveEvent(event);
+	QGraphicsItem::mouseMoveEvent(p_Event);
 	oQPointFRes = pos();
 	oQPointFRes.setX(oQPointFRes.x() - oQPointFInit.x()); // Смещение по X.
 	oQPointFRes.setY(oQPointFRes.y() - oQPointFInit.y()); // Смещение по Y.
@@ -557,13 +557,13 @@ void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 }
 
 // Переопределение функции обработки отпускания мыши.
-void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
-	if(event->button() == Qt::MouseButton::LeftButton)
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		if(bSelected)
 		{
@@ -584,7 +584,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		ReleaseGroupAPFS(this);
 		TrySendBufferToServer;
 	}
-	QGraphicsItem::mouseReleaseEvent(event);
+	QGraphicsItem::mouseReleaseEvent(p_Event);
 	if(SchematicWindow::p_Menu != nullptr)
 	{
 		QAction* p_SelectedMenuItem;
@@ -678,7 +678,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				QString strHelper = QString(m_chNewElement);
 				//
 				p_GraphicsElementItem = SchematicView::CreateNewElementAPFS(strHelper,
-																  this->mapToScene(event->pos()), this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
+																  this->mapToScene(p_Event->pos()), this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
 				vp_ConnectedElements.push_front(p_GraphicsElementItem);
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = this;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;

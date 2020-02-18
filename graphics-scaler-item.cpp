@@ -60,13 +60,13 @@ void GraphicsScalerItem::advance(int iStep)
 }
 
 // Переопределение функции обработки нажатия мыши.
-void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
-	if(event->button() == Qt::MouseButton::LeftButton)
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
@@ -75,11 +75,11 @@ void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 		GraphicsElementItem::ElementToTopAPFS(p_ParentInt);
 		TrySendBufferToServer;
 	}
-	QGraphicsItem::mousePressEvent(event);
+	QGraphicsItem::mousePressEvent(p_Event);
 }
 
 // Переопределение функции обработки перемещения мыши.
-void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	DbPoint oDbPointPos;
 	//
@@ -89,14 +89,14 @@ void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 	}
 	oDbPointPos.dbX = this->pos().x();
 	oDbPointPos.dbY = this->pos().y();
-	QGraphicsItem::mouseMoveEvent(event); // Даём мышке уйти.
+	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
 	setPos(QPointF((int)pos().x(), (int)pos().y()));
-	if(event->scenePos().x() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
+	if(p_Event->scenePos().x() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
 			p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX + ELEMENT_MIN_X)
 	{
 		setX(oDbPointPos.dbX);
 	}
-	if(event->scenePos().y() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
+	if(p_Event->scenePos().y() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
 			p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY + ELEMENT_MIN_Y)
 	{
 		setY(oDbPointPos.dbY);
@@ -115,13 +115,13 @@ void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 
 // Переопределение функции обработки отпускания мыши.
-void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
-	if(event->button() == Qt::MouseButton::LeftButton)
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		// Ищем линки к элементу-родителю скалера...
 		for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
@@ -153,5 +153,5 @@ void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION, WITH_FRAME);
 		TrySendBufferToServer;
 	}
-	QGraphicsItem::mouseReleaseEvent(event);
+	QGraphicsItem::mouseReleaseEvent(p_Event);
 }
