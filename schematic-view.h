@@ -4,6 +4,7 @@
 //== ВКЛЮЧЕНИЯ.
 #include <QGraphicsView>
 #include <QWheelEvent>
+#include "../Z-Hub/Server/protocol.h"
 
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
@@ -49,10 +50,11 @@ public:
 	/// Обновление Z-позиции линков.
 	static void UpdateLinksZPos();
 	/// Замена линка.
-	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc);
+	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos);
 							///< \param[in] p_GraphicsLinkItem Указатель на старый линк.
 							///< \param[in] p_GraphicsElementItemNew Указатель на элемент, на который будет создан новый линк.
 							///< \param[in] bIsSrc При true - новый элемент будет источником.
+							///< \param[in] oDbPortPos Координаты порта в сцене на момент обращения.
 							///< \return true при удаче.
 protected:
 	/// Переопределение функции обработки событий колёсика.

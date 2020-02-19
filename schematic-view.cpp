@@ -386,7 +386,7 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 
 // Замена линка.
 bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
-							   GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc)
+							   GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos)
 {
 	PSchLinkBase oPSchLinkBase;
 	GraphicsLinkItem* p_GraphicsLinkItemNew;
@@ -408,8 +408,75 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 		//
 		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
 				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbX = 0;
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbY = 0;
+		double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
+				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+		double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
+				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+		double dbXMax = dbXMin +
+				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
+		double dbYMax = dbYMin +
+				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
+		double dbXMinDiff = oDbPortPos.dbX - dbXMin; // Расстояние до левого края.
+		double dbYMinDiff = oDbPortPos.dbY - dbYMin; // Расстояние до верхнего края.
+		double dbXMaxDiff = dbXMax - oDbPortPos.dbX; // Расстояние до правого края.
+		double dbYMaxDiff = dbYMax - oDbPortPos.dbY; // Расстояние до нижнего края.
+		bool bXToLeft; // Ближе к левому.
+		bool bYToTop; // Ближе к верху.
+		if(dbXMinDiff < dbXMaxDiff) bXToLeft = true; else bXToLeft = false;
+		if(dbYMinDiff < dbYMaxDiff) bYToTop = true; else bYToTop = false;
+		if(bXToLeft & bYToTop) // Если у левого верхнего края...
+		{
+			if(dbXMinDiff < dbYMinDiff) // Если к левому ближе, чем к верхнему...
+			{
+				oDbPortPos.dbX = 0; // Прилипли к левому.
+				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+			}
+			else
+			{
+				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+				oDbPortPos.dbY = 0; // Прилипли к верхнему.
+			}
+		}
+		else if (!bXToLeft & !bYToTop) // Если у правого нижнего края...
+		{
+			if(dbXMaxDiff < dbYMaxDiff) // Если к правому ближе, чем к нижнему...
+			{
+				oDbPortPos.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;// Прилипли к правому.
+				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+			}
+			else
+			{
+				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+				oDbPortPos.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
+			}
+		}
+		else if(bXToLeft & !bYToTop) // Если у левого нижнего края...
+		{
+			if(dbXMinDiff < dbYMaxDiff) // Если к левому ближе, чем к нижнему...
+			{
+				oDbPortPos.dbX = 0; // Прилипли к левому.
+				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+			}
+			else
+			{
+				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+				oDbPortPos.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
+			}
+		}
+		else if(!bXToLeft & bYToTop) // Если у правого верхнего края...
+		{
+			if(dbXMaxDiff < dbYMinDiff) // Если к правому ближе, чем к верхнему...
+			{
+				oDbPortPos.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;// Прилипли к правому.
+				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+			}
+			else
+			{
+				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+				oDbPortPos.dbY = 0;// Прилипли к нижнему.
+			}
+		}
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = oDbPortPos;
 	}
 	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort;
 	oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort;

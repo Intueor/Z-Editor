@@ -204,6 +204,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	QGraphicsItem* p_QGraphicsItemFounded = nullptr;
 	GraphicsElementItem* p_GraphicsElementItemToChange = nullptr;
 	double dbZ = -999999;
+	DbPoint oDbMapped;
 	//
 	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
 	{
@@ -213,7 +214,6 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		QList<QGraphicsItem*> lp_QGraphicsItems = MainWindow::p_SchematicWindow->oScene.items();
 		QVector<QGraphicsItem*> vp_QGraphicsItemsOnPosition;
-		DbPoint oDbMapped;
 		//
 		oDbMapped.dbX = p_Event->scenePos().x();
 		oDbMapped.dbY = p_Event->scenePos().y();
@@ -302,6 +302,7 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 	QGraphicsItem::mouseReleaseEvent(p_Event);
 	if(p_GraphicsElementItemToChange)
 	{
-		SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemToChange, bIsSrc);
+
+		SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemToChange, bIsSrc, oDbMapped);
 	}
 }
