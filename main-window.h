@@ -150,11 +150,11 @@ public:
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
 	static Client* p_Client; ///< Указатель на объект клиента.
 	static bool bBlockingGraphics; ///< Признак блокировки главным окном.
+	static MainWindow* p_This; ///< Указатель на инициализированного себя.
 
 private:
 	LOGDECL
 	LOGDECL_PTHRD_INCLASS_ADD
-	static MainWindow* p_This; ///< Указатель на инициализированного себя.
 	static Ui::MainWindow *p_ui; ///< Указатель на UI.
 	static const char* cp_chUISettingsName; ///< Указатель на имя файла с установками UI.
 	static QLabel* p_QLabelStatusBarText; ///< Указатель на объект метки статуса.

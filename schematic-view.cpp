@@ -376,12 +376,63 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 {
 	switch (p_Event->key())
 	{
-	case Qt::Key_Delete:
-	{
-		DeleteSelectedAPFS();
-		break;
-	}
+		case Qt::Key_Delete:
+		{
+			DeleteSelectedAPFS();
+			break;
+		}
 	}
 }
 
+// Замена линка.
+bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
+							   GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc)
+{
+	PSchLinkBase oPSchLinkBase;
+	GraphicsLinkItem* p_GraphicsLinkItemNew;
+	//
+	if(bIsSrc)
+	{
+		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
+		//
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX = 0;
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY = 0;
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos =
+				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos;
+	}
+	else
+	{
+		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
+		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+		//
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
+				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbX = 0;
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbY = 0;
+	}
+	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort;
+	oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort;
+	//
+	p_GraphicsLinkItemNew = new GraphicsLinkItem(&oPSchLinkBase);
+	if(oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+	{
+		MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
+	}
+	else
+	{
+		delete p_GraphicsLinkItemNew;
+		return false;
+	}
+	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
+	GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItemNew);
+	SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
+	SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemDst);
+	SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItem);
+	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem);
+	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
+	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
+	emit MainWindow::p_This->RemoteUpdateSchView();
+	return true;
+}
 

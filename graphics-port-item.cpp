@@ -192,7 +192,6 @@ void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
 	if(!bAltPressed)
 	{
-
 		BindToEdge();
 	}
 	SetToPos();
@@ -201,12 +200,75 @@ void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 // Переопределение функции обработки отпускания мыши.
 void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
+	QGraphicsItem* p_QGraphicsItem;
+	QGraphicsItem* p_QGraphicsItemFounded = nullptr;
+	GraphicsElementItem* p_GraphicsElementItemToChange = nullptr;
+	double dbZ = -999999;
+	//
 	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
 	if(bAltPressed)
 	{
+		QList<QGraphicsItem*> lp_QGraphicsItems = MainWindow::p_SchematicWindow->oScene.items();
+		QVector<QGraphicsItem*> vp_QGraphicsItemsOnPosition;
+		DbPoint oDbMapped;
+		//
+		oDbMapped.dbX = p_Event->scenePos().x();
+		oDbMapped.dbY = p_Event->scenePos().y();
+		for(int iF = 0; iF != lp_QGraphicsItems.count(); iF++)
+		{
+			p_QGraphicsItem = lp_QGraphicsItems.at(iF);
+			if(p_QGraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
+			{
+				if(p_QGraphicsItem->data(SCH_KIND_OF_ITEM) != SCH_KIND_ITEM_PORT)
+				{
+					double dbX, dbY, dbXR, dbYD;
+					dbX = p_QGraphicsItem->pos().x() + p_QGraphicsItem->boundingRect().topLeft().x();
+					dbY = p_QGraphicsItem->pos().y() + p_QGraphicsItem->boundingRect().topLeft().y();
+					dbXR = dbX + p_QGraphicsItem->boundingRect().bottomRight().x();
+					dbYD = dbY + p_QGraphicsItem->boundingRect().bottomRight().y();
+					if(((oDbMapped.dbX > dbX) & (oDbMapped.dbX < dbXR)) & ((oDbMapped.dbY > dbY) & (oDbMapped.dbY < dbYD)))
+					{
+						vp_QGraphicsItemsOnPosition.append(p_QGraphicsItem);
+					}
+				}
+			}
+		}
+		for(int iF = 0; iF != vp_QGraphicsItemsOnPosition.count(); iF++)
+		{
+			double dbItemZ;
+			//
+			p_QGraphicsItem = vp_QGraphicsItemsOnPosition.at(iF);
+			dbItemZ = p_QGraphicsItem->zValue();
+			if(dbItemZ > dbZ)
+			{
+				dbZ = dbItemZ;
+				p_QGraphicsItemFounded = p_QGraphicsItem;
+			}
+		}
+		if(p_QGraphicsItemFounded)
+		{
+			if(p_QGraphicsItemFounded->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_ELEMENT)
+			{
+				p_GraphicsElementItemToChange = (GraphicsElementItem*) p_QGraphicsItemFounded;
+				//
+				char* p_chType;
+				//
+				if(bIsSrc)
+				{
+					p_chType = (char*)m_chLogSource;
+				}
+				else
+				{
+					p_chType = (char*)m_chLogDestination;
+				}
+				LOG_P_2(LOG_CAT_I, "Move" << p_chType << "port from element [" << p_ParentInt->oPSchElementBaseInt.m_chName << "]" <<
+						" to element [" << p_GraphicsElementItemToChange->oPSchElementBaseInt.m_chName << "]");
+				goto gF;
+			}
+		}
 		BindToEdge();
 		SetToPos();
 	}
@@ -226,7 +288,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(
 					PROTO_O_SCH_LINK_VARS, (char*)p_PSchLinkVarsInt, sizeof(PSchLinkVars));
-		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
+gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
@@ -238,4 +300,8 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(p_Event);
+	if(p_GraphicsElementItemToChange)
+	{
+		SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemToChange, bIsSrc);
+	}
 }

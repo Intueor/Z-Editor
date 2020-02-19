@@ -11,6 +11,7 @@ typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class GraphicsElementItem;
 class GraphicsGroupItem;
+class GraphicsLinkItem;
 
 //== КЛАССЫ.
 /// Класс виджета обзора.
@@ -47,7 +48,12 @@ public:
 							///< \return Указатель на новый графический элемент.
 	/// Обновление Z-позиции линков.
 	static void UpdateLinksZPos();
-
+	/// Замена линка.
+	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc);
+							///< \param[in] p_GraphicsLinkItem Указатель на старый линк.
+							///< \param[in] p_GraphicsElementItemNew Указатель на элемент, на который будет создан новый линк.
+							///< \param[in] bIsSrc При true - новый элемент будет источником.
+							///< \return true при удаче.
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);
