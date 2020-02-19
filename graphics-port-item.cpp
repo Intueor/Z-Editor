@@ -96,7 +96,16 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 		}
 		GraphicsElementItem::ElementToTopAPFS(p_ParentInt, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY, APPLY_BLOCKINGPATTERN, SEND_ELEMENT);
 		TrySendBufferToServer;
-		bAltPressed = (p_Event->modifiers() == Qt::AltModifier);
+		if(p_Event->modifiers() == Qt::AltModifier)
+		{
+			oDbPointOld.dbX = pos().x(); // Исходный X.
+			oDbPointOld.dbY = pos().y(); // Исходный Y.
+			bAltPressed = true;
+		}
+		else
+		{
+			bAltPressed = false;
+		}
 	}
 	QGraphicsItem::mousePressEvent(p_Event);
 }
@@ -171,15 +180,19 @@ void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		return;
 	}
-	oDbPointOld.dbX = pos().x(); // Исходный X.
-	oDbPointOld.dbY = pos().y(); // Исходный Y.
-	oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-	oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
+	if(!bAltPressed)
+	{
+		oDbPointOld.dbX = pos().x(); // Исходный X.
+		oDbPointOld.dbY = pos().y(); // Исходный Y.
+		oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
+		oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
+	}
 	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
 	oDbPointCurrent.dbX = pos().x(); // Текущий X.
 	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
 	if(!bAltPressed)
 	{
+
 		BindToEdge();
 	}
 	SetToPos();
