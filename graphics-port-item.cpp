@@ -290,7 +290,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				else if((bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDDst)) |
 						(!bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDSrc)))
 				{ // Если замыкание линка...
-gO:					oDbPointCurrent = oDbPointInitial; // Возврат точки порта на начальную от нажатия на ПКМ.
+					oDbPointCurrent = oDbPointInitial; // Возврат точки порта на начальную от нажатия на ПКМ.
 					SetToPos(); // Установка позиции граф. порта.
 					p_GraphicsElementItemFounded = nullptr;
 					goto gF; // На отпускание группы (по надобности) и элемента, затем - на выход.
@@ -304,14 +304,9 @@ gO:					oDbPointCurrent = oDbPointInitial; // Возврат точки порт
 				{
 					p_chType = (char*)m_chLogDestination;
 				}
-				LOG_P_2(LOG_CAT_I, "Move" << p_chType << "port from element [" << p_ParentInt->oPSchElementBaseInt.m_chName << "]" <<
+				LOG_P_2(LOG_CAT_I, p_chType << "port from element [" << p_ParentInt->oPSchElementBaseInt.m_chName << "]" <<
 						" to element [" << p_GraphicsElementItemFounded->oPSchElementBaseInt.m_chName << "]");
 			}
-			else // Если мимо - так же, как и при замыкании.
-			{
-				goto gO;
-			}
-			goto gF;
 		}
 		BindToOuterEdge();
 gEr:	SetToPos();

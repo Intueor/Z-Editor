@@ -117,8 +117,8 @@
 // Многократно используемые строки.
 const char m_chLogWrongData[] = "Wrong data in pocket.";
 const char m_chLogSyncFault[] = "Element operations synchronization fault.";
-const char m_chLogSource[] = " source ";
-const char m_chLogDestination[] = " destination ";
+const char m_chLogSource[] = "Source ";
+const char m_chLogDestination[] = "Destination ";
 const char m_chMenuDelete[] = "Удалить";
 const char m_chMenuSetPassword[] = "Задать пароль";
 const char m_chMenuSetAsDefault[] = "Установить как текущий";
