@@ -56,6 +56,11 @@ public:
 							///< \param[in] bIsSrc При true - новый элемент будет источником.
 							///< \param[in] oDbPortPos Координаты порта в сцене на момент обращения.
 							///< \return true при удаче.
+	/// Прикрепление позиции граф. порта к краям элемента.
+	static DbPoint BindToInnerEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial);
+							///< \param[in] p_GraphicsElementItemNew Указатель на элемент.
+							///< \param[in] oDbPortPosIn Изначальная позиция порта.
+							///< \return Позиция порта на крае элемента.
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);
@@ -78,11 +83,6 @@ private:
 	static bool PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \return true, если был удалён пустой графический объект группы.
-	/// Прикрепление позиции граф. порта к краям элемента.
-	static DbPoint BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial);
-							///< \param[in] p_GraphicsElementItemNew Указатель на элемент.
-							///< \param[in] oDbPortPosIn Изначальная позиция порта.
-							///< \return Позиция порта на крае элемента.
 private:
 	static bool bLMousePressed; ///< Признак нажатия на ЛКМ.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.

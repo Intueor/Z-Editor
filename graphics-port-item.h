@@ -36,7 +36,7 @@ public:
 							///< \param[in] p_Event Указатель на событие.
 private:
 	/// Коррекция точки порта по краю элемента.
-	void BindToEdge();
+	void BindToOuterEdge();
 	// Установка порта в позицию.
 	void SetToPos();
 
