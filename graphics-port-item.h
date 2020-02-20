@@ -60,6 +60,7 @@ private:
 	DbPoint oDbPointRB; ///< Точка правого нижнего края элемента.
 	DbPoint oDbPointCurrent; ///< Текщая точка.
 	DbPoint oDbPointOld; ///< Старая точка.
+	DbPoint oDbPointInitial; ///< Точка нажатия.
 };
 
 #endif // GRAPHICSPORTITEM_H
