@@ -384,20 +384,98 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 	}
 }
 
+// Прикрепление позиции граф. порта к краям элемента.
+DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial)
+{
+	double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
+			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+	double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
+			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+	double dbXMax = dbXMin +
+			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
+	double dbYMax = dbYMin +
+			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
+	double dbXMinDiff = oDbPortPosInitial.dbX - dbXMin; // Расстояние до левого края.
+	double dbYMinDiff = oDbPortPosInitial.dbY - dbYMin; // Расстояние до верхнего края.
+	double dbXMaxDiff = dbXMax - oDbPortPosInitial.dbX; // Расстояние до правого края.
+	double dbYMaxDiff = dbYMax - oDbPortPosInitial.dbY; // Расстояние до нижнего края.
+	bool bXToLeft; // Ближе к левому.
+	bool bYToTop; // Ближе к верху.
+	if(dbXMinDiff < dbXMaxDiff) bXToLeft = true; else bXToLeft = false;
+	if(dbYMinDiff < dbYMaxDiff) bYToTop = true; else bYToTop = false;
+	if(bXToLeft & bYToTop) // Если у левого верхнего края...
+	{
+		if(dbXMinDiff < dbYMinDiff) // Если к левому ближе, чем к верхнему...
+		{
+			oDbPortPosInitial.dbX = 0; // Прилипли к левому.
+			oDbPortPosInitial.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+		}
+		else
+		{
+			oDbPortPosInitial.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+			oDbPortPosInitial.dbY = 0; // Прилипли к верхнему.
+		}
+	}
+	else if (!bXToLeft & !bYToTop) // Если у правого нижнего края...
+	{
+		if(dbXMaxDiff < dbYMaxDiff) // Если к правому ближе, чем к нижнему...
+		{
+			oDbPortPosInitial.dbX =
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;// Прилипли к правому.
+			oDbPortPosInitial.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+		}
+		else
+		{
+			oDbPortPosInitial.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+			oDbPortPosInitial.dbY =
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
+		}
+	}
+	else if(bXToLeft & !bYToTop) // Если у левого нижнего края...
+	{
+		if(dbXMinDiff < dbYMaxDiff) // Если к левому ближе, чем к нижнему...
+		{
+			oDbPortPosInitial.dbX = 0; // Прилипли к левому.
+			oDbPortPosInitial.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+		}
+		else
+		{
+			oDbPortPosInitial.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+			oDbPortPosInitial.dbY =
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
+		}
+	}
+	else if(!bXToLeft & bYToTop) // Если у правого верхнего края...
+	{
+		if(dbXMaxDiff < dbYMinDiff) // Если к правому ближе, чем к верхнему...
+		{
+			oDbPortPosInitial.dbX =
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;// Прилипли к правому.
+			oDbPortPosInitial.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
+		}
+		else
+		{
+			oDbPortPosInitial.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
+			oDbPortPosInitial.dbY = 0;// Прилипли к нижнему.
+		}
+	}
+	return oDbPortPosInitial;
+}
+
 // Замена линка.
 bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 							   GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos)
 {
 	PSchLinkBase oPSchLinkBase;
 	GraphicsLinkItem* p_GraphicsLinkItemNew;
+	PSchLinkEraser oPSchLinkEraser;
 	//
 	if(bIsSrc)
 	{
 		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
 		//
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX = 0;
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY = 0;
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = BindToEdge(p_GraphicsElementItemNew, oDbPortPos);
 		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos =
 				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos;
 	}
@@ -408,75 +486,7 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 		//
 		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
 				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
-		double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
-				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
-		double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
-				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
-		double dbXMax = dbXMin +
-				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
-		double dbYMax = dbYMin +
-				p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
-		double dbXMinDiff = oDbPortPos.dbX - dbXMin; // Расстояние до левого края.
-		double dbYMinDiff = oDbPortPos.dbY - dbYMin; // Расстояние до верхнего края.
-		double dbXMaxDiff = dbXMax - oDbPortPos.dbX; // Расстояние до правого края.
-		double dbYMaxDiff = dbYMax - oDbPortPos.dbY; // Расстояние до нижнего края.
-		bool bXToLeft; // Ближе к левому.
-		bool bYToTop; // Ближе к верху.
-		if(dbXMinDiff < dbXMaxDiff) bXToLeft = true; else bXToLeft = false;
-		if(dbYMinDiff < dbYMaxDiff) bYToTop = true; else bYToTop = false;
-		if(bXToLeft & bYToTop) // Если у левого верхнего края...
-		{
-			if(dbXMinDiff < dbYMinDiff) // Если к левому ближе, чем к верхнему...
-			{
-				oDbPortPos.dbX = 0; // Прилипли к левому.
-				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
-			}
-			else
-			{
-				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
-				oDbPortPos.dbY = 0; // Прилипли к верхнему.
-			}
-		}
-		else if (!bXToLeft & !bYToTop) // Если у правого нижнего края...
-		{
-			if(dbXMaxDiff < dbYMaxDiff) // Если к правому ближе, чем к нижнему...
-			{
-				oDbPortPos.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;// Прилипли к правому.
-				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
-			}
-			else
-			{
-				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
-				oDbPortPos.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
-			}
-		}
-		else if(bXToLeft & !bYToTop) // Если у левого нижнего края...
-		{
-			if(dbXMinDiff < dbYMaxDiff) // Если к левому ближе, чем к нижнему...
-			{
-				oDbPortPos.dbX = 0; // Прилипли к левому.
-				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
-			}
-			else
-			{
-				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
-				oDbPortPos.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
-			}
-		}
-		else if(!bXToLeft & bYToTop) // Если у правого верхнего края...
-		{
-			if(dbXMaxDiff < dbYMinDiff) // Если к правому ближе, чем к верхнему...
-			{
-				oDbPortPos.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;// Прилипли к правому.
-				oDbPortPos.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
-			}
-			else
-			{
-				oDbPortPos.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
-				oDbPortPos.dbY = 0;// Прилипли к нижнему.
-			}
-		}
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = oDbPortPos;
+		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = BindToEdge(p_GraphicsElementItemNew, oDbPortPos);
 	}
 	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort;
 	oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort;
@@ -491,15 +501,22 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 		delete p_GraphicsLinkItemNew;
 		return false;
 	}
-	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
-	GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItemNew);
 	SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
 	SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemDst);
 	SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItem);
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem);
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
-	emit MainWindow::p_This->RemoteUpdateSchView();
+	oPSchLinkEraser.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
+	oPSchLinkEraser.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
+	MainWindow::p_Client->AddPocketToOutputBufferC(
+				PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
+	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
+	GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItemNew);
+	MainWindow::p_Client->AddPocketToOutputBufferC(
+				PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+	TrySendBufferToServer;
+	MainWindow::p_This->RemoteUpdateSchView();
 	return true;
 }
 
