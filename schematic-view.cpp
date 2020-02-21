@@ -464,7 +464,7 @@ DbPoint SchematicView::BindToInnerEdge(GraphicsElementItem* p_GraphicsElementIte
 
 // Замена линка.
 bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
-							   GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos)
+							   GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos, bool bFromElement)
 {
 	PSchLinkBase oPSchLinkBase;
 	GraphicsLinkItem* p_GraphicsLinkItemNew;
@@ -507,10 +507,13 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem);
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
-	oPSchLinkEraser.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
-	oPSchLinkEraser.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
-	MainWindow::p_Client->AddPocketToOutputBufferC(
-				PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
+	if(!bFromElement)
+	{
+		oPSchLinkEraser.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
+		oPSchLinkEraser.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
+		MainWindow::p_Client->AddPocketToOutputBufferC(
+					PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
+	}
 	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 	GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItemNew);
 	MainWindow::p_Client->AddPocketToOutputBufferC(

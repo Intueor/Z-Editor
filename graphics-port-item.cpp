@@ -12,6 +12,11 @@ LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsPortItem)
 LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsPortItem)
 bool GraphicsPortItem::bAltPressed;
 bool GraphicsPortItem::bLMBPressed;
+DbPoint GraphicsPortItem::oDbPointRB;
+DbPoint GraphicsPortItem::oDbPointCurrent;
+DbPoint GraphicsPortItem::oDbPointOld;
+DbPoint GraphicsPortItem::oDbPointInitial;
+bool GraphicsPortItem::bFromElement;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического отображения порта.
@@ -84,10 +89,12 @@ void GraphicsPortItem::advance(int iStep)
 // Переопределение функции обработки нажатия мыши.
 void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_SchElementGraph->bBusy|| MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
+	bFromElement = p_ParentInt->p_GraphicsLinkItem != nullptr;
+	if(p_SchElementGraph->bBusy & (!bFromElement)) return;
 	bLMBPressed = false;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
@@ -183,10 +190,12 @@ void GraphicsPortItem::SetToPos()
 void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	//
-	if(p_SchElementGraph->bBusy|| MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
+	if(p_SchElementGraph->bBusy & (!bFromElement)) return;
+	//
 	if(bLMBPressed)
 	{
 		if(!bAltPressed)
@@ -219,10 +228,11 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	double dbZ = -999999;
 	DbPoint oDbMapped;
 	//
-	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
+	if(p_SchElementGraph->bBusy & (!bFromElement)) return;
 	if(bLMBPressed)
 	{
 		if(bAltPressed) // Если жали Alt...
@@ -287,11 +297,23 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 			}
 			if(p_GraphicsElementItemFounded) // Если есть найденный верхний рабочий...
 			{
-				char* p_chType;
 				// Поиск ошибки пользователя.
 				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
 						this->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 				{ // Если на исходный элемент...
+
+					oDbPointCurrent = SchematicView::BindToInnerEdge(p_GraphicsElementItemFounded, oDbMapped); // Прикрепление с внутренней стороны.
+					if(bFromElement)
+					{
+						p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
+gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
+						SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
+						SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItemInt);
+						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItemInt);
+						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
+						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
+						goto gF;
+					}
 					oDbPointCurrent = SchematicView::BindToInnerEdge(p_GraphicsElementItemFounded, oDbMapped); // Прикрепление с внутренней стороны.
 					p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
 					goto gEr; // На устанвку позиции граф. порта и отправку данных об этом.
@@ -299,22 +321,13 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				else if((bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDDst)) |
 						(!bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDSrc)))
 				{ // Если замыкание линка...
+					p_GraphicsElementItemFounded = nullptr;
+					if(bFromElement) goto gEl;
 					oDbPointCurrent = oDbPointInitial; // Возврат точки порта на начальную от нажатия на ПКМ.
 					SetToPos(); // Установка позиции граф. порта.
-					p_GraphicsElementItemFounded = nullptr;
 					goto gF; // На отпускание группы (по надобности) и элемента, затем - на выход.
 				}
-				// Отсутствие ошибок - сообщение, затем - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
-				if(bIsSrc)
-				{
-					p_chType = (char*)m_chLogSource;
-				}
-				else
-				{
-					p_chType = (char*)m_chLogDestination;
-				}
-				LOG_P_2(LOG_CAT_I, p_chType << "port from element [" << p_ParentInt->oPSchElementBaseInt.m_chName << "]" <<
-						" to element [" << p_GraphicsElementItemFounded->oPSchElementBaseInt.m_chName << "]");
+				// Отсутствие ошибок - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
 			}
 		}
 		BindToOuterEdge();
@@ -331,8 +344,11 @@ gEr:	SetToPos();
 			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = y() - p_SchElementGraph->oDbObjectFrame.dbY;
 			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
 		}
-		MainWindow::p_Client->AddPocketToOutputBufferC(
-					PROTO_O_SCH_LINK_VARS, (char*)p_PSchLinkVarsInt, sizeof(PSchLinkVars));
+		if(!bFromElement)
+		{
+			MainWindow::p_Client->AddPocketToOutputBufferC(
+						PROTO_O_SCH_LINK_VARS, (char*)p_PSchLinkVarsInt, sizeof(PSchLinkVars));
+		}
 gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
@@ -348,7 +364,7 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 	{
 		if(p_GraphicsElementItemFounded)
 		{
-			SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemFounded, bIsSrc, oDbMapped);
+			SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemFounded, bIsSrc, oDbMapped, bFromElement);
 		}
 		TrySendBufferToServer;
 	}

@@ -107,6 +107,7 @@ public:
 	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
 	GraphicsGroupItem* p_GraphicsGroupItemRel; ///< Всп. указатель на группу.
 	QGroupBox* p_QGroupBox; ///< Указатель на объект основного групбокса.
+	static GraphicsLinkItem* p_GraphicsLinkItem; ///< Указатель на новосозданный линк.
 
 private:
 	LOGDECL_MULTIOBJECT
@@ -115,6 +116,7 @@ private:
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
 	static QString strAddGroupName; ///< Рабочая строка для добавления имени группы.
 	static QVector<GraphicsElementItem*>* vp_NewElementsForGroup; ///< Вектор для заполнения новыми элементами для группы, очищается при добавлении.
+	static DbPoint oDbPointInitial; ///< Точка нажатия.
 };
 
 #endif // GRAPHICSELEMENTITEM_H

@@ -50,11 +50,13 @@ public:
 	/// Обновление Z-позиции линков.
 	static void UpdateLinksZPos();
 	/// Замена линка.
-	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos);
+	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc,
+							DbPoint oDbPortPos, bool bFromElement);
 							///< \param[in] p_GraphicsLinkItem Указатель на старый линк.
 							///< \param[in] p_GraphicsElementItemNew Указатель на элемент, на который будет создан новый линк.
 							///< \param[in] bIsSrc При true - новый элемент будет источником.
 							///< \param[in] oDbPortPos Координаты порта в сцене на момент обращения.
+							///< \param[in] bFromElement Флаг запроса работы с портом от элемента (при создании нового линка).
 							///< \return true при удаче.
 	/// Прикрепление позиции граф. порта к краям элемента.
 	static DbPoint BindToInnerEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial);

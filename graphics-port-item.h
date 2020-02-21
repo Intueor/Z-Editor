@@ -58,10 +58,11 @@ private:
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
 	static bool bAltPressed; ///< Флаг нажатого модификатора Alt.
 	static bool bLMBPressed; ///< Флаг нажатой ЛКМ.
-	DbPoint oDbPointRB; ///< Точка правого нижнего края элемента.
-	DbPoint oDbPointCurrent; ///< Текщая точка.
-	DbPoint oDbPointOld; ///< Старая точка.
-	DbPoint oDbPointInitial; ///< Точка нажатия.
+	static DbPoint oDbPointRB; ///< Точка правого нижнего края элемента.
+	static DbPoint oDbPointCurrent; ///< Текщая точка.
+	static DbPoint oDbPointOld; ///< Старая точка.
+	static DbPoint oDbPointInitial; ///< Точка нажатия.
+	static bool bFromElement; ///< Флаг запроса от элемента.
 };
 
 #endif // GRAPHICSPORTITEM_H

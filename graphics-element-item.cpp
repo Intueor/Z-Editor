@@ -1,6 +1,7 @@
 //== ВКЛЮЧЕНИЯ.
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneEvent>
+#include <QApplication>
 #include "main-window.h"
 #include "graphics-element-item.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
@@ -14,6 +15,8 @@ LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsElementItem)
 LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsElementItem)
 QString GraphicsElementItem::strAddGroupName;
 QVector<GraphicsElementItem*>* GraphicsElementItem::vp_NewElementsForGroup = nullptr;
+DbPoint GraphicsElementItem::oDbPointInitial;
+GraphicsLinkItem* GraphicsElementItem::p_GraphicsLinkItem;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического элемента.
@@ -310,8 +313,48 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
+		// Создание нового порта.
+		if(p_Event->modifiers() == Qt::AltModifier)
+		{
+			PSchLinkBase oPSchLinkBase;
+			//
+			oDbPointInitial.dbX = p_Event->scenePos().x();
+			oDbPointInitial.dbY = p_Event->scenePos().y();
+			//
+			oPSchLinkBase.oPSchLinkVars.ullIDSrc = this->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+			oPSchLinkBase.oPSchLinkVars.ullIDDst = oPSchLinkBase.oPSchLinkVars.ullIDSrc; // Временно, пока не перетянут на новый элемент.
+			oPSchLinkBase.oPSchLinkVars.ushiSrcPort = 0;
+			oPSchLinkBase.oPSchLinkVars.ushiDstPort = 0;
+			// В координаты элемента.
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = oDbPointInitial;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX -=
+					oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY -=
+					oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
+					SchematicView::BindToInnerEdge(this, oDbPointInitial);
+			// Создание замкнутого линка (пока что).
+			p_GraphicsLinkItem = new GraphicsLinkItem(&oPSchLinkBase);
+			if(oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+			{
+				MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItem);
+			}
+			else
+			{
+				delete p_GraphicsLinkItem;
+				p_GraphicsLinkItem = nullptr;
+				goto gNL;
+			}
+			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItem);
+			GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItem);
+			MainWindow::p_This->RemoteUpdateSchView();
+			p_GraphicsLinkItem->p_GraphicsPortItemDst->mousePressEvent(p_Event);
+			QGraphicsItem::mousePressEvent(p_Event);
+			return;
+		}
 		//==== РАБОТА С ВЫБОРКОЙ. ====
-		bLastSt = bSelected; // Запоминаем предыдущее значение выбраности.
+gNL:	bLastSt = bSelected; // Запоминаем предыдущее значение выбраности.
 		if(p_Event->modifiers() == Qt::ControlModifier)
 		{ // При удержании CTRL - инверсия флага выбраности.
 			bSelected = !bSelected;
@@ -447,10 +490,16 @@ void GraphicsElementItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	QPointF oQPointFInit;
 	QPointF oQPointFRes;
 	//
-	if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy || MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
+	if(p_GraphicsLinkItem != nullptr)
+	{
+		p_GraphicsLinkItem->p_GraphicsPortItemDst->mouseMoveEvent(p_Event);
+		return;
+	}
+	else if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy) return;
 	oQPointFInit = pos();
 	QGraphicsItem::mouseMoveEvent(p_Event);
 	oQPointFRes = pos();
@@ -574,10 +623,18 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	int iC;
 	//
-	if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy || MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
+	if(p_GraphicsLinkItem != nullptr)
+	{
+		p_GraphicsLinkItem->p_GraphicsPortItemDst->mouseReleaseEvent(p_Event);
+		p_GraphicsLinkItem = nullptr;
+		QGraphicsItem::mouseReleaseEvent(p_Event);
+		return;
+	}
+	else if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		if(bSelected)
