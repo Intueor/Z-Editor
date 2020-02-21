@@ -91,6 +91,8 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		oDbPointInitial.dbX = pos().x(); // Исходный X.
 		oDbPointInitial.dbY = pos().y(); // Исходный Y.
+		oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
+		oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
 			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
@@ -187,8 +189,6 @@ void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 		oDbPointOld.dbX = pos().x(); // Исходный X.
 		oDbPointOld.dbY = pos().y(); // Исходный Y.
 	}
-	oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-	oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
 	oDbPointCurrent.dbX = pos().x(); // Текущий X.
 	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
