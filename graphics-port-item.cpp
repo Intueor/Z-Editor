@@ -11,6 +11,7 @@
 LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsPortItem)
 LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsPortItem)
 bool GraphicsPortItem::bAltPressed;
+bool GraphicsPortItem::bLMBPressed;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического отображения порта.
@@ -87,6 +88,7 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		return;
 	}
+	bLMBPressed = false;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		oDbPointInitial.dbX = pos().x(); // Исходный X.
@@ -110,6 +112,7 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 		{
 			bAltPressed = false;
 		}
+		bLMBPressed = true;
 	}
 	QGraphicsItem::mousePressEvent(p_Event);
 }
@@ -184,19 +187,25 @@ void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		return;
 	}
-	if(!bAltPressed)
+	if(bLMBPressed)
 	{
-		oDbPointOld.dbX = pos().x(); // Исходный X.
-		oDbPointOld.dbY = pos().y(); // Исходный Y.
+		if(!bAltPressed)
+		{
+			oDbPointOld.dbX = pos().x(); // Исходный X.
+			oDbPointOld.dbY = pos().y(); // Исходный Y.
+		}
 	}
 	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
-	oDbPointCurrent.dbX = pos().x(); // Текущий X.
-	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
-	if(!bAltPressed)
+	if(bLMBPressed)
 	{
-		BindToOuterEdge();
+		oDbPointCurrent.dbX = pos().x(); // Текущий X.
+		oDbPointCurrent.dbY = pos().y(); // Текущий Y.
+		if(!bAltPressed)
+		{
+			BindToOuterEdge();
+		}
+		SetToPos();
 	}
-	SetToPos();
 }
 
 // Переопределение функции обработки отпускания мыши.
@@ -214,7 +223,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		return;
 	}
-	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	if(bLMBPressed)
 	{
 		if(bAltPressed) // Если жали Alt...
 		{
@@ -335,7 +344,7 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);
 	}
 	QGraphicsItem::mouseReleaseEvent(p_Event);
-	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	if(bLMBPressed)
 	{
 		if(p_GraphicsElementItemFounded)
 		{

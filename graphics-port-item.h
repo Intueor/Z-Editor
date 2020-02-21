@@ -57,6 +57,7 @@ private:
 	uint uiPortInt; ///< Внутренняя переменная номера порта.
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
 	static bool bAltPressed; ///< Флаг нажатого модификатора Alt.
+	static bool bLMBPressed; ///< Флаг нажатой ЛКМ.
 	DbPoint oDbPointRB; ///< Точка правого нижнего края элемента.
 	DbPoint oDbPointCurrent; ///< Текщая точка.
 	DbPoint oDbPointOld; ///< Старая точка.
