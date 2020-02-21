@@ -186,9 +186,9 @@ void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		oDbPointOld.dbX = pos().x(); // Исходный X.
 		oDbPointOld.dbY = pos().y(); // Исходный Y.
-		oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-		oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 	}
+	oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
+	oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
 	oDbPointCurrent.dbX = pos().x(); // Текущий X.
 	oDbPointCurrent.dbY = pos().y(); // Текущий Y.
