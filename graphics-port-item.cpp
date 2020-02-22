@@ -118,6 +118,8 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 		else
 		{
 			bAltPressed = false;
+			oDbPointCurrent.dbX = pos().x(); // Текущий X.
+			oDbPointCurrent.dbY = pos().y(); // Текущий Y.
 		}
 		bLMBPressed = true;
 	}
@@ -329,6 +331,8 @@ gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPo
 				}
 				// Отсутствие ошибок - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
 			}
+			// Не нашли, но пришло с элемента - в отказ.
+			else goto gEl;
 		}
 		BindToOuterEdge();
 gEr:	SetToPos();
