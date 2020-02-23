@@ -227,6 +227,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	GraphicsElementItem* p_GraphicsElementItemFounded = nullptr;
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItem;
+	GraphicsLinkItem* p_GraphicsLinkItem;
 	double dbZ = -999999;
 	DbPoint oDbMapped;
 	//
@@ -307,7 +308,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 					oDbPointCurrent = SchematicView::BindToInnerEdge(p_GraphicsElementItemFounded, oDbMapped); // Прикрепление с внутренней стороны.
 					if(bFromElement)
 					{
-						p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
+gEld:					p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
 gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
 						SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
 						SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItemInt);
@@ -328,6 +329,21 @@ gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPo
 					oDbPointCurrent = oDbPointInitial; // Возврат точки порта на начальную от нажатия на ПКМ.
 					SetToPos(); // Установка позиции граф. порта.
 					goto gF; // На отпускание группы (по надобности) и элемента, затем - на выход.
+				}
+				if(bFromElement)
+				{ // Тест на создание дупликата линка (те же элементы, те же порты).
+					for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+					{
+						p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+						if((p_GraphicsLinkItem != p_ParentInt->p_GraphicsLinkItem) &
+								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
+								 p_ParentInt->p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc) &
+								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
+								 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
+								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort == DEFAULT_NEW_PORT) &
+								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort == DEFAULT_NEW_PORT))
+							goto gEld;
+					}
 				}
 				// Отсутствие ошибок - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
 			}

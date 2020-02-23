@@ -323,8 +323,8 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			//
 			oPSchLinkBase.oPSchLinkVars.ullIDSrc = this->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 			oPSchLinkBase.oPSchLinkVars.ullIDDst = oPSchLinkBase.oPSchLinkVars.ullIDSrc; // Временно, пока не перетянут на новый элемент.
-			oPSchLinkBase.oPSchLinkVars.ushiSrcPort = 0;
-			oPSchLinkBase.oPSchLinkVars.ushiDstPort = 0;
+			oPSchLinkBase.oPSchLinkVars.ushiSrcPort = DEFAULT_NEW_PORT;
+			oPSchLinkBase.oPSchLinkVars.ushiDstPort = DEFAULT_NEW_PORT;
 			// В координаты элемента.
 			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = oDbPointInitial;
 			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX -=

@@ -112,6 +112,8 @@
 //
 #define SCH_NEXT_Z_SHIFT				1.0f
 #define SCH_LINK_Z_SHIFT				0.1f
+//
+#define DEFAULT_NEW_PORT				0
 
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
