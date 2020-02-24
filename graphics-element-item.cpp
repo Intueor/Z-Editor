@@ -1078,9 +1078,6 @@ void GraphicsElementItem::UpdateSelected(GraphicsElementItem* p_GraphicsElementI
 	}
 	if(ushBits & SCH_UPDATE_LINKS_POS)
 	{
-		bool bSrcFounded = false;
-		bool bDstFounded = false;
-		//
 		for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
 		{
 			GraphicsLinkItem* p_GraphicsLinkItem;
@@ -1091,16 +1088,13 @@ void GraphicsElementItem::UpdateSelected(GraphicsElementItem* p_GraphicsElementI
 			{
 				p_GraphicsLinkItem->UpdatePosition(p_GraphicsLinkItem);
 				p_GraphicsLinkItem->update();
-				bSrcFounded = true;
 			}
 			if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
 					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 			{
 				p_GraphicsLinkItem->UpdatePosition(p_GraphicsLinkItem);
 				p_GraphicsLinkItem->update();
-				bDstFounded = true;
 			}
-			if(bSrcFounded && bDstFounded) break;
 		}
 	}
 	if(ushBits & SCH_UPDATE_LINK_POS)
