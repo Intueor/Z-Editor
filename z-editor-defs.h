@@ -45,7 +45,7 @@
 #define ELEMENT_MIN_Y   30
 //
 #define C_CONF_PATH							"../Z-Editor/settings/client.xml"
-#define CLIENT_REQUEST_UNDEFINED			-1
+#define CLIENT_REQUEST_UNDEFINED			2
 #define CLIENT_REQUEST_CONNECT				0
 #define CLIENT_REQUEST_DISCONNECT			1
 //
