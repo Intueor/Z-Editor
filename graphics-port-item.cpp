@@ -324,31 +324,64 @@ gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPo
 				else if((bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDDst)) |
 						(!bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDSrc)))
 				{ // Если замыкание линка...
-					p_GraphicsElementItemFounded = nullptr;
+gED:				p_GraphicsElementItemFounded = nullptr;
 					if(bFromElement) goto gEl;
 					oDbPointCurrent = oDbPointInitial; // Возврат точки порта на начальную от нажатия на ПКМ.
 					SetToPos(); // Установка позиции граф. порта.
 					goto gF; // На отпускание группы (по надобности) и элемента, затем - на выход.
 				}
-				if(bFromElement)
-				{ // Тест на создание дупликата линка (те же элементы, те же порты).
-					for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+				// Тест на создание дупликата линка (те же элементы, те же порты).
+				for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+				{
+					p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+					if(bFromElement)
 					{
-						p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
 						if((p_GraphicsLinkItem != p_ParentInt->p_GraphicsLinkItem) &
-								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
-								 p_ParentInt->p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc) &
-								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
-								 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
-								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort == DEFAULT_NEW_PORT) &
-								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort == DEFAULT_NEW_PORT))
+						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
+							p_ParentInt->p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc) &
+						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
+							p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
+						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort == DEFAULT_NEW_PORT) &
+						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort == DEFAULT_NEW_PORT))
+						{
 							goto gEld;
+						}
+					}
+					else
+					{
+						if(p_GraphicsLinkItem != p_GraphicsLinkItemInt)
+						{
+							if(!bIsSrc) // Если текущий порт - приёмник...
+							{
+								if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
+									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc) &
+								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort ==
+									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) &
+								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
+									p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
+								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort ==
+									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort))
+									goto gED;
+							}
+							else
+							{
+								if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
+									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst) &
+								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort ==
+									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) &
+								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
+									p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
+								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort ==
+									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort))
+									goto gED;
+							}
+						}
 					}
 				}
-				// Отсутствие ошибок - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
 			}
+			// Отсутствие ошибок - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
 			// Не нашли, но пришло с элемента - в отказ.
-			else goto gEl;
+			else if(bFromElement) goto gEl;
 		}
 		BindToOuterEdge();
 gEr:	SetToPos();
