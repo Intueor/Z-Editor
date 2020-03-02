@@ -1213,6 +1213,7 @@ void MainWindow::ClientStartProcedures()
 		if(p_Client->CheckServerAlive())
 		{
 			bBlockingGraphics = false;
+			SchematicView::p_GraphicsPortItemActive = nullptr;
 			return;
 		}
 		MSleep(USER_RESPONSE_MS);
@@ -1632,7 +1633,7 @@ void MainWindow::on_listWidget_Servers_itemDoubleClicked(QListWidgetItem* item)
 {
 	ServersListWidgetItem* p_ServersListWidgetItem;
 	//
-	if(p_Client->CheckServerAlive()) return;
+	if(p_ui->pushButton_Disconnect->isEnabled()) return;
 	p_ServersListWidgetItem = (ServersListWidgetItem*)item;
 	CurrentServerSwap(p_ServersListWidgetItem);
 	LCHECK_BOOL(SaveClientConfig());

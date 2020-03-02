@@ -13,6 +13,7 @@ typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
 class GraphicsElementItem;
 class GraphicsGroupItem;
 class GraphicsLinkItem;
+class GraphicsPortItem;
 
 //== КЛАССЫ.
 /// Класс виджета обзора.
@@ -92,6 +93,9 @@ private:
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.
 	qreal rScaleFactor; ///<
 	qreal rFactor; ///<
+
+public:
+	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 };
 
 #endif // SCHEMATICVIEW_H

@@ -122,6 +122,7 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			oDbPointCurrent.dbY = pos().y(); // Текущий Y.
 		}
 		bLMBPressed = true;
+		SchematicView::p_GraphicsPortItemActive = this;
 	}
 	QGraphicsItem::mousePressEvent(p_Event);
 }
@@ -420,5 +421,7 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 			SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemFounded, bIsSrc, oDbMapped, bFromElement);
 		}
 		TrySendBufferToServer;
+		SchematicView::p_GraphicsPortItemActive = nullptr;
 	}
 }
+

@@ -1,5 +1,6 @@
 //== ВКЛЮЧЕНИЯ.
 #include <math.h>
+#include <QGraphicsSceneEvent>
 #include "schematic-view.h"
 #include "schematic-window.h"
 #include "z-editor-defs.h"
@@ -9,6 +10,7 @@ bool SchematicView::bLMousePressed = false;
 int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
 int SchematicView::iYInt = SCH_INTERNAL_POS_UNCHANGED;
 CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
+GraphicsPortItem* SchematicView::p_GraphicsPortItemActive = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -374,6 +376,36 @@ void SchematicView::DeleteSelectedAPFS()
 // Переопределение функции обработки нажатия на клавиши.
 void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 {
+	if(SchematicView::p_GraphicsPortItemActive) // Если пришло во время активного порта...
+	{
+		switch (p_Event->key())
+		{
+			case Qt::Key_Delete:
+			{
+				GraphicsPortItem* p_GraphicsPortItemActiveLast = SchematicView::p_GraphicsPortItemActive;
+				QGraphicsSceneMouseEvent oQGraphicsSceneMouseEvent(QEvent::MouseButtonRelease);
+				PSchLinkEraser oPSchLinkEraser;
+				//
+				oQGraphicsSceneMouseEvent.setButton(Qt::LeftButton);
+				SchematicView::p_GraphicsPortItemActive->mouseReleaseEvent(&oQGraphicsSceneMouseEvent);
+				while(SchematicView::p_GraphicsPortItemActive)
+				{
+					MSleep(WAITING_FOR_INTERFACE);
+				}
+				oPSchLinkEraser.ullIDSrc = p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
+				oPSchLinkEraser.ullIDDst = p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
+				MainWindow::p_Client->AddPocketToOutputBufferC(
+							PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
+				SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
+				SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
+				SchematicWindow::vp_Links.removeOne(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt);
+				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt);
+				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
+				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
+				goto gS;
+			}
+		}
+	}
 	switch (p_Event->key())
 	{
 		case Qt::Key_Delete:
@@ -382,6 +414,7 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 			break;
 		}
 	}
+gS:	TrySendBufferToServer;
 }
 
 // Прикрепление позиции граф. порта к краям элемента.
