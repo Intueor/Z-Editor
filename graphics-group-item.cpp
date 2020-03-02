@@ -428,18 +428,18 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			// Имя.
 			if(bNoSelection)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename));
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
 			}
 			else
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection));
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
 			}
 			// Удалить.
-			SchematicWindow::p_Menu->addAction(QString(m_chDelete));
+			SchematicWindow::p_Menu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
 			// Расформировать.
-			SchematicWindow::p_Menu->addAction(QString(m_chDisband));
+			SchematicWindow::p_Menu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
 			// Создать элемент в группе.
-			SchematicWindow::p_Menu->addAction(QString(m_chAddElement));
+			SchematicWindow::p_Menu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
 			// Добавить выбранные свободные объекты.
 			if(!SchematicWindow::vp_SelectedElements.isEmpty())
 			{
@@ -454,11 +454,11 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 				}
 				if(!SchematicWindow::vp_SelectedFreeElements.isEmpty())
 				{
-					SchematicWindow::p_Menu->addAction(QString(m_chAddFreeSelected));
+					SchematicWindow::p_Menu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_FREE_SELECTED);
 				}
 			}
 			// Цвет фона.
-			SchematicWindow::p_Menu->addAction(QString(m_chBackground));
+			SchematicWindow::p_Menu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
 		}
 	}
 	TrySendBufferToServer;
@@ -595,7 +595,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		p_SelectedMenuItem = SchematicWindow::p_Menu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == QString(m_chMenuRename))
+			if(p_SelectedMenuItem->data() == MENU_RENAME)
 			{
 				CopyStrArray(oPSchGroupBaseInt.m_chName, m_chName, SCH_OBJ_NAME_STR_LEN);
 				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Имя группы", m_chName, SCH_OBJ_NAME_STR_LEN);
@@ -612,7 +612,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chDelete))
+			else if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
 				if(!SchematicWindow::vp_SelectedGroups.contains(this))
 				{
@@ -620,15 +620,11 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				}
 				SchematicView::DeleteSelectedAPFS();
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chPorts))
-			{
-
-			}
-			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
+			else if(p_SelectedMenuItem->data() == MENU_ADD_FREE_SELECTED)
 			{
 				GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(this);
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chDisband))
+			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
 			{
 				bool bForceSelected = false;
 				QVector<GraphicsElementItem*> vp_SortedElements;
@@ -672,12 +668,11 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 					SchematicWindow::vp_SelectedGroups.removeOne(this);
 				}
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chAddElement))
+			else if(p_SelectedMenuItem->data() == MENU_ADD_ELEMENT)
 			{
 				GraphicsElementItem* p_GraphicsElementItem;
-				QString strHelper = QString(m_chNewElement);
 				//
-				p_GraphicsElementItem = SchematicView::CreateNewElementAPFS(strHelper,
+				p_GraphicsElementItem = SchematicView::CreateNewElementAPFS((char*)m_chNewElement,
 																  this->mapToScene(p_Event->pos()), this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
 				vp_ConnectedElements.push_front(p_GraphicsElementItem);
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = this;
@@ -687,11 +682,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 														  nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 				SchematicView::UpdateLinksZPos();
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chAddFreeSelected))
-			{
-				GraphicsElementItem::AddFreeSelectedElementsToGroupAPFS(this);
-			}
-			else if(p_SelectedMenuItem->text() == QString(m_chBackground))
+			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
 			{
 
 			}

@@ -438,45 +438,45 @@ gNL:	bLastSt = bSelected; // Запоминаем предыдущее знач�
 			// Имя.
 			if(bNoSelection)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename));
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
 			}
 			else
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection));
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
 			}
 			// Удалить.
-			SchematicWindow::p_Menu->addAction(QString(m_chDelete));
+			SchematicWindow::p_Menu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
 			// Порты.
 			for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
 			{
 				if(this == SchematicWindow::vp_Ports.at(iF)->p_ParentInt)
 				{
-					SchematicWindow::p_Menu->addAction(QString(m_chPorts));
+					SchematicWindow::p_Menu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
 					break;
 				}
 			}
 			// Создать группу.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 			{
-				SchematicWindow::p_Menu->addAction(m_chCreateGroup);
+				SchematicWindow::p_Menu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
 			}
 			// В группу.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 			{
 				if(SchematicWindow::vp_SelectedGroups.count() == 1)
 				{
-					strAddGroupName = QString(m_chAddFreeSelected) + " [" +
+					strAddGroupName = QString(m_chMenuAddFreeSelected) + " [" +
 							QString(SchematicWindow::vp_SelectedGroups.at(0)->oPSchGroupBaseInt.m_chName) + "]";
-					SchematicWindow::p_Menu->addAction(strAddGroupName);
+					SchematicWindow::p_Menu->addAction(strAddGroupName)->setData(MENU_ADD_FREE_SELECTED);
 				}
 			}
 			// Из группы.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chRemoveFromGroup));
+				SchematicWindow::p_Menu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUP);
 			}
 			// Цвет фона.
-			SchematicWindow::p_Menu->addAction(QString(m_chBackground));
+			SchematicWindow::p_Menu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
 		}
 	}
 	TrySendBufferToServer;
@@ -665,7 +665,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		p_SelectedMenuItem = SchematicWindow::p_Menu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == QString(m_chMenuRename))
+			if(p_SelectedMenuItem->data() == MENU_RENAME)
 			{
 				CopyStrArray(oPSchElementBaseInt.m_chName, m_chName, SCH_OBJ_NAME_STR_LEN);
 				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Имя элемента", m_chName, SCH_OBJ_NAME_STR_LEN);
@@ -675,7 +675,6 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 					CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
 					CopyStrArray(m_chName, oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 					oPSchElementName.ullIDInt = oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-					oPSchElementName.bLastInQueue = true;
 					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
 																  sizeof(oPSchElementName));
 					p_QGroupBox->setTitle(oPSchElementName.m_chName);
@@ -683,7 +682,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chDelete))
+			else if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
 				if(!SchematicWindow::vp_SelectedElements.contains(this))
 				{
@@ -691,11 +690,11 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				}
 				SchematicView::DeleteSelectedAPFS();
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chPorts))
+			else if(p_SelectedMenuItem->data() == MENU_PORTS)
 			{
 
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chCreateGroup))
+			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
 			{
 				bool bForceSelected = false;
 				GraphicsGroupItem* p_GraphicsGroupItem;
@@ -748,11 +747,11 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				delete vp_NewElementsForGroup;
 				vp_NewElementsForGroup = nullptr;
 			}
-			else if(p_SelectedMenuItem->text() == strAddGroupName)
+			else if(p_SelectedMenuItem->data() == MENU_ADD_FREE_SELECTED)
 			{
 				AddFreeSelectedElementsToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0), this);
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chRemoveFromGroup))
+			else if(p_SelectedMenuItem->data() == MENU_REMOVE_FROM_GROUP)
 			{
 				bool bForceSelected = false;
 				//
@@ -767,7 +766,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 					SchematicWindow::vp_SelectedElements.removeOne(this);
 				}
 			}
-			else if(p_SelectedMenuItem->text() == QString(m_chBackground))
+			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
 			{
 
 			}

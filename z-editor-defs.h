@@ -7,6 +7,7 @@
 #define E_SCHEMATICWINDOW_UI_CONF_PATH		"../Z-Editor/settings/schematicwindow_ui.ini"
 #define SCH_INTERNAL_POS_UNCHANGED          -2147483647
 #define WAITING_FOR_INTERFACE				500
+#define PORT_NUMBER_STR_LEN					6
 //
 #define SEND_ELEMENTS						true
 #define DONT_SEND_ELEMENTS					false
@@ -38,6 +39,10 @@
 #define WITHOUT_ELEMENTS_POSITION			false
 #define WITH_FRAME							true
 #define WITHOUT_FRAME						false
+#define FROM_ELEMENT						true
+#define NOT_FROM_ELEMENT					false
+#define REMOVE_FROM_CLIENT					true
+#define DONT_REMOVE_FROM_CLIENT				false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9
@@ -121,24 +126,44 @@ const char m_chLogWrongData[] = "Wrong data in pocket.";
 const char m_chLogSyncFault[] = "Element operations synchronization fault.";
 const char m_chLogSource[] = "Source ";
 const char m_chLogDestination[] = "Destination ";
-const char m_chMenuDelete[] = "Удалить";
-const char m_chMenuSetPassword[] = "Задать пароль";
-const char m_chMenuSetAsDefault[] = "Установить как текущий";
 const char m_chStatusConnected[] = "Соединён";
 const char m_chMsgServerPassword[] = "Пароль сервера.";
 const char m_chNewElement[] = "Новый элемент";
 const char m_chNewGroup[] = "Новая группа";
 const char m_chGroup[] = "Группа";
 const char m_chElement[] = "Элемент";
+const char m_chLink[] = "Линк";
+//
+const char m_chMenuDelete[] = "Удалить";
+#define MENU_DELETE				1
+const char m_chMenuPorts[] = "Порты";
+#define MENU_PORTS				2
+const char m_chMenuSrcPort[] = "Порт источника ";
+#define MENU_SRC_PORT			3
+const char m_chMenuDstPort[] = "Порт приёмника ";
+#define MENU_DST_PORT			4
+const char m_chMenuSelectedPort[] = "Выбранный порт ";
+#define MENU_SELECTED_PORT		5
+const char m_chMenuRemoveFromGroup[] = "Удалить из группы выбранные элементы";
+#define MENU_REMOVE_FROM_GROUP	6
+const char m_chMenuCreateGroup[] = "Создать группу с выбранными элементами";
+#define MENU_CREATE_GROUP		7
+const char m_chMenuCreateElement[] = "Создать элемент";
+#define MENU_CREATE_ELEMENT		8
+const char m_chMenuAddFreeSelected[] = "Добавить выбранные свободные элементы в группу";
+#define MENU_ADD_FREE_SELECTED	9
+const char m_chMenuBackground[] = "Изменить цвет фона";
+#define MENU_CHANGE_BACKGROUND	10
+const char m_chMenuDisband[] = "Расформировать выбранные группы";
+#define MENU_DISBAND			11
+const char m_chMenuAddElement[] = "Создать элемент в группе";
+#define MENU_ADD_ELEMENT		12
+const char m_chMenuSetPassword[] = "Задать пароль";
+#define MENU_SET_PASSWORD		13
+const char m_chMenuSetAsDefault[] = "Установить как текущий";
+#define MENU_SET_AS_DEFAULT		14
 const char m_chMenuRename[] = "Переименовать";
+#define MENU_RENAME				15
 const char m_chMenuRenameSelection[] = "Переименовать выборку";
-const char m_chDelete[] = "Удалить";
-const char m_chPorts[] = "Порты";
-const char m_chRemoveFromGroup[] = "Удалить из группы выбранные элементы";
-const char m_chCreateGroup[] = "Создать группу с выбранными элементами";
-const char m_chAddFreeSelected[] = "Добавить выбранные свободные элементы в группу";
-const char m_chBackground[] = "Изменить цвет фона";
-const char m_chDisband[] = "Расформировать выбранные группы";
-const char m_chAddElement[] = "Создать элемент в группе";
-
+#define MENU_RENAME_SELECTION	16
 #endif // ZEDITORDEFS_H

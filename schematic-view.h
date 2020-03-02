@@ -37,14 +37,19 @@ public:
 	/// Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
 	static void DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+	// Удаление линка.
+	static void DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bFromElement = false, bool bRemoveFromClient = true);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \param[in] bFromElement Признак вызова из элемента.
+							///< \param[in] bRemoveFromClient Флаг для удаления с клиента.
 	/// Остоединение выбранных элементов от группы и подготовка отправки всех изменеий на сервер.
 	static bool DetachSelectedAPFS();
 							///< \return true, если добавлялись пакеты в буфер.
 	/// Удаление выбранного и подготовка отправки по запросу.
 	static void DeleteSelectedAPFS();
 	/// Создание нового элемента и подготовка отсылки параметров.
-	static GraphicsElementItem* CreateNewElementAPFS(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup = 0);
-							///< \param[in] a_strNameBase Ссылка на строку с базой нового имени.
+	static GraphicsElementItem* CreateNewElementAPFS(char* p_chNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup = 0);
+							///< \param[in] p_chNameBase Указатель на строку с базой нового имени.
 							///< \param[in] a_pntMapped Ссылка на координаты.
 							///< \param[in] ullIDGroup ИД группы или ноль для отдельного элемента.
 							///< \return Указатель на новый графический элемент.

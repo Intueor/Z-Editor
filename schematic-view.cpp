@@ -50,13 +50,13 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 }
 
 // Создание нового элемента и подготовка отсылки параметров.
-GraphicsElementItem* SchematicView::CreateNewElementAPFS(QString& a_strNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup)
+GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup)
 {
 	PSchElementBase oPSchElementBase;
 	unsigned char uchR = rand() % 255;
 	unsigned char uchG = rand() % 255;
 	unsigned char uchB = rand() % 255;
-	QString strName = a_strNameBase;
+	QString strName = QString(p_chNameBase);
 	GraphicsElementItem* p_GraphicsElementItem;
 	//
 	memset(&oPSchElementBase, 0, sizeof(oPSchElementBase));
@@ -120,17 +120,15 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	{
 		QMenu oMenu;
 		QAction* p_SelectedMenuItem;
-		QString strHelper;
 		//
 		if(MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform())) goto gEx;
-		strHelper = QString(m_chNewElement);
-		oMenu.addAction(strHelper);
+		oMenu.addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
 		p_SelectedMenuItem = oMenu.exec(p_Event->globalPos());
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == strHelper)
+			if(p_SelectedMenuItem->data() == MENU_CREATE_ELEMENT)
 			{
-				CreateNewElementAPFS(strHelper, pntMapped);
+				CreateNewElementAPFS((char*)m_chNewElement, pntMapped);
 				MainWindow::p_Client->SendBufferToServer();
 			}
 		}
@@ -384,7 +382,6 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 			{
 				GraphicsPortItem* p_GraphicsPortItemActiveLast = SchematicView::p_GraphicsPortItemActive;
 				QGraphicsSceneMouseEvent oQGraphicsSceneMouseEvent(QEvent::MouseButtonRelease);
-				PSchLinkEraser oPSchLinkEraser;
 				//
 				oQGraphicsSceneMouseEvent.setButton(Qt::LeftButton);
 				SchematicView::p_GraphicsPortItemActive->mouseReleaseEvent(&oQGraphicsSceneMouseEvent);
@@ -392,16 +389,7 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 				{
 					MSleep(WAITING_FOR_INTERFACE);
 				}
-				oPSchLinkEraser.ullIDSrc = p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
-				oPSchLinkEraser.ullIDDst = p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
-				MainWindow::p_Client->AddPocketToOutputBufferC(
-							PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
-				SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
-				SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
-				SchematicWindow::vp_Links.removeOne(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt);
-				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt);
-				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
-				MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
+				DeleteLinkAPFS(p_GraphicsPortItemActiveLast->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, REMOVE_FROM_CLIENT);
 				goto gS;
 			}
 		}
@@ -501,7 +489,6 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 {
 	PSchLinkBase oPSchLinkBase;
 	GraphicsLinkItem* p_GraphicsLinkItemNew;
-	PSchLinkEraser oPSchLinkEraser;
 	//
 	if(bIsSrc)
 	{
@@ -534,19 +521,7 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 		delete p_GraphicsLinkItemNew;
 		return false;
 	}
-	SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
-	SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemDst);
-	SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItem);
-	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem);
-	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
-	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
-	if(!bFromElement)
-	{
-		oPSchLinkEraser.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
-		oPSchLinkEraser.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
-		MainWindow::p_Client->AddPocketToOutputBufferC(
-					PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
-	}
+	DeleteLinkAPFS(p_GraphicsLinkItem, bFromElement, REMOVE_FROM_CLIENT);
 	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 	GraphicsLinkItem::UpdateZPosition(p_GraphicsLinkItemNew);
 	MainWindow::p_Client->AddPocketToOutputBufferC(
@@ -556,3 +531,27 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 	return true;
 }
 
+// Удаление линка.
+void SchematicView::DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bFromElement, bool bRemoveFromClient)
+{
+	PSchLinkEraser oPSchLinkEraser;
+	//
+	if(!bFromElement)
+	{
+		oPSchLinkEraser.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
+		oPSchLinkEraser.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
+		oPSchLinkEraser.ushiSrcPort= p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort;
+		oPSchLinkEraser.ushiDstPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort;
+		MainWindow::p_Client->AddPocketToOutputBufferC(
+					PROTO_O_SCH_LINK_ERASE, (char*)&oPSchLinkEraser, sizeof(PSchLinkEraser));
+	}
+	if(bRemoveFromClient)
+	{
+		SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
+		SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItem->p_GraphicsPortItemDst);
+		SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItem);
+		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem);
+		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
+		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
+	}
+}

@@ -1496,21 +1496,21 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	if(p_ServersListWidgetItem != 0)
 	{
 		pntGlobalPos = QCursor::pos();
-		oMenu.addAction(m_chMenuDelete);
-		oMenu.addAction(m_chMenuSetPassword);
+		oMenu.addAction(m_chMenuDelete)->setData(MENU_DELETE);
+		oMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
 		if(!p_Client->CheckServerAlive())
 		{
-			oMenu.addAction(m_chMenuSetAsDefault);
+			oMenu.addAction(m_chMenuSetAsDefault)->setData(MENU_SET_AS_DEFAULT);
 		}
 		p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->text() == m_chMenuDelete)
+			if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
 				delete p_ServersListWidgetItem;
 				LCHECK_BOOL(SaveClientConfig());
 			}
-			else if(p_SelectedMenuItem->text() == m_chMenuSetPassword)
+			else if(p_SelectedMenuItem->data() == MENU_SET_PASSWORD)
 			{
 				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword,
 																			  p_ServersListWidgetItem->m_chPassword, AUTH_PASSWORD_STR_LEN);
@@ -1520,7 +1520,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->text() == m_chMenuSetAsDefault)
+			else if(p_SelectedMenuItem->data() == MENU_SET_AS_DEFAULT)
 			{
 				CurrentServerSwap(p_ServersListWidgetItem);
 				LCHECK_BOOL(SaveClientConfig());
@@ -1539,11 +1539,11 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
-	oMenu.addAction(m_chMenuSetPassword);
+	oMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
 	p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
 	if(p_SelectedMenuItem != 0)
 	{
-		if(p_SelectedMenuItem->text() == m_chMenuSetPassword)
+		if(p_SelectedMenuItem->data() == MENU_SET_PASSWORD)
 		{
 			p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword, m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
 			if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
