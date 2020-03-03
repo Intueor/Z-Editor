@@ -91,13 +91,32 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	QPointF pntMapped;
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItem;
+	QGraphicsItem* p_QGraphicsItem;
+	QList<QGraphicsItem*> lp_QGraphicsItems = this->items();
+	QList<QGraphicsItem*> lp_QGraphicsItemsHided;
+	QMenu oMenu;
+	QAction* p_SelectedMenuItem;
 	//
 	pntMapped = this->mapToScene(p_Event->x(), p_Event->y());
+	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform()); // Есть ли под курсором что-то...
+	if(p_QGraphicsItem) // Если не на пустом месте...
+	{
+		for(int iF = 0; iF != lp_QGraphicsItems.count(); iF++) // Прячем все линки и добавляем в список.
+		{
+			p_QGraphicsItem = lp_QGraphicsItems.at(iF);
+			if((p_QGraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI) & (p_QGraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_LINK))
+			{
+				lp_QGraphicsItemsHided.append(p_QGraphicsItem);
+				p_QGraphicsItem->hide();
+			}
+		}
+	}
+	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform()); // Новый тест.
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		bLMousePressed = true;
 		iXInt = iYInt = SCH_INTERNAL_POS_UNCHANGED;
-		if(MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform())) goto gEx;
+		if(p_QGraphicsItem) goto gEx;
 		if(p_Event->modifiers() == Qt::ControlModifier)
 		{
 			for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
@@ -118,11 +137,18 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		QMenu oMenu;
-		QAction* p_SelectedMenuItem;
-		//
-		if(MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform())) goto gEx;
+		if(p_QGraphicsItem) goto gEx;
 		oMenu.addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
+	}
+gEx:if(!lp_QGraphicsItemsHided.isEmpty())
+	{
+		for(int iF = 0;  iF != lp_QGraphicsItemsHided.count(); iF++) // Показываем все ранее спрятянные линки.
+		{
+			lp_QGraphicsItemsHided.at(iF)->show();
+		}
+	}
+	if(!oMenu.actions().isEmpty())
+	{
 		p_SelectedMenuItem = oMenu.exec(p_Event->globalPos());
 		if(p_SelectedMenuItem != 0)
 		{
@@ -133,7 +159,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 			}
 		}
 	}
-gEx:QGraphicsView::mousePressEvent(p_Event);
+	QGraphicsView::mousePressEvent(p_Event);
 }
 
 // Переопределение функции обработки отпускания кнопки мыши.

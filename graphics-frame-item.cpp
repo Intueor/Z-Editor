@@ -34,6 +34,7 @@ GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
 		setParentItem(p_GroupParentInt);
 	}
 	setZValue(-999999999999);
+	this->setAcceptedMouseButtons(0);
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.

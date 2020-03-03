@@ -1,4 +1,5 @@
 //== ВКЛЮЧЕНИЯ.
+#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-link-item.h"
 
@@ -45,6 +46,7 @@ GraphicsLinkItem::GraphicsLinkItem(PSchLinkBase* p_PSchLinkBase)
 			p_PSchElementVarsSrc = &p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars;
 			p_PSchElementVarsDst = &p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars;
 			UpdatePosition(this);
+			this->setAcceptedMouseButtons(0);
 			return;
 		}
 	}
