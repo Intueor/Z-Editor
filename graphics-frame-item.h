@@ -12,10 +12,11 @@ class GraphicsFrameItem : public QGraphicsItem
 public:
 	/// Конструктор.
 	explicit GraphicsFrameItem(unsigned short ushKindOfItem, GraphicsElementItem* p_ElementParent = nullptr,
-							   GraphicsGroupItem* p_GroupParent = nullptr);
+							   GraphicsGroupItem* p_GroupParent = nullptr, GraphicsPortItem* p_PortParent = nullptr);
 							///< \param[in] ushKindOfItem Тип родителя.
 							///< \param[in] p_ElementParent Указатель на родитель-элемент.
 							///< \param[in] p_GroupParent Указатель на родитель-группу.
+							///< \param[in] p_PortParent Указатель на родитель-порт.
 	/// Переопределение функции сообщения о вмещающем прямоугольнике.
 	QRectF boundingRect() const override;
 							///< \return Вмещающий прямоугольник.

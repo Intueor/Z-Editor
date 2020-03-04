@@ -17,6 +17,8 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
 							///< \param[in] bIsSrc Признак порта на источнике.
 							///< \param[in] p_Parent Указатель на родителя.
+	/// Деструктор.
+	~GraphicsPortItem();
 	/// Переопределение функции сообщения о вмещающем прямоугольнике.
 	QRectF boundingRect() const override;
 							///< \return Вмещающий прямоугольник.
@@ -34,6 +36,12 @@ public:
 	/// Переопределение функции обработки отпускания мыши.
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
 							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки нахождения курсора над портом.
+	void hoverEnterEvent(QGraphicsSceneHoverEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки ухода курсора с порта.
+	void hoverLeaveEvent(QGraphicsSceneHoverEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
 private:
 	/// Коррекция точки порта по краю элемента.
 	void BindToOuterEdge();
@@ -50,6 +58,7 @@ public:
 	GraphicsElementItem* p_ParentInt; ///< Внутренний указатель на родителя.
 	GraphicsLinkItem* p_GraphicsLinkItemInt; ///< Внутренний указатель на линк.
 	bool bIsSrc; ///< Признак порта-источника.
+	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
 
 private:
 	LOGDECL_MULTIOBJECT

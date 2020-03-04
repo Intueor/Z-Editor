@@ -66,6 +66,7 @@ public:
 	static QPen oQPenBlackTransparent; ///< Чёрный полупрозрачный карандаш общего пользования.
 	static QPen oQPenElementFrameFlash; ///< Карандаш мерцания рамки элемента общего пользования.
 	static QPen oQPenGroupFrameFlash; ///< Карандаш мерцания рамки группы общего пользования.
+	static QPen oQPenPortFrameFlash; ///< Карандаш мерцания рамки порта общего пользования.
 	static QVector<GraphicsElementItem*> vp_SelectedElements; ///< Вектор с указателями на выбранные граф. элементы.
 	static QVector<GraphicsElementItem*> vp_SelectedFreeElements; ///< Вектор с указателями на выбранные свободные граф. элементы (врем.).
 	static QVector<GraphicsGroupItem*> vp_SelectedGroups; ///< Вектор с указателями на выбранные граф. группы.
@@ -79,9 +80,11 @@ public:
 	//
 	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
 	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
+	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static QMenu* p_Menu; ///< Указатель на меню для общего пользования граф. классами.
 	static bool bCleaningSceneNow; ///< Сцена заблокирована.
+	static GraphicsFrameItem* p_GraphicsFrameItemForPortFlash; ///< Указатель на рамку порта под курсором для мигания или nullptr.
 
 public slots:
 	/// Обновление сцены.

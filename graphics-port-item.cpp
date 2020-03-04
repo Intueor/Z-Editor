@@ -52,6 +52,14 @@ GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bS
 		uiPortInt = p_PSchLinkVarsInt->ushiSrcPort;
 		p_GraphicsLinkItemInt->p_GraphicsPortItemDst = this;
 	}
+	p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, this);
+	p_GraphicsFrameItem->hide();
+}
+
+// Деструктор.
+GraphicsPortItem::~GraphicsPortItem()
+{
+	delete p_GraphicsFrameItem;
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.
@@ -513,3 +521,17 @@ gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
 	TrySendBufferToServer;
 }
 
+// Переопределение функции обработки нахождения курсора над портом.
+void GraphicsPortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* p_Event)
+{
+	p_GraphicsFrameItem->show(); // Зажигаем рамку.
+	SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsFrameItem;
+	QGraphicsItem::hoverEnterEvent(p_Event);
+}
+// Переопределение функции обработки ухода курсора с порта.
+void GraphicsPortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* p_Event)
+{
+	p_GraphicsFrameItem->hide(); // Гасим рамку.
+	SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
+	QGraphicsItem::hoverLeaveEvent(p_Event);
+}

@@ -85,7 +85,7 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPo
 	return p_GraphicsElementItem;
 }
 
-// Переопределение функции обработки нажатия на кнопку мыши.p_GraphicsFrameItem->show(); // Зажигаем рамку.
+// Переопределение функции обработки нажатия на кнопку мыши.
 void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 {
 	QPointF pntMapped;

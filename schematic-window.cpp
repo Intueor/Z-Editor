@@ -26,6 +26,7 @@ QPen SchematicWindow::oQPenWhiteTransparent;
 QPen SchematicWindow::oQPenBlackTransparent;
 QPen SchematicWindow::oQPenElementFrameFlash;
 QPen SchematicWindow::oQPenGroupFrameFlash;
+QPen SchematicWindow::oQPenPortFrameFlash;
 QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedElements;
 QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedFreeElements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_SelectedGroups;
@@ -36,6 +37,7 @@ QVector<GraphicsPortItem*> SchematicWindow::vp_Ports;
 QVector<GraphicsElementItem*> SchematicWindow::vp_LonelyElements;
 unsigned char SchematicWindow::uchElementSelectionFlashCounter = 1;
 unsigned char SchematicWindow::uchGroupSelectionFlashCounter = 1;
+unsigned char SchematicWindow::uchPortSelectionFlashCounter = 1;
 QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
 qreal SchematicWindow::dbObjectZPos;
 QMenu* SchematicWindow::p_Menu = nullptr;
@@ -43,6 +45,7 @@ Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
 bool SchematicWindow::bCleaningSceneNow = true;
 SchematicView* SchematicWindow::p_SchematicView = nullptr;
+GraphicsFrameItem* SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс окна обзора.
@@ -63,6 +66,8 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	oQPenElementFrameFlash.setWidth(3);
 	oQPenGroupFrameFlash.setColor(Qt::white);
 	oQPenGroupFrameFlash.setWidth(3);
+	oQPenPortFrameFlash.setColor(Qt::white);
+	oQPenPortFrameFlash.setWidth(3);
 	//
 	p_QGraphicsScene = &this->oScene;
 	MainWindow::p_SchematicWindow = this;
@@ -124,6 +129,7 @@ void SchematicWindow::UpdateSelectionFlash()
 		//
 		uchElementSelectionFlashCounter += 2;
 		uchGroupSelectionFlashCounter += 1;
+		uchPortSelectionFlashCounter += 3;
 		uchC = (sinf((float)(uchElementSelectionFlashCounter) / 81.169f)) * 255;
 		oQPenElementFrameFlash.setColor(QColor(uchC, uchC, uchC));
 		iC = vp_SelectedElements.count();
@@ -150,8 +156,14 @@ void SchematicWindow::UpdateSelectionFlash()
 		{
 			vp_SelectedGroups.at(iE)->p_GraphicsFrameItem->update();
 		}
+		if(p_GraphicsFrameItemForPortFlash)
+		{
+			p_GraphicsFrameItemForPortFlash->update();
+			uchC = (sinf((float)(uchPortSelectionFlashCounter) / 81.169f)) * 255;
+			oQPenPortFrameFlash.setColor(QColor(uchC, uchC, uchC));
+		}
 #ifdef WIN32
-		if(bSelectionPresent)
+		if(bSelectionPresent | p_GraphicsFrameItemForPortFlash)
 		{
 			MainWindow::p_SchematicWindow->UpdateScene();
 		}

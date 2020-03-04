@@ -53,7 +53,7 @@ GraphicsGroupItem::GraphicsGroupItem(PSchGroupBase* p_PSchGroupBase)
 	}
 	oQBrush.setColor(QRgb(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor));
 	//
-	p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_GROUP, 0, this);
+	p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_GROUP, nullptr, this);
 	p_GraphicsFrameItem->hide();
 	//
 	p_QLabel = new QLabel(QString(oPSchGroupBaseInt.m_chName));

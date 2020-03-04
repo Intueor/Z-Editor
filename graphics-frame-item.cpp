@@ -15,7 +15,7 @@ LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsFrameItem)
 //== Класс отображения фрейма.
 // Конструктор.
 GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
-									 GraphicsElementItem* p_ElementParent, GraphicsGroupItem* p_GroupParent)
+									 GraphicsElementItem* p_ElementParent, GraphicsGroupItem* p_GroupParent, GraphicsPortItem* p_PortParent)
 {
 	LOG_CTRL_INIT_MULTIOBJECT;
 	//
@@ -24,14 +24,17 @@ GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
 	ushKindOfItemInt = ushKindOfItem;
 	setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_FRAME);
-	setCursor(Qt::CursorShape::SizeAllCursor);
 	if(ushKindOfItem == SCH_KIND_ITEM_ELEMENT)
 	{
 		setParentItem(p_ElementParentInt);
 	}
-	if(ushKindOfItem == SCH_KIND_ITEM_GROUP)
+	else if(ushKindOfItem == SCH_KIND_ITEM_GROUP)
 	{
 		setParentItem(p_GroupParentInt);
+	}
+	else if(ushKindOfItem == SCH_KIND_ITEM_PORT)
+	{
+		setParentItem(p_PortParent);
 	}
 	setZValue(-999999999999);
 	this->setAcceptedMouseButtons(0);
@@ -47,12 +50,19 @@ QRectF GraphicsFrameItem::boundingRect() const
 					  p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW + 6,
 					  p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH + 6);
 	}
-	if(ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
+	else if(ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
 		return QRectF(-3,
 					  -3,
 					  p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW + 6,
 					  p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH + 6);
+	}
+	else if(ushKindOfItemInt == SCH_KIND_ITEM_PORT)
+	{
+		return QRectF(-5,
+					  -5,
+					  10,
+					  10);
 	}
 	return QRectF(0, 0, 0, 0);
 }
@@ -73,13 +83,18 @@ void GraphicsFrameItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsIte
 							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW + 4,
 							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH + 4);
 	}
-	if(ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
+	else if(ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
 		p_Painter->setPen(SchematicWindow::oQPenGroupFrameFlash);
 		p_Painter->drawRect(-2,
 							-2,
 							p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW + 4,
 							p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH + 4);
+	}
+	else if(ushKindOfItemInt == SCH_KIND_ITEM_PORT)
+	{
+		p_Painter->setPen(SchematicWindow::oQPenPortFrameFlash);
+		p_Painter->drawEllipse(-4, -4, 8, 8);
 	}
 }
 
