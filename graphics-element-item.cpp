@@ -1,7 +1,7 @@
 //== ВКЛЮЧЕНИЯ.
 #include <QGraphicsProxyWidget>
-#include <QGraphicsSceneEvent>
 #include <QApplication>
+#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-element-item.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
@@ -774,8 +774,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 			}
 			TrySendBufferToServer;
 		}
-		delete SchematicWindow::p_Menu;
-		SchematicWindow::p_Menu = nullptr;
+		SchematicWindow::ResetMenu();
 	}
 }
 

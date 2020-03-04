@@ -3,6 +3,7 @@
 #include "ui_schematic-window.h"
 #include <math.h>
 #include <QTimer>
+#include <QGraphicsSceneEvent>
 
 //== МАКРОСЫ.
 #define LOG_NAME				"schematic-window"
@@ -247,5 +248,27 @@ void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFra
 			LCHECK_BOOL(MainWindow::p_Client->SendToServerImmediately(
 							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
 		}
+	}
+}
+
+// Закрытие и сброс меню.
+void SchematicWindow::ResetMenu()
+{
+	QGraphicsItem* p_QGraphicsItem;
+	p_Menu->close();
+	p_Menu->deleteLater();
+	p_Menu = nullptr;
+	// Коррекция проблем перехода фокуса мыши после закрытия меню.
+	QMouseEvent oEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	p_SchematicView->mouseMoveEvent(&oEvent);
+	QGraphicsSceneMouseEvent oGrEvent(QEvent::GraphicsSceneHoverEnter);
+	oGrEvent.setScenePos(p_SchematicView->mapFromGlobal(QCursor::pos()));
+	oGrEvent.setButton(Qt::NoButton);
+	oGrEvent.setButtons(Qt::NoButton);
+	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(p_SchematicView->mapToScene(
+																	   p_SchematicView->mapFromGlobal(QCursor::pos())), p_SchematicView->transform());
+	if(p_QGraphicsItem)
+	{
+		MainWindow::p_SchematicWindow->oScene.sendEvent(p_QGraphicsItem, &oGrEvent);
 	}
 }

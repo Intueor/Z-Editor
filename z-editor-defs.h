@@ -133,6 +133,7 @@ const char m_chNewGroup[] = "Новая группа";
 const char m_chGroup[] = "Группа";
 const char m_chElement[] = "Элемент";
 const char m_chLink[] = "Линк";
+const char m_chPortTooltip[] = "Порт: ";
 //
 const char m_chMenuDelete[] = "Удалить";
 #define MENU_DELETE				1

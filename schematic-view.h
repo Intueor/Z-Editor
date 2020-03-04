@@ -69,16 +69,19 @@ public:
 							///< \param[in] p_GraphicsElementItemNew Указатель на элемент.
 							///< \param[in] oDbPortPosIn Изначальная позиция порта.
 							///< \return Позиция порта на крае элемента.
+	/// Переопределение функции обработки перемещения мыши.
+	void mouseMoveEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие колёсика.
 	/// Переопределение функции обработки нажатия на кнопку мыши.
 	void mousePressEvent(QMouseEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие колёсика.
+							///< \param[in] p_Event Указатель на событие.
 	/// Переопределение функции обработки отпускания кнопки мыши.
 	void mouseReleaseEvent(QMouseEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие колёсика.
+							///< \param[in] p_Event Указатель на событие.
 	/// Переопределение функции обработки перетаскивания вида.
 	void scrollContentsBy(int iX, int iY);
 							///< \param[in] iX Координаты X.

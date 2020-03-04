@@ -46,6 +46,8 @@ public:
 							///< \param[in] iStyle Стиль.
 	/// Отмена временного стиля кистей общего пользования.
 	static void RestoreBrushesStyles();
+	/// Закрытие и сброс меню.
+	static void ResetMenu();
 
 private:
 	// Кэлбэк обработки изменения окна обзора от класса вида.

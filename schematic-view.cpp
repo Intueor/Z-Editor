@@ -49,6 +49,12 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 	}
 }
 
+/// Переопределение функции обработки перемещения мыши.
+void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
+{
+	QGraphicsView::mouseMoveEvent(p_Event);
+}
+
 // Создание нового элемента и подготовка отсылки параметров.
 GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPointF a_pntMapped, unsigned long long ullIDGroup)
 {

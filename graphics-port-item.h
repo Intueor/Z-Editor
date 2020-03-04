@@ -63,7 +63,7 @@ public:
 private:
 	LOGDECL_MULTIOBJECT
 	LOGDECL_PTHRD_INCLASS_ADD
-	uint uiPortInt; ///< Внутренняя переменная номера порта.
+	ushort ushiPortInt; ///< Внутренняя переменная номера порта.
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
 	static bool bAltPressed; ///< Флаг нажатого модификатора Alt.
 	static bool bLMBPressed; ///< Флаг нажатой ЛКМ.
@@ -72,6 +72,7 @@ private:
 	static DbPoint oDbPointOld; ///< Старая точка.
 	static DbPoint oDbPointInitial; ///< Точка нажатия.
 	static bool bFromElement; ///< Флаг запроса от элемента.
+	static bool bMenuExecuted; ///< Флаг выполненного меню для отмены ховера.
 };
 
 #endif // GRAPHICSPORTITEM_H

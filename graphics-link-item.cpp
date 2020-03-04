@@ -1,5 +1,4 @@
 //== ВКЛЮЧЕНИЯ.
-#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-link-item.h"
 

@@ -1,7 +1,7 @@
 //== ВКЛЮЧЕНИЯ.
+#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-scaler-item.h"
-#include <QGraphicsSceneEvent>
 
 //== МАКРОСЫ.
 #define LOG_NAME                                "Scaler"

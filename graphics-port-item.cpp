@@ -1,4 +1,5 @@
 //== ВКЛЮЧЕНИЯ.
+#include <QApplication>
 #include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-port-item.h"
@@ -18,6 +19,7 @@ DbPoint GraphicsPortItem::oDbPointCurrent;
 DbPoint GraphicsPortItem::oDbPointOld;
 DbPoint GraphicsPortItem::oDbPointInitial;
 bool GraphicsPortItem::bFromElement;
+bool GraphicsPortItem::bMenuExecuted = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического отображения порта.
@@ -42,15 +44,15 @@ GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bS
 	{
 		setPos(p_SchElementGraph->oDbObjectFrame.dbX + p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX,
 			   p_SchElementGraph->oDbObjectFrame.dbY + p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY);
-		uiPortInt = p_PSchLinkVarsInt->ushiSrcPort;
 		p_GraphicsLinkItemInt->p_GraphicsPortItemSrc = this;
+		setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiSrcPort));
 	}
 	else
 	{
 		setPos(p_SchElementGraph->oDbObjectFrame.dbX + p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX,
 			   p_SchElementGraph->oDbObjectFrame.dbY + p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY);
-		uiPortInt = p_PSchLinkVarsInt->ushiSrcPort;
 		p_GraphicsLinkItemInt->p_GraphicsPortItemDst = this;
+		setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiDstPort));
 	}
 	p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, this);
 	p_GraphicsFrameItem->hide();
@@ -467,7 +469,7 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		p_SelectedMenuItem = SchematicWindow::p_Menu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
-			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
+			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog = nullptr;
 			PSchLinkBase oPSchLinkBase;
 			//
 			if((p_SelectedMenuItem->data() == MENU_SRC_PORT) |
@@ -483,10 +485,12 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
 gSrc:				CopyStrArray((char*)QString::number(p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(), m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер порта источника", m_chPortNumber, PORT_NUMBER_STR_LEN);
+					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер или псевдоним порта источника",
+																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						p_PSchLinkVarsInt->ushiSrcPort = QString(m_chPortNumber).toUShort();
+						p_GraphicsLinkItemInt->p_GraphicsPortItemSrc->setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiSrcPort));
 						oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_PSchLinkVarsInt->ushiSrcPort;
 gSd:					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
 					}
@@ -496,10 +500,12 @@ gSd:					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (c
 				else if(p_SelectedMenuItem->data() == MENU_DST_PORT)
 				{
 gDst:				CopyStrArray((char*)QString::number(p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(), m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер порта приёмника", m_chPortNumber, PORT_NUMBER_STR_LEN);
+					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер или псевдоним порта приёмника",
+																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						p_PSchLinkVarsInt->ushiDstPort = QString(m_chPortNumber).toUShort();
+						p_GraphicsLinkItemInt->p_GraphicsPortItemDst->setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiDstPort));
 						oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_PSchLinkVarsInt->ushiDstPort;
 						goto gSd;
 					}
@@ -514,9 +520,10 @@ gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
 				SchematicView::DeleteLinkAPFS(p_GraphicsLinkItemInt);
 			}
+			if(p_Set_Proposed_String_Dialog) p_Set_Proposed_String_Dialog->deleteLater();
 		}
-		delete SchematicWindow::p_Menu;
-		SchematicWindow::p_Menu = nullptr;
+		SchematicWindow::ResetMenu();
+		bMenuExecuted = true;
 	}
 	TrySendBufferToServer;
 }
@@ -524,8 +531,12 @@ gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
 // Переопределение функции обработки нахождения курсора над портом.
 void GraphicsPortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* p_Event)
 {
-	p_GraphicsFrameItem->show(); // Зажигаем рамку.
-	SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsFrameItem;
+	if(!bMenuExecuted)
+	{
+		p_GraphicsFrameItem->show(); // Зажигаем рамку.
+		SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsFrameItem;
+	}
+	else bMenuExecuted = false;
 	QGraphicsItem::hoverEnterEvent(p_Event);
 }
 // Переопределение функции обработки ухода курсора с порта.

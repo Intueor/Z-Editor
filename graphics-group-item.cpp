@@ -673,10 +673,10 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
 				p_GraphicsElementItem = SchematicView::CreateNewElementAPFS((char*)m_chNewElement,
-																  this->mapToScene(p_Event->pos()), this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
+																  mapToScene(p_Event->pos()), oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
 				vp_ConnectedElements.push_front(p_GraphicsElementItem);
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = this;
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = this->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 				GraphicsElementItem::UpdateGroupFrameByElements(this);
 				GroupToTopAPFS(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
 														  nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
@@ -688,8 +688,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 			}
 		}
 		TrySendBufferToServer;
-		delete SchematicWindow::p_Menu;
-		SchematicWindow::p_Menu = nullptr;
+		SchematicWindow::ResetMenu();
 	}
 }
 
