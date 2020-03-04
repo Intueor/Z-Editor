@@ -147,7 +147,7 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			QString strPortDst = QString::number(p_PSchLinkVarsInt->ushiDstPort);
 			// Линк.
 			SchematicWindow::p_Menu->addSection(QString(m_chLink) +
-												" [" + strCaptionSrc + " " + QChar(5176) + QChar(5171) + " " + strCaptionDst + "]")->setDisabled(true);
+												" [" + strCaptionSrc + " <> " + strCaptionDst + "]")->setDisabled(true);
 			// Порт.
 			if(bIsSrc)
 			{
