@@ -351,6 +351,8 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			MainWindow::p_This->RemoteUpdateSchView();
 			p_GraphicsLinkItem->p_GraphicsPortItemDst->mousePressEvent(p_Event);
 			QGraphicsItem::mousePressEvent(p_Event);
+			p_GraphicsLinkItem->p_GraphicsPortItemDst->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+			SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsLinkItem->p_GraphicsPortItemDst->p_GraphicsFrameItem;
 			return;
 		}
 		//==== РАБОТА С ВЫБОРКОЙ. ====
