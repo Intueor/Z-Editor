@@ -41,7 +41,7 @@ unsigned char SchematicWindow::uchGroupSelectionFlashCounter = 1;
 unsigned char SchematicWindow::uchPortSelectionFlashCounter = 1;
 QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
 qreal SchematicWindow::dbObjectZPos;
-QMenu* SchematicWindow::p_Menu = nullptr;
+SafeMenu* SchematicWindow::p_SafeMenu = nullptr;
 Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
 bool SchematicWindow::bCleaningSceneNow = true;
@@ -255,9 +255,9 @@ void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFra
 void SchematicWindow::ResetMenu()
 {
 	QGraphicsItem* p_QGraphicsItem;
-	p_Menu->close();
-	p_Menu->deleteLater();
-	p_Menu = nullptr;
+	p_SafeMenu->close();
+	p_SafeMenu->deleteLater();
+	p_SafeMenu = nullptr;
 	// Коррекция проблем перехода фокуса мыши после закрытия меню.
 	QMouseEvent oEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 	p_SchematicView->mouseMoveEvent(&oEvent);

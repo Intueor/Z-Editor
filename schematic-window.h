@@ -20,6 +20,7 @@ class SchematicWindow;
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class MainWindow;
+class SafeMenu;
 
 //== КЛАССЫ.
 /// Класс окна обзора.
@@ -84,7 +85,7 @@ public:
 	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
 	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
-	static QMenu* p_Menu; ///< Указатель на меню для общего пользования граф. классами.
+	static SafeMenu* p_SafeMenu; ///< Указатель на меню для общего пользования граф. классами.
 	static bool bCleaningSceneNow; ///< Сцена заблокирована.
 	static GraphicsFrameItem* p_GraphicsFrameItemForPortFlash; ///< Указатель на рамку порта под курсором для мигания или nullptr.
 

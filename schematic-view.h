@@ -72,6 +72,11 @@ public:
 	/// Переопределение функции обработки перемещения мыши.
 	void mouseMoveEvent(QMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
+	/// Получение длины строки выбранным шрифтом в пикселях.
+	static int GetStringWidthInPixels(const QFont& a_Font, QString& a_strText);
+							///< \param[in] a_Font Ссылка на шрифт.
+							///< \param[in] a_strText Ссылка на строку.
+							///< \return Ширина в пикселях.
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);

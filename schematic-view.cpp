@@ -100,7 +100,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	QGraphicsItem* p_QGraphicsItem;
 	QList<QGraphicsItem*> lp_QGraphicsItems = this->items();
 	QList<QGraphicsItem*> lp_QGraphicsItemsHided;
-	QMenu oMenu;
+	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
 	//
 	pntMapped = this->mapToScene(p_Event->x(), p_Event->y());
@@ -144,7 +144,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
 		if(p_QGraphicsItem) goto gEx;
-		oMenu.addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
+		oSafeMenu.addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
 	}
 gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 	{
@@ -153,9 +153,9 @@ gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 			lp_QGraphicsItemsHided.at(iF)->show();
 		}
 	}
-	if(!oMenu.actions().isEmpty())
+	if(!oSafeMenu.actions().isEmpty())
 	{
-		p_SelectedMenuItem = oMenu.exec(p_Event->globalPos());
+		p_SelectedMenuItem = oSafeMenu.exec(p_Event->globalPos());
 		if(p_SelectedMenuItem != 0)
 		{
 			if(p_SelectedMenuItem->data() == MENU_CREATE_ELEMENT)
@@ -586,4 +586,12 @@ void SchematicView::DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bF
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
 	}
+}
+
+// Получение длины строки выбранным шрифтом в пикселях.
+int SchematicView::GetStringWidthInPixels(const QFont& a_Font, QString& a_strText)
+{
+	QFontMetrics oQFontMetrics(a_Font);
+	//
+	return oQFontMetrics.width(a_strText);
 }

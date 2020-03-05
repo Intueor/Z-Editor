@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QVector>
 #include <QListWidget>
+#include <QWidget>
 #include "../Z-Hub/logger.h"
 #include "../Z-Hub/main-hub.h"
 #include "z-editor-defs.h"
@@ -214,7 +215,7 @@ public:
 public:
 	/// Конструктор.
 	WidgetsThrAccess(Ui::MainWindow* p_ui);
-							///< \param[in] p_ui Указатель интерфейс.
+							///< \param[in] p_ui Указатель на интерфейс.
 
 public slots:
 	/// Добавление графического объекта элемента.
@@ -231,6 +232,27 @@ public slots:
 	static void GroupLabelWidthSet();
 	/// Установка геометрии групбокса элемента по указателю p_ConnGraphicsElementItem и размеру из oDbPointFrameSize.
 	static void ElementGroupBoxSizeSet();
+};
+
+/// Класс модифицированного меню.
+class SafeMenu : public QMenu
+{
+	Q_OBJECT
+
+public:
+	/// Наследный конструктор.
+	SafeMenu(QWidget *parent = nullptr) : QMenu(parent) {}
+
+public slots:
+	/// Переопределение функции обработки нажатия мыши.
+	void mousePressEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки перемещения мыши.
+	void mouseMoveEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки отпускания мыши.
+	void mouseReleaseEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 };
 
 #endif // MAINWINDOW_H

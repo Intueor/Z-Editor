@@ -1487,7 +1487,7 @@ void MainWindow::on_pushButton_Disconnect_clicked()
 void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &pos)
 {
 	QPoint pntGlobalPos;
-	QMenu oMenu;
+	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
 	ServersListWidgetItem* p_ServersListWidgetItem;
 	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
@@ -1496,13 +1496,13 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	if(p_ServersListWidgetItem != 0)
 	{
 		pntGlobalPos = QCursor::pos();
-		oMenu.addAction(m_chMenuDelete)->setData(MENU_DELETE);
-		oMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
+		oSafeMenu.addAction(m_chMenuDelete)->setData(MENU_DELETE);
+		oSafeMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
 		if(!p_Client->CheckServerAlive())
 		{
-			oMenu.addAction(m_chMenuSetAsDefault)->setData(MENU_SET_AS_DEFAULT);
+			oSafeMenu.addAction(m_chMenuSetAsDefault)->setData(MENU_SET_AS_DEFAULT);
 		}
-		p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
+		p_SelectedMenuItem = oSafeMenu.exec(pntGlobalPos);
 		if(p_SelectedMenuItem != 0)
 		{
 			if(p_SelectedMenuItem->data() == MENU_DELETE)
@@ -1534,13 +1534,13 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 {
 	pos.isNull(); // Заглушка.
 	QPoint pntGlobalPos;
-	QMenu oMenu;
+	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
 	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
-	oMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
-	p_SelectedMenuItem = oMenu.exec(pntGlobalPos);
+	oSafeMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
+	p_SelectedMenuItem = oSafeMenu.exec(pntGlobalPos);
 	if(p_SelectedMenuItem != 0)
 	{
 		if(p_SelectedMenuItem->data() == MENU_SET_PASSWORD)
@@ -1702,3 +1702,25 @@ void WidgetsThrAccess::AddGraphicsGroupItem()
 	MainWindow::p_SchematicWindow->oScene.addItem(p_ConnGraphicsGroupItem);
 }
 
+//== Класс модифицированного меню.
+// Переопределение функции обработки нажатия мыши.
+void SafeMenu::mousePressEvent(QMouseEvent* p_Event)
+{
+	if((p_Event->button() == Qt::MouseButton::RightButton) &
+	   ((p_Event->pos().x() > this->pos().x()) & (p_Event->pos().y() > this->pos().y()))) return;
+	QMenu::mousePressEvent(p_Event);
+}
+
+// Переопределение функции обработки перемещения мыши.
+void SafeMenu::mouseMoveEvent(QMouseEvent* p_Event)
+{
+	if(p_Event->button() == Qt::MouseButton::RightButton) return;
+	QMenu::mouseMoveEvent(p_Event);
+}
+
+// Переопределение функции обработки отпускания мыши.
+void SafeMenu::mouseReleaseEvent(QMouseEvent* p_Event)
+{
+	if(p_Event->button() == Qt::MouseButton::RightButton) return;
+	QMenu::mouseReleaseEvent(p_Event);
+}

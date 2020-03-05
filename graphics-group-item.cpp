@@ -404,9 +404,9 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		if(SchematicWindow::p_Menu == nullptr)
+		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
-			SchematicWindow::p_Menu = new QMenu;
+			SchematicWindow::p_SafeMenu = new SafeMenu;
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
 			QString strCaption;
@@ -421,22 +421,23 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			{
 				strCaption = "Выборка групп";
 			}
-			SchematicWindow::p_Menu->addSection(strCaption)->setDisabled(true);
+			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 34);
+			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
 			// Имя.
 			if(bNoSelection)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
 			}
 			else
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
 			}
 			// Удалить.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
 			// Расформировать.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
 			// Создать элемент в группе.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
 			// Добавить выбранные свободные объекты.
 			if(!SchematicWindow::vp_SelectedElements.isEmpty())
 			{
@@ -451,11 +452,11 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 				}
 				if(!SchematicWindow::vp_SelectedFreeElements.isEmpty())
 				{
-					SchematicWindow::p_Menu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_FREE_SELECTED);
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_FREE_SELECTED);
 				}
 			}
 			// Цвет фона.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
 		}
 	}
 	TrySendBufferToServer;
@@ -582,14 +583,14 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(p_Event);
-	if(SchematicWindow::p_Menu != nullptr)
+	if(SchematicWindow::p_SafeMenu != nullptr)
 	{
 		QAction* p_SelectedMenuItem;
 		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 		PSchGroupName oPSchGroupName;
 		char m_chName[SCH_OBJ_NAME_STR_LEN];
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
-		p_SelectedMenuItem = SchematicWindow::p_Menu->exec(QCursor::pos());
+		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
 			if(p_SelectedMenuItem->data() == MENU_RENAME)

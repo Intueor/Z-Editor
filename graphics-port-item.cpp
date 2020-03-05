@@ -1,6 +1,7 @@
 //== ВКЛЮЧЕНИЯ.
 #include <QApplication>
 #include <QGraphicsSceneEvent>
+#include <QFontMetrics>
 #include "main-window.h"
 #include "graphics-port-item.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
@@ -137,30 +138,32 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		if(SchematicWindow::p_Menu == nullptr)
+		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
-			SchematicWindow::p_Menu = new QMenu;
+			SchematicWindow::p_SafeMenu = new SafeMenu;
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			QString strCaptionSrc = QString(p_GraphicsLinkItemInt->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
 			QString strCaptionDst = QString(p_GraphicsLinkItemInt->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
 			QString strPortSrc = QString::number(p_PSchLinkVarsInt->ushiSrcPort);
 			QString strPortDst = QString::number(p_PSchLinkVarsInt->ushiDstPort);
+			QString strName = QString(m_chLink + QString(" [") + strCaptionSrc + QString(" <> ") + strCaptionDst + QString("]"));
+			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strName) + 34);
 			// Линк.
-			SchematicWindow::p_Menu->addSection(QString(m_chLink) +
-												" [" + strCaptionSrc + " <> " + strCaptionDst + "]")->setDisabled(true);
+			SchematicWindow::p_SafeMenu->addSection(strName)->setDisabled(true);
 			// Порт.
 			if(bIsSrc)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuSelectedPort) + "[" + strPortSrc + "]")->setData(MENU_SELECTED_PORT);
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuDstPort) + "[" + strPortDst + "]")->setData(MENU_DST_PORT);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSelectedPort) + "[" + strPortSrc + "]")->setData(MENU_SELECTED_PORT);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDstPort) + "[" + strPortDst + "]")->setData(MENU_DST_PORT);
 			}
 			else
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuSelectedPort) + "[" + strPortDst + "]")->setData(MENU_SELECTED_PORT);
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuSrcPort) + "[" + strPortSrc + "]")->setData(MENU_SRC_PORT);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSelectedPort) + "[" + strPortDst + "]")->setData(MENU_SELECTED_PORT);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSrcPort) + "[" + strPortSrc + "]")->setData(MENU_SRC_PORT);
 			}
 			// Удалить.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+
 		}
 	}
 	QGraphicsItem::mousePressEvent(p_Event);
@@ -462,11 +465,11 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 		}
 		SchematicView::p_GraphicsPortItemActive = nullptr;
 	}
-	else if(SchematicWindow::p_Menu != nullptr)
+	else if(SchematicWindow::p_SafeMenu != nullptr)
 	{
 		QAction* p_SelectedMenuItem;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
-		p_SelectedMenuItem = SchematicWindow::p_Menu->exec(QCursor::pos());
+		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
 			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog = nullptr;

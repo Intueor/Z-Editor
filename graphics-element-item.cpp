@@ -419,9 +419,10 @@ gNL:	bLastSt = bSelected; // Запоминаем предыдущее знач�
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		if(SchematicWindow::p_Menu == nullptr)
+		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
-			SchematicWindow::p_Menu = new QMenu;
+			SchematicWindow::p_SafeMenu = new SafeMenu;
+
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
 			QString strCaption;
@@ -436,31 +437,32 @@ gNL:	bLastSt = bSelected; // Запоминаем предыдущее знач�
 			{
 				strCaption = "Выборка элементов";
 			}
-			SchematicWindow::p_Menu->addSection(strCaption)->setDisabled(true);
+			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 34);
+			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
 			// Имя.
 			if(bNoSelection)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
 			}
 			else
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
 			}
 			// Удалить.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
 			// Порты.
 			for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
 			{
 				if(this == SchematicWindow::vp_Ports.at(iF)->p_ParentInt)
 				{
-					SchematicWindow::p_Menu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
 					break;
 				}
 			}
 			// Создать группу.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 			{
-				SchematicWindow::p_Menu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+				SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
 			}
 			// В группу.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
@@ -469,16 +471,16 @@ gNL:	bLastSt = bSelected; // Запоминаем предыдущее знач�
 				{
 					strAddGroupName = QString(m_chMenuAddFreeSelected) + " [" +
 							QString(SchematicWindow::vp_SelectedGroups.at(0)->oPSchGroupBaseInt.m_chName) + "]";
-					SchematicWindow::p_Menu->addAction(strAddGroupName)->setData(MENU_ADD_FREE_SELECTED);
+					SchematicWindow::p_SafeMenu->addAction(strAddGroupName)->setData(MENU_ADD_FREE_SELECTED);
 				}
 			}
 			// Из группы.
 			if(oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 			{
-				SchematicWindow::p_Menu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUP);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUP);
 			}
 			// Цвет фона.
-			SchematicWindow::p_Menu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
 		}
 	}
 	TrySendBufferToServer;
@@ -657,14 +659,14 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(p_Event);
-	if(SchematicWindow::p_Menu != nullptr)
+	if(SchematicWindow::p_SafeMenu != nullptr)
 	{
 		QAction* p_SelectedMenuItem;
 		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 		PSchElementName oPSchElementName;
 		char m_chName[SCH_OBJ_NAME_STR_LEN];
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
-		p_SelectedMenuItem = SchematicWindow::p_Menu->exec(QCursor::pos());
+		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
 			if(p_SelectedMenuItem->data() == MENU_RENAME)
