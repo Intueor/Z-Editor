@@ -141,6 +141,7 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
+			SchematicWindow::p_SafeMenu->setStyleSheet("SafeMenu::separator {color: palette(link);}");
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			QString strCaptionSrc = QString(p_GraphicsLinkItemInt->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
 			QString strCaptionDst = QString(p_GraphicsLinkItemInt->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);

@@ -422,7 +422,7 @@ gNL:	bLastSt = bSelected; // Запоминаем предыдущее знач�
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
-
+			SchematicWindow::p_SafeMenu->setStyleSheet("SafeMenu::separator {color: palette(link);}");
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
 			QString strCaption;

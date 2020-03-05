@@ -407,6 +407,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
+			SchematicWindow::p_SafeMenu->setStyleSheet("SafeMenu::separator {color: palette(link);}");
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
 			QString strCaption;
