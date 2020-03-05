@@ -2,6 +2,7 @@
 #include <QGraphicsProxyWidget>
 #include <QApplication>
 #include <QGraphicsSceneEvent>
+#include <QBoxLayout>
 #include "main-window.h"
 #include "graphics-element-item.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
@@ -38,6 +39,8 @@ GraphicsElementItem::GraphicsElementItem(PSchElementBase* p_PSchElementBase)
 	bSelected = false;
 	//
 	p_QGroupBox = new QGroupBox();
+	QVBoxLayout* p_QVBoxLayout = new QVBoxLayout;
+	p_QGroupBox->setLayout(p_QVBoxLayout);
 	p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
 	p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
 	p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
@@ -247,9 +250,6 @@ void GraphicsElementItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsI
 						oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY,
 						oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW,
 						oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH);
-	//////////////////////////////
-	p_Painter->drawText(9, 25, QString::number(this->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos));
-	//////////////////////////////
 }
 
 // Переопределение функции шага событий элемента.

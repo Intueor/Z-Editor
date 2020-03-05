@@ -170,9 +170,6 @@ void GraphicsGroupItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsIte
 	p_Painter->drawRect(0, 0, oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW,
 						oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH);
 	p_Painter->drawLine(1, 18, oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW - 1, 18);
-	//////////////////////////////
-	p_Painter->drawText(170, 15, QString::number(this->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos));
-	//////////////////////////////
 }
 
 // Переопределение функции шага событий группы.
