@@ -164,7 +164,7 @@ void SchematicWindow::UpdateSelectionFlash()
 			oQPenPortFrameFlash.setColor(QColor(uchC, uchC, uchC));
 		}
 #ifdef WIN32
-		if(bSelectionPresent | p_GraphicsFrameItemForPortFlash)
+		if(bSelectionPresent | (p_GraphicsFrameItemForPortFlash != nullptr))
 		{
 			MainWindow::p_SchematicWindow->UpdateScene();
 		}
