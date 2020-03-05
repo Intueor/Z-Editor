@@ -148,7 +148,7 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			QString strPortSrc = QString::number(p_PSchLinkVarsInt->ushiSrcPort);
 			QString strPortDst = QString::number(p_PSchLinkVarsInt->ushiDstPort);
 			QString strName = QString(m_chLink + QString(" [") + strCaptionSrc + QString(" <> ") + strCaptionDst + QString("]"));
-			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strName) + 34);
+			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strName) + 50);
 			// Линк.
 			SchematicWindow::p_SafeMenu->addSection(strName)->setDisabled(true);
 			// Порт.

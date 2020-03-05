@@ -422,7 +422,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			{
 				strCaption = "Выборка групп";
 			}
-			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 34);
+			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 50);
 			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
 			// Имя.
 			if(bNoSelection)
