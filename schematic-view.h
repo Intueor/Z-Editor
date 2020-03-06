@@ -104,6 +104,7 @@ private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.
+	static QPointF pntMouseClickMapped; ///< Точка клика в координатах сцены.
 	qreal rScaleFactor; ///<
 	qreal rFactor; ///<
 

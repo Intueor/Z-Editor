@@ -11,6 +11,7 @@ int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
 int SchematicView::iYInt = SCH_INTERNAL_POS_UNCHANGED;
 CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
 GraphicsPortItem* SchematicView::p_GraphicsPortItemActive = nullptr;
+QPointF SchematicView::pntMouseClickMapped;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -94,7 +95,6 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPo
 // Переопределение функции обработки нажатия на кнопку мыши.
 void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 {
-	QPointF pntMapped;
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItem;
 	QGraphicsItem* p_QGraphicsItem;
@@ -103,8 +103,9 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
 	//
-	pntMapped = this->mapToScene(p_Event->x(), p_Event->y());
-	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform()); // Есть ли под курсором что-то...
+	pntMouseClickMapped = this->mapToScene(p_Event->x(), p_Event->y());
+	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(
+				pntMouseClickMapped.x(), pntMouseClickMapped.y(), transform()); // Есть ли под курсором что-то...
 	if(p_QGraphicsItem) // Если не на пустом месте...
 	{
 		for(int iF = 0; iF != lp_QGraphicsItems.count(); iF++) // Прячем все линки и добавляем в список.
@@ -117,7 +118,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 			}
 		}
 	}
-	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(pntMapped.x(), pntMapped.y(), transform()); // Новый тест.
+	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(pntMouseClickMapped.x(), pntMouseClickMapped.y(), transform()); // Новый тест.
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		bLMousePressed = true;
@@ -140,6 +141,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 			}
 			SchematicWindow::vp_SelectedGroups.clear();
 		}
+
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
@@ -160,12 +162,16 @@ gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 		{
 			if(p_SelectedMenuItem->data() == MENU_CREATE_ELEMENT)
 			{
-				CreateNewElementAPFS((char*)m_chNewElement, pntMapped);
+				CreateNewElementAPFS((char*)m_chNewElement, pntMouseClickMapped);
 				MainWindow::p_Client->SendBufferToServer();
 			}
 		}
 	}
 	QGraphicsView::mousePressEvent(p_Event);
+	if(p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		viewport()->setCursor(Qt::CursorShape::CrossCursor);
+	}
 }
 
 // Переопределение функции обработки отпускания кнопки мыши.
