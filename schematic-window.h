@@ -70,6 +70,8 @@ public:
 	static QPen oQPenElementFrameFlash; ///< Карандаш мерцания рамки элемента общего пользования.
 	static QPen oQPenGroupFrameFlash; ///< Карандаш мерцания рамки группы общего пользования.
 	static QPen oQPenPortFrameFlash; ///< Карандаш мерцания рамки порта общего пользования.
+	static QPen oQPenSelectionDash; ///< Карандаш прямоугольной выборки, линии.
+	static QPen oQPenSelectionDot; ///< Карандаш прямоугольной выборки, точки.
 	static QVector<GraphicsElementItem*> vp_SelectedElements; ///< Вектор с указателями на выбранные граф. элементы.
 	static QVector<GraphicsElementItem*> vp_SelectedFreeElements; ///< Вектор с указателями на выбранные свободные граф. элементы (врем.).
 	static QVector<GraphicsGroupItem*> vp_SelectedGroups; ///< Вектор с указателями на выбранные граф. группы.

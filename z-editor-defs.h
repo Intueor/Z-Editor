@@ -8,6 +8,8 @@
 #define SCH_INTERNAL_POS_UNCHANGED          -2147483647
 #define WAITING_FOR_INTERFACE				500
 #define PORT_NUMBER_STR_LEN					6
+#define OVERMAX_NUMBER						999999999
+#define OVERMIN_NUMBER						-999999999
 //
 #define SEND_ELEMENTS						true
 #define DONT_SEND_ELEMENTS					false

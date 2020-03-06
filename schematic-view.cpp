@@ -12,6 +12,10 @@ int SchematicView::iYInt = SCH_INTERNAL_POS_UNCHANGED;
 CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
 GraphicsPortItem* SchematicView::p_GraphicsPortItemActive = nullptr;
 QPointF SchematicView::pntMouseClickMapped;
+QPointF SchematicView::pntMouseMoveMapped;
+bool SchematicView::bShiftPressed = false;
+QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDash = nullptr;
+QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDot = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -31,8 +35,8 @@ void SchematicView::SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged p
 // Определение области видимости.
 QRectF SchematicView::GetVisibleRect()
 {
-	QPointF pntA = this->mapToScene(0, 0);
-	QPointF pntB = this->mapToScene(this->viewport()->width(), this->viewport()->height());
+	QPointF pntA = mapToScene(0, 0);
+	QPointF pntB = mapToScene(this->viewport()->width(), this->viewport()->height());
 	return QRectF(pntA, pntB);
 }
 
@@ -53,6 +57,16 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 /// Переопределение функции обработки перемещения мыши.
 void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 {
+	if(bShiftPressed & bLMousePressed)
+	{
+		pntMouseMoveMapped = mapToScene(p_Event->x(), p_Event->y());
+		//
+		QRectF oQRectF = QRectF(pntMouseClickMapped.x(), pntMouseClickMapped.y(),
+								pntMouseMoveMapped.x() - pntMouseClickMapped.x(), pntMouseMoveMapped.y() - pntMouseClickMapped.y());
+		//
+		p_QGraphicsRectItemSelectionDash->setRect(oQRectF);
+		p_QGraphicsRectItemSelectionDot->setRect(oQRectF);
+	}
 	QGraphicsView::mouseMoveEvent(p_Event);
 }
 
@@ -103,7 +117,8 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
 	//
-	pntMouseClickMapped = this->mapToScene(p_Event->x(), p_Event->y());
+	pntMouseClickMapped = mapToScene(p_Event->x(), p_Event->y());
+	pntMouseMoveMapped = pntMouseClickMapped;
 	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(
 				pntMouseClickMapped.x(), pntMouseClickMapped.y(), transform()); // Есть ли под курсором что-то...
 	if(p_QGraphicsItem) // Если не на пустом месте...
@@ -170,7 +185,15 @@ gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 	QGraphicsView::mousePressEvent(p_Event);
 	if(p_Event->modifiers() == Qt::ShiftModifier)
 	{
+		QRectF oQRectF = QRectF(pntMouseClickMapped.x(), pntMouseClickMapped.y(), 0, 0);
+		bShiftPressed = true;
+		setDragMode(DragMode::NoDrag);
 		viewport()->setCursor(Qt::CursorShape::CrossCursor);
+		p_QGraphicsRectItemSelectionDash = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDash);
+		p_QGraphicsRectItemSelectionDash->setZValue(OVERMAX_NUMBER);
+		p_QGraphicsRectItemSelectionDot = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDot);
+		p_QGraphicsRectItemSelectionDot->setZValue(OVERMAX_NUMBER - 1);
+		MainWindow::p_SchematicWindow->oScene.update();
 	}
 }
 
@@ -191,6 +214,15 @@ void SchematicView::mouseReleaseEvent(QMouseEvent* p_Event)
 		}
 	}
 gNE:QGraphicsView::mouseReleaseEvent(p_Event);
+	bShiftPressed = false;
+	if(p_QGraphicsRectItemSelectionDash)
+	{
+		MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDash);
+		p_QGraphicsRectItemSelectionDash = nullptr;
+		MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDot);
+		p_QGraphicsRectItemSelectionDot = nullptr;
+		setDragMode(DragMode::ScrollHandDrag);
+	}
 }
 
 // Переопределение функции обработки перетаскивания вида.

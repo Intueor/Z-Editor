@@ -249,6 +249,6 @@ void GraphicsLinkItem::UpdatePosition(GraphicsLinkItem* p_GraphicsLinkItem)
 	{
 		oDbPoint.dbY = oP.dbSrc.dbY;
 	}
-	p_GraphicsLinkItem->setPos(999999999, 999999999); // Вынужденная мера.
+	p_GraphicsLinkItem->setPos(OVERMAX_NUMBER, OVERMAX_NUMBER); // Вынужденная мера.
 	p_GraphicsLinkItem->setPos(oDbPoint.dbX, oDbPoint.dbY);
 }

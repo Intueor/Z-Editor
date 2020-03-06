@@ -28,6 +28,8 @@ QPen SchematicWindow::oQPenBlackTransparent;
 QPen SchematicWindow::oQPenElementFrameFlash;
 QPen SchematicWindow::oQPenGroupFrameFlash;
 QPen SchematicWindow::oQPenPortFrameFlash;
+QPen SchematicWindow::oQPenSelectionDash;
+QPen SchematicWindow::oQPenSelectionDot;
 QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedElements;
 QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedFreeElements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_SelectedGroups;
@@ -69,6 +71,10 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	oQPenGroupFrameFlash.setWidth(3);
 	oQPenPortFrameFlash.setColor(Qt::white);
 	oQPenPortFrameFlash.setWidth(3);
+	oQPenSelectionDash.setColor(QColor(255, 250, 245, 255));
+	oQPenSelectionDash.setStyle(Qt::PenStyle::DashLine);
+	oQPenSelectionDot.setColor(QColor(0, 5, 10, 255));
+	oQPenSelectionDot.setStyle(Qt::PenStyle::DotLine);
 	//
 	p_QGraphicsScene = &this->oScene;
 	MainWindow::p_SchematicWindow = this;

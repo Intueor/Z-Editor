@@ -198,7 +198,7 @@ void GraphicsGroupItem::SortElementsByZPos(QVector<GraphicsElementItem*>& avp_El
 	while(!vp_Elements.isEmpty())
 	{
 		int iElement;
-		qreal dbZ = 999999999999;
+		qreal dbZ = OVERMAX_NUMBER;
 		for(int iF = 0; iF < vp_Elements.count(); iF++)
 		{
 			p_GraphicsElementItem = vp_Elements.at(iF);
@@ -248,7 +248,7 @@ void GraphicsGroupItem::SortGroupsByZPos(QVector<GraphicsGroupItem*>& avp_Groups
 	while(!vp_Groups.isEmpty())
 	{
 		int iGroup;
-		qreal dbZ = 999999999999;
+		qreal dbZ = OVERMAX_NUMBER;
 		for(int iF = 0; iF < vp_Groups.count(); iF++)
 		{
 			p_GraphicsGroupItem = vp_Groups.at(iF);

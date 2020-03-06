@@ -36,7 +36,7 @@ GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
 	{
 		setParentItem(p_PortParent);
 	}
-	setZValue(-999999999999);
+	setZValue(OVERMIN_NUMBER);
 	this->setAcceptedMouseButtons(0);
 }
 

@@ -272,7 +272,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItem;
 	GraphicsLinkItem* p_GraphicsLinkItem;
-	double dbZ = -999999;
+	double dbZ = OVERMIN_NUMBER;
 	DbPoint oDbMapped;
 	char m_chPortNumber[PORT_NUMBER_STR_LEN];
 	//
