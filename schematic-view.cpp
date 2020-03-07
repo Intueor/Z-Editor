@@ -13,7 +13,7 @@ CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
 GraphicsPortItem* SchematicView::p_GraphicsPortItemActive = nullptr;
 QPointF SchematicView::pntMouseClickMapped;
 QPointF SchematicView::pntMouseMoveMapped;
-bool SchematicView::bShiftPressed = false;
+bool SchematicView::bShiftAndLMBPressed = false;
 QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDash = nullptr;
 QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDot = nullptr;
 
@@ -57,13 +57,31 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 /// Переопределение функции обработки перемещения мыши.
 void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 {
-	if(bShiftPressed & bLMousePressed)
+	if(bShiftAndLMBPressed & bLMousePressed)
 	{
+		QRectF oQRectF;
+		//
 		pntMouseMoveMapped = mapToScene(p_Event->x(), p_Event->y());
-		//
-		QRectF oQRectF = QRectF(pntMouseClickMapped.x(), pntMouseClickMapped.y(),
-								pntMouseMoveMapped.x() - pntMouseClickMapped.x(), pntMouseMoveMapped.y() - pntMouseClickMapped.y());
-		//
+		if(pntMouseMoveMapped.x() < pntMouseClickMapped.x())
+		{
+			oQRectF.setX(pntMouseMoveMapped.x());
+			oQRectF.setWidth(pntMouseClickMapped.x() - pntMouseMoveMapped.x());
+		}
+		else
+		{
+			oQRectF.setX(pntMouseClickMapped.x());
+			oQRectF.setWidth(pntMouseMoveMapped.x() - pntMouseClickMapped.x());
+		}
+		if(pntMouseMoveMapped.y() < pntMouseClickMapped.y())
+		{
+			oQRectF.setY(pntMouseMoveMapped.y());
+			oQRectF.setHeight(pntMouseClickMapped.y() - pntMouseMoveMapped.y());
+		}
+		else
+		{
+			oQRectF.setY(pntMouseClickMapped.y());
+			oQRectF.setHeight(pntMouseMoveMapped.y() - pntMouseClickMapped.y());
+		}
 		p_QGraphicsRectItemSelectionDash->setRect(oQRectF);
 		p_QGraphicsRectItemSelectionDot->setRect(oQRectF);
 	}
@@ -117,8 +135,11 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
 	//
-	pntMouseClickMapped = mapToScene(p_Event->x(), p_Event->y());
-	pntMouseMoveMapped = pntMouseClickMapped;
+	if(!bShiftAndLMBPressed)
+	{
+		pntMouseClickMapped = mapToScene(p_Event->x(), p_Event->y());
+		pntMouseMoveMapped = pntMouseClickMapped;
+	}
 	p_QGraphicsItem = MainWindow::p_SchematicWindow->oScene.itemAt(
 				pntMouseClickMapped.x(), pntMouseClickMapped.y(), transform()); // Есть ли под курсором что-то...
 	if(p_QGraphicsItem) // Если не на пустом месте...
@@ -182,18 +203,21 @@ gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 			}
 		}
 	}
-	QGraphicsView::mousePressEvent(p_Event);
-	if(p_Event->modifiers() == Qt::ShiftModifier)
+	if(!bShiftAndLMBPressed)
 	{
-		QRectF oQRectF = QRectF(pntMouseClickMapped.x(), pntMouseClickMapped.y(), 0, 0);
-		bShiftPressed = true;
-		setDragMode(DragMode::NoDrag);
-		viewport()->setCursor(Qt::CursorShape::CrossCursor);
-		p_QGraphicsRectItemSelectionDash = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDash);
-		p_QGraphicsRectItemSelectionDash->setZValue(OVERMAX_NUMBER);
-		p_QGraphicsRectItemSelectionDot = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDot);
-		p_QGraphicsRectItemSelectionDot->setZValue(OVERMAX_NUMBER - 1);
-		MainWindow::p_SchematicWindow->oScene.update();
+		QGraphicsView::mousePressEvent(p_Event);
+		if((p_Event->modifiers() == Qt::ShiftModifier) & (p_Event->button() == Qt::MouseButton::LeftButton))
+		{
+			QRectF oQRectF = QRectF(pntMouseClickMapped.x(), pntMouseClickMapped.y(), 0, 0);
+			bShiftAndLMBPressed = true;
+			setDragMode(DragMode::NoDrag);
+			viewport()->setCursor(Qt::CursorShape::CrossCursor);
+			p_QGraphicsRectItemSelectionDash = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDash);
+			p_QGraphicsRectItemSelectionDash->setZValue(OVERMAX_NUMBER);
+			p_QGraphicsRectItemSelectionDot = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDot);
+			p_QGraphicsRectItemSelectionDot->setZValue(OVERMAX_NUMBER - 1);
+			MainWindow::p_SchematicWindow->oScene.update();
+		}
 	}
 }
 
@@ -214,14 +238,17 @@ void SchematicView::mouseReleaseEvent(QMouseEvent* p_Event)
 		}
 	}
 gNE:QGraphicsView::mouseReleaseEvent(p_Event);
-	bShiftPressed = false;
-	if(p_QGraphicsRectItemSelectionDash)
+	if(bShiftAndLMBPressed & (p_Event->button() != Qt::MouseButton::RightButton))
 	{
-		MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDash);
-		p_QGraphicsRectItemSelectionDash = nullptr;
-		MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDot);
-		p_QGraphicsRectItemSelectionDot = nullptr;
-		setDragMode(DragMode::ScrollHandDrag);
+		bShiftAndLMBPressed = false;
+		if(p_QGraphicsRectItemSelectionDash)
+		{
+			MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDash);
+			p_QGraphicsRectItemSelectionDash = nullptr;
+			MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDot);
+			p_QGraphicsRectItemSelectionDot = nullptr;
+			setDragMode(DragMode::ScrollHandDrag);
+		}
 	}
 }
 

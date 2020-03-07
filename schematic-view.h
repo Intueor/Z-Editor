@@ -101,7 +101,7 @@ private:
 							///< \return true, если был удалён пустой графический объект группы.
 private:
 	static bool bLMousePressed; ///< Признак нажатия на ЛКМ.
-	static bool bShiftPressed; ///< Признак нажатия на Shift при клике ЛКМ.
+	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.

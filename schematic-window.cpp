@@ -71,10 +71,10 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	oQPenGroupFrameFlash.setWidth(3);
 	oQPenPortFrameFlash.setColor(Qt::white);
 	oQPenPortFrameFlash.setWidth(3);
-	oQPenSelectionDash.setColor(QColor(255, 250, 245, 255));
+	oQPenSelectionDash.setColor(QColor(255, 255, 255, 255));
 	oQPenSelectionDash.setStyle(Qt::PenStyle::DashLine);
 	oQPenSelectionDot.setColor(QColor(0, 5, 10, 255));
-	oQPenSelectionDot.setStyle(Qt::PenStyle::DotLine);
+	oQPenSelectionDot.setStyle(Qt::PenStyle::SolidLine);
 	//
 	p_QGraphicsScene = &this->oScene;
 	MainWindow::p_SchematicWindow = this;
