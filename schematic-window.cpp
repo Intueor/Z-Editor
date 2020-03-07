@@ -257,14 +257,11 @@ void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFra
 	}
 }
 
-// Закрытие и сброс меню.
-void SchematicWindow::ResetMenu()
+// Коррекция проблем перехода фокуса мыши.
+void SchematicWindow::FocusCorrection()
 {
 	QGraphicsItem* p_QGraphicsItem;
-	p_SafeMenu->close();
-	p_SafeMenu->deleteLater();
-	p_SafeMenu = nullptr;
-	// Коррекция проблем перехода фокуса мыши после закрытия меню.
+	//
 	QMouseEvent oEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 	p_SchematicView->mouseMoveEvent(&oEvent);
 	QGraphicsSceneMouseEvent oGrEvent(QEvent::GraphicsSceneHoverEnter);
@@ -277,4 +274,15 @@ void SchematicWindow::ResetMenu()
 	{
 		MainWindow::p_SchematicWindow->oScene.sendEvent(p_QGraphicsItem, &oGrEvent);
 	}
+}
+
+// Закрытие и сброс меню.
+void SchematicWindow::ResetMenu()
+{
+	p_SafeMenu->close();
+	p_SafeMenu->deleteLater();
+	p_SafeMenu = nullptr;
+#ifndef WIN32
+	FocusCorrection();
+#endif
 }

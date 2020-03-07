@@ -349,8 +349,8 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	bool bLastSt;
 	//
-	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics)
-	{ //Если группа блокирована занятостью или главным окном - отказ.
+	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
 		return;
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
@@ -494,7 +494,7 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	QPointF oQPointFInit;
 	QPointF oQPointFRes;
 	//
-	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics)
+	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -558,7 +558,7 @@ void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 // Переопределение функции обработки отпускания мыши.
 void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics)
+	if(oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}

@@ -307,8 +307,8 @@ void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	bool bLastSt;
 	bool bInGroup;
 	//
-	if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy || MainWindow::bBlockingGraphics)
-	{ //Если элемент блокирован занятостью или главным окном - отказ.
+	if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{ //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 		return;
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
@@ -494,7 +494,7 @@ void GraphicsElementItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	QPointF oQPointFInit;
 	QPointF oQPointFRes;
 	//
-	if(MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -627,7 +627,7 @@ void GraphicsElementItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	int iC;
 	//
-	if(MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}

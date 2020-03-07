@@ -62,7 +62,7 @@ void GraphicsScalerItem::advance(int iStep)
 // Переопределение функции обработки нажатия мыши.
 void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
+	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -83,7 +83,7 @@ void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	DbPoint oDbPointPos;
 	//
-	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
+	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}

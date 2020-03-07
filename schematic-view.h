@@ -101,7 +101,6 @@ private:
 							///< \return true, если был удалён пустой графический объект группы.
 private:
 	static bool bLMousePressed; ///< Признак нажатия на ЛКМ.
-	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.
@@ -114,6 +113,7 @@ public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDash; ///< Прямоугольник выборки, линии.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDot; ///< Прямоугольник выборки, точки.
+	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
 };
 
 #endif // SCHEMATICVIEW_H

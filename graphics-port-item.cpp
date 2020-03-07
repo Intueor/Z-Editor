@@ -101,7 +101,7 @@ void GraphicsPortItem::advance(int iStep)
 // Переопределение функции обработки нажатия мыши.
 void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -236,7 +236,7 @@ void GraphicsPortItem::SetToPos()
 void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	//
-	if(MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -276,7 +276,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 	DbPoint oDbMapped;
 	char m_chPortNumber[PORT_NUMBER_STR_LEN];
 	//
-	if(MainWindow::bBlockingGraphics)
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}

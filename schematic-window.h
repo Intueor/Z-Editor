@@ -47,6 +47,8 @@ public:
 							///< \param[in] iStyle Стиль.
 	/// Отмена временного стиля кистей общего пользования.
 	static void RestoreBrushesStyles();
+	/// Коррекция проблем перехода фокуса мыши.
+	static void FocusCorrection();
 	/// Закрытие и сброс меню.
 	static void ResetMenu();
 

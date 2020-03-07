@@ -132,8 +132,6 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	QGraphicsItem* p_QGraphicsItem;
 	QList<QGraphicsItem*> lp_QGraphicsItems = this->items();
 	QList<QGraphicsItem*> lp_QGraphicsItemsHided;
-	SafeMenu oSafeMenu;
-	QAction* p_SelectedMenuItem;
 	//
 	if(!bShiftAndLMBPressed)
 	{
@@ -182,25 +180,14 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
 		if(p_QGraphicsItem) goto gEx;
-		oSafeMenu.addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
+		SchematicWindow::p_SafeMenu = new SafeMenu;
+		SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
 	}
 gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 	{
 		for(int iF = 0;  iF != lp_QGraphicsItemsHided.count(); iF++) // Показываем все ранее спрятянные линки.
 		{
 			lp_QGraphicsItemsHided.at(iF)->show();
-		}
-	}
-	if(!oSafeMenu.actions().isEmpty())
-	{
-		p_SelectedMenuItem = oSafeMenu.exec(p_Event->globalPos());
-		if(p_SelectedMenuItem != 0)
-		{
-			if(p_SelectedMenuItem->data() == MENU_CREATE_ELEMENT)
-			{
-				CreateNewElementAPFS((char*)m_chNewElement, pntMouseClickMapped);
-				MainWindow::p_Client->SendBufferToServer();
-			}
 		}
 	}
 	if(!bShiftAndLMBPressed)
@@ -224,6 +211,8 @@ gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 // Переопределение функции обработки отпускания кнопки мыши.
 void SchematicView::mouseReleaseEvent(QMouseEvent* p_Event)
 {
+	QAction* p_SelectedMenuItem;
+	//
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		bLMousePressed = false;
@@ -248,7 +237,23 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 			MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDot);
 			p_QGraphicsRectItemSelectionDot = nullptr;
 			setDragMode(DragMode::ScrollHandDrag);
+#ifndef WIN32
+			SchematicWindow::FocusCorrection();
+#endif
 		}
+	}
+	if(SchematicWindow::p_SafeMenu)
+	{
+		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(p_Event->globalPos());
+		if(p_SelectedMenuItem != 0)
+		{
+			if(p_SelectedMenuItem->data() == MENU_CREATE_ELEMENT)
+			{
+				CreateNewElementAPFS((char*)m_chNewElement, pntMouseClickMapped);
+				MainWindow::p_Client->SendBufferToServer();
+			}
+		}
+		SchematicWindow::ResetMenu();
 	}
 }
 
