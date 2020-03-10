@@ -232,8 +232,70 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 		bShiftAndLMBPressed = false;
 		if(p_QGraphicsRectItemSelectionDash)
 		{
+			QList<QGraphicsItem*> lp_QGraphicsItems;
+			//
 			MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDash);
 			p_QGraphicsRectItemSelectionDash = nullptr;
+			lp_QGraphicsItems = MainWindow::p_SchematicWindow->oScene.items();
+			for(int iF = 0; iF != lp_QGraphicsItems.count(); iF++)
+			{
+				QGraphicsItem* p_GraphicsItem = lp_QGraphicsItems.at(iF);
+				QPointF oQPointTL;
+				QPointF oQPointBR;
+				GraphicsElementItem* p_GraphicsElementItem = nullptr;
+				GraphicsGroupItem* p_GraphicsGroupItem = nullptr;
+				//
+				if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
+				{
+					if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_ELEMENT)
+					{
+						p_GraphicsElementItem = (GraphicsElementItem*)p_GraphicsItem;
+					}
+					else if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_GROUP)
+					{
+						p_GraphicsGroupItem = (GraphicsGroupItem*)p_GraphicsItem;
+					}
+				}
+				if((p_GraphicsElementItem != nullptr) | (p_GraphicsGroupItem != nullptr))
+				{
+					oQPointTL = p_QGraphicsRectItemSelectionDot->rect().topLeft();
+					oQPointBR = p_QGraphicsRectItemSelectionDot->rect().bottomRight();
+					if(p_GraphicsElementItem)
+					{
+						if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX > oQPointTL.x()) &
+						   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY > oQPointTL.y()) &
+						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
+							 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW) < oQPointBR.x()) &
+						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH) < oQPointBR.y()))
+						{
+							if(!p_GraphicsElementItem->bSelected)
+							{
+								SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
+								p_GraphicsElementItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+								p_GraphicsElementItem->bSelected = true;
+							}
+						}
+					}
+					else
+					{
+						if((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX > oQPointTL.x()) &
+						   (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY > oQPointTL.y()) &
+						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX +
+							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW) < oQPointBR.x()) &
+						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY +
+							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH) < oQPointBR.y()))
+						{
+							if(!p_GraphicsGroupItem->bSelected)
+							{
+								SchematicWindow::vp_SelectedGroups.push_front(p_GraphicsGroupItem);
+								p_GraphicsGroupItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+								p_GraphicsGroupItem->bSelected = true;
+							}
+						}
+					}
+				}
+			}
 			MainWindow::p_SchematicWindow->oScene.removeItem(p_QGraphicsRectItemSelectionDot);
 			p_QGraphicsRectItemSelectionDot = nullptr;
 			setDragMode(DragMode::ScrollHandDrag);

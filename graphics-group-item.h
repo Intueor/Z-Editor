@@ -114,6 +114,12 @@ public:
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
 							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
 							///< \param[in] bWithElementPositions При true - передать на сервер позиции элементов.
+	/// Выбор группы.
+	void Select(bool bLastState = true);
+							///< \param[in] bLastState Последнее значение выбранности.
+	/// Отмена выбора группы.
+	void Deselect(bool bLastState = true);
+							///< \param[in] bLastState Последнее значение выбранности.
 private:
 	/// Перемещение группы.
 	static void MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);

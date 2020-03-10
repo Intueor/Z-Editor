@@ -301,11 +301,76 @@ void GraphicsElementItem::ElementToTopAPFS(GraphicsElementItem* p_Element, bool 
 	SchematicView::UpdateLinksZPos();
 }
 
+// Выбор элемента.
+void GraphicsElementItem::Select(bool bLastState)
+{
+	if(bLastState != bSelected)
+	{ // И раньше было не выбрано - добавление в вектор выбранных элементов.
+		SchematicWindow::vp_SelectedElements.push_front(this);
+		p_GraphicsFrameItem->show(); // Зажигаем рамку.
+	}
+	// СОРТИРОВКА.
+	QVector<GraphicsElementItem*> vp_SortedElements;
+	//
+	GraphicsGroupItem::SortElementsByZPos(SchematicWindow::vp_SelectedElements, this, &vp_SortedElements); // Сортировка элементов в выборке.
+	for(int iE = 0; iE != vp_SortedElements.count(); iE++) // Цикл по сортированным выбранным элементам.
+	{
+		GraphicsElementItem* p_GraphicsElementItem;
+		//
+		p_GraphicsElementItem = vp_SortedElements.at(iE);
+		// Отправка наверх всех выбранных элементов кроме текущего (его потом, в последнюю очередь, над всеми).
+		if(p_GraphicsElementItem != this)
+		{
+			if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
+			{
+				GraphicsGroupItem::GroupToTopAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel,
+																  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+																  DONT_ADD_SEND_FRAME, p_GraphicsElementItem,
+																  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать элемент.
+			}
+			 // Текущий выбранный наверх, над группой.
+			ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
+											 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT);
+		}
+	}
+	if(p_GraphicsGroupItemRel != nullptr) // Если присутствует - поднятие, исключая текущий элемент.
+	{
+		GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+														  DONT_ADD_SEND_FRAME, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+	}
+	ElementToTopAPFS(this, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
+									 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT); // Если в группе - не отсылать.
+	bSelected = true;
+}
+
+// Отмена выбора элемента.
+void GraphicsElementItem::Deselect(bool bLastState)
+{
+	if(bLastState != bSelected)
+	{
+		int iN;
+		//
+		iN = SchematicWindow::vp_SelectedElements.indexOf(this);
+		if(iN != -1)
+		{
+			SchematicWindow::vp_SelectedElements.removeAt(iN);
+			p_GraphicsFrameItem->hide(); // Гасим рамку.
+		}
+	}
+	if(p_GraphicsGroupItemRel != nullptr) // Если присутствует - поднятие, исключая текущий элемент.
+	{
+		GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+														  DONT_ADD_SEND_FRAME, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+	}
+	ElementToTopAPFS(this, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
+									 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT); // Если в группе - не отсылать.
+	bSelected = false;
+}
+
 // Переопределение функции обработки нажатия мыши.
 void GraphicsElementItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
 	bool bLastSt;
-	bool bInGroup;
 	//
 	if(oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{ //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
@@ -361,61 +426,10 @@ gNL:	bLastSt = bSelected; // Запоминаем предыдущее знач�
 		{ // При удержании CTRL - инверсия флага выбраности.
 			bSelected = !bSelected;
 		}
-		if(bSelected)
-		{ // Если ВЫБРАЛИ...
-			if(bLastSt != bSelected)
-			{ // И раньше было не выбрано - добавление в вектор выбранных элементов.
-				SchematicWindow::vp_SelectedElements.push_front(this);
-				p_GraphicsFrameItem->show(); // Зажигаем рамку.
-			}
-			// СОРТИРОВКА.
-			QVector<GraphicsElementItem*> vp_SortedElements;
-			//
-			GraphicsGroupItem::SortElementsByZPos(SchematicWindow::vp_SelectedElements, this, &vp_SortedElements); // Сортировка элементов в выборке.
-			for(int iE = 0; iE != vp_SortedElements.count(); iE++) // Цикл по сортированным выбранным элементам.
-			{
-				GraphicsElementItem* p_GraphicsElementItem;
-				//
-				p_GraphicsElementItem = vp_SortedElements.at(iE);
-				// Отправка наверх всех выбранных элементов кроме текущего (его потом, в последнюю очередь, над всеми).
-				if(p_GraphicsElementItem != this)
-				{
-					bInGroup = (p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
-					if(bInGroup)
-					{
-						GraphicsGroupItem::GroupToTopAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel,
-																		  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
-																		  DONT_ADD_SEND_FRAME, p_GraphicsElementItem,
-																		  ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать элемент.
-					}
-					 // Текущий выбранный наверх, над группой.
-					ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
-													 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT);
-				}
-			}
-		}
-		else
-		{ // ОТМЕНИЛИ ВЫБОР...
-			if(bLastSt != bSelected)
-			{
-				int iN;
-				//
-				iN = SchematicWindow::vp_SelectedElements.indexOf(this);
-				if(iN != -1)
-				{
-					SchematicWindow::vp_SelectedElements.removeAt(iN);
-					p_GraphicsFrameItem->hide(); // Гасим рамку.
-				}
-			}
-		}
-		bInGroup = (p_GraphicsGroupItemRel != nullptr); // Присутствие группы у элемента.
-		if(bInGroup) // Если присутствует - поднятие, исключая текущий элемент.
-		{
-			GraphicsGroupItem::GroupToTopAPFS(p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
-															  DONT_ADD_SEND_FRAME, this, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
-		}
-		ElementToTopAPFS(this, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
-										 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT); // Если в группе - не отсылать.
+		if(bSelected) // ВЫБРАЛИ...
+			Select(bLastSt);
+		else // ОТМЕНИЛИ ВЫБОР...
+			Deselect(bLastSt);
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{

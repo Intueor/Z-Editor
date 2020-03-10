@@ -92,6 +92,12 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
 							///< \return true, если добавлялись пакеты в буфер.
+	/// Выбор элемента.
+	void Select(bool bLastState = true);
+							///< \param[in] bLastState Последнее значение выбранности.
+	/// Отмена выбора элемента.
+	void Deselect(bool bLastState = true);
+							///< \param[in] bLastState Последнее значение выбранности.
 protected:
 	/// Переопределение функции шага событий элемента.
 	void advance(int iStep) override;

@@ -344,6 +344,54 @@ void GraphicsGroupItem::GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, b
 											   p_GraphicsElementItemExclude, GET_SELECTED_ELEMENTS_UP, bBlokingPatterns, bSendElements);
 }
 
+// Выбор группы.
+void GraphicsGroupItem::Select(bool bLastState)
+{
+	if(bLastState != bSelected)
+	{ // И раньше было не выбрано - добавление в вектор выбранных групп.
+		SchematicWindow::vp_SelectedGroups.push_front(this);
+		p_GraphicsFrameItem->show(); // Зажигаем рамку.
+	}
+	// СОРТИРОВКА.
+	QVector<GraphicsGroupItem*> vp_SortedGroups;
+	//
+	SortGroupsByZPos(SchematicWindow::vp_SelectedGroups, this, &vp_SortedGroups); // Сортировка групп в выборке.
+	for(int iE = 0; iE != vp_SortedGroups.count(); iE ++)
+	{
+		GraphicsGroupItem* p_GraphicsGroupItem;
+		//
+		p_GraphicsGroupItem = vp_SortedGroups.at(iE);
+		// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
+		if(p_GraphicsGroupItem != this)
+		{
+			GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+										   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+		}
+	}
+	GroupToTopAPFS(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+								   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+	bSelected = true;
+}
+
+// Отмена выбора группы.
+void GraphicsGroupItem::Deselect(bool bLastState)
+{
+	if(bLastState != bSelected)
+	{
+		int iN;
+		//
+		iN = SchematicWindow::vp_SelectedGroups.indexOf(this);
+		if(iN != -1)
+		{
+			SchematicWindow::vp_SelectedGroups.removeAt(iN);
+			p_GraphicsFrameItem->hide(); // Гасим рамку.
+		}
+	}
+	GroupToTopAPFS(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+								   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+	bSelected = false;
+}
+
 // Переопределение функции обработки нажатия мыши.
 void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
@@ -361,46 +409,10 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 		{ // При удержании CTRL - инверсия флага выбраности.
 			bSelected = !bSelected;
 		}
-		if(bSelected)
-		{ // Если ВЫБРАЛИ...
-			if(bLastSt != bSelected)
-			{ // И раньше было не выбрано - добавление в вектор выбранных групп.
-				SchematicWindow::vp_SelectedGroups.push_front(this);
-				p_GraphicsFrameItem->show(); // Зажигаем рамку.
-			}
-			// СОРТИРОВКА.
-			QVector<GraphicsGroupItem*> vp_SortedGroups;
-			//
-			SortGroupsByZPos(SchematicWindow::vp_SelectedGroups, this, &vp_SortedGroups); // Сортировка групп в выборке.
-			for(int iE = 0; iE != vp_SortedGroups.count(); iE ++)
-			{
-				GraphicsGroupItem* p_GraphicsGroupItem;
-				//
-				p_GraphicsGroupItem = vp_SortedGroups.at(iE);
-				// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
-				if(p_GraphicsGroupItem != this)
-				{
-					GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
-												   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
-				}
-			}
-		}
-		else
-		{ // ОТМЕНИЛИ ВЫБОР...
-			if(bLastSt != bSelected)
-			{
-				int iN;
-				//
-				iN = SchematicWindow::vp_SelectedGroups.indexOf(this);
-				if(iN != -1)
-				{
-					SchematicWindow::vp_SelectedGroups.removeAt(iN);
-					p_GraphicsFrameItem->hide(); // Гасим рамку.
-				}
-			}
-		}
-		GroupToTopAPFS(this, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
-									   DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+		if(bSelected)// ВЫБРАЛИ...
+			Select(bLastSt);
+		else // ОТМЕНИЛИ ВЫБОР...
+			Deselect(bLastSt);
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
