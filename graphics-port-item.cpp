@@ -43,15 +43,13 @@ GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bS
 	p_SchElementGraph = &p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph;
 	if(bIsSrc)
 	{
-		setPos(p_SchElementGraph->oDbObjectFrame.dbX + p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX,
-			   p_SchElementGraph->oDbObjectFrame.dbY + p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY);
+		setPos(p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX, p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY);
 		p_GraphicsLinkItemInt->p_GraphicsPortItemSrc = this;
 		setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiSrcPort));
 	}
 	else
 	{
-		setPos(p_SchElementGraph->oDbObjectFrame.dbX + p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX,
-			   p_SchElementGraph->oDbObjectFrame.dbY + p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY);
+		setPos(p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX, p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY);
 		p_GraphicsLinkItemInt->p_GraphicsPortItemDst = this;
 		setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiDstPort));
 	}
@@ -112,8 +110,8 @@ void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		oDbPointInitial.dbX = pos().x(); // Исходный X.
 		oDbPointInitial.dbY = pos().y(); // Исходный Y.
-		oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbX + p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-		oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbY + p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
+		oDbPointRB.dbX = p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
+		oDbPointRB.dbY = p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
 			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
@@ -175,9 +173,9 @@ void GraphicsPortItem::BindToOuterEdge()
 {
 	bool bXInside = false;
 	bool bYInside = false;
-	if(oDbPointCurrent.dbX <= p_SchElementGraph->oDbObjectFrame.dbX) // Если текущий X меньше левого края элемента...
+	if(oDbPointCurrent.dbX <= 0) // Если текущий X меньше левого края элемента...
 	{
-		oDbPointCurrent.dbX = p_SchElementGraph->oDbObjectFrame.dbX; // Установка на левый край.
+		oDbPointCurrent.dbX = 0; // Установка на левый край.
 		goto gY;
 	}
 	if(oDbPointCurrent.dbX >= oDbPointRB.dbX) // Если текущий X больше правого края элемента...
@@ -188,9 +186,9 @@ void GraphicsPortItem::BindToOuterEdge()
 	{
 		bXInside = true; // Признак нахождения в диапазоне элемента по X.
 	}
-gY: if(oDbPointCurrent.dbY <= p_SchElementGraph->oDbObjectFrame.dbY)
+gY: if(oDbPointCurrent.dbY <= 0)
 	{
-		oDbPointCurrent.dbY = p_SchElementGraph->oDbObjectFrame.dbY;
+		oDbPointCurrent.dbY = 0;
 		goto gI;
 	}
 	if(oDbPointCurrent.dbY >= oDbPointRB.dbY)
@@ -204,11 +202,11 @@ gY: if(oDbPointCurrent.dbY <= p_SchElementGraph->oDbObjectFrame.dbY)
 gI: if(bXInside && bYInside)
 	{
 		// Если прошлый X был на краю...
-		if((oDbPointOld.dbX == p_SchElementGraph->oDbObjectFrame.dbX) || (oDbPointOld.dbX == oDbPointRB.dbX))
+		if((oDbPointOld.dbX == 0) || (oDbPointOld.dbX == oDbPointRB.dbX))
 		{
 			oDbPointCurrent.dbX = oDbPointOld.dbX;
 		}
-		if((oDbPointOld.dbY == p_SchElementGraph->oDbObjectFrame.dbY) || (oDbPointOld.dbY == oDbPointRB.dbY))
+		if((oDbPointOld.dbY == 0) || (oDbPointOld.dbY == oDbPointRB.dbY))
 		{
 			oDbPointCurrent.dbY = oDbPointOld.dbY;
 		}
@@ -221,13 +219,13 @@ void GraphicsPortItem::SetToPos()
 	setPos(oDbPointCurrent.dbX, oDbPointCurrent.dbY);
 	if(bIsSrc)
 	{
-		p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = oDbPointCurrent.dbX - p_SchElementGraph->oDbObjectFrame.dbX;
-		p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = oDbPointCurrent.dbY - p_SchElementGraph->oDbObjectFrame.dbY;
+		p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = oDbPointCurrent.dbX;
+		p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = oDbPointCurrent.dbY;
 	}
 	else
 	{
-		p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = oDbPointCurrent.dbX - p_SchElementGraph->oDbObjectFrame.dbX;
-		p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = oDbPointCurrent.dbY - p_SchElementGraph->oDbObjectFrame.dbY;
+		p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = oDbPointCurrent.dbX;
+		p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = oDbPointCurrent.dbY;
 	}
 	p_ParentInt->UpdateSelected(p_ParentInt, SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN, nullptr, p_GraphicsLinkItemInt);
 }
@@ -301,10 +299,8 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 					{
 						//
 						p_GraphicsElementItem = (GraphicsElementItem*) p_QGraphicsItem;
-						dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
-								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
-						dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
-								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+						dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+						dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
 						dbXR = dbX + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
 						dbYD = dbY + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
 						if(((oDbMapped.dbX > dbX) & (oDbMapped.dbX < dbXR)) & ((oDbMapped.dbY > dbY) & (oDbMapped.dbY < dbYD)))
@@ -347,7 +343,7 @@ void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 			{
 				// Поиск ошибки пользователя.
 				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
-						this->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
+						p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 				{ // Если на исходный элемент...
 
 					oDbPointCurrent = SchematicView::BindToInnerEdge(p_GraphicsElementItemFounded, oDbMapped); // Прикрепление с внутренней стороны.
@@ -432,14 +428,14 @@ gED:				p_GraphicsElementItemFounded = nullptr;
 gEr:	SetToPos();
 		if(bIsSrc)
 		{
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = x() - p_SchElementGraph->oDbObjectFrame.dbX;
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = y() - p_SchElementGraph->oDbObjectFrame.dbY;
+			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = x();
+			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = y();
 			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
 		}
 		else
 		{
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = x() - p_SchElementGraph->oDbObjectFrame.dbX;
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = y() - p_SchElementGraph->oDbObjectFrame.dbY;
+			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = x();
+			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = y();
 			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
 		}
 		if(!bFromElement)
@@ -452,7 +448,7 @@ gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
 				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITHOUT_FRAME,
-																	  WITHOUT_ELEMENTS_POSITION);
+																	  WITHOUT_ELEMENTS_FRAMES);
 			}
 		}
 		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);

@@ -91,21 +91,15 @@ void GraphicsLinkItem::IncomingUpdateLinkParameters(GraphicsLinkItem* p_Graphics
 GraphicsLinkItem::DbPointPair GraphicsLinkItem::CalcPortsCoords() const
 {
 	DbPointPair oDbPointPairResult;
-	// Позиция элемента плюс фрейм.
-	oDbPointPairResult.dbSrc.dbX = p_PSchElementVarsSrc->oSchElementGraph.oDbObjectPos.dbX +
-			p_PSchElementVarsSrc->oSchElementGraph.oDbObjectFrame.dbX;
-	oDbPointPairResult.dbSrc.dbY = p_PSchElementVarsSrc->oSchElementGraph.oDbObjectPos.dbY +
-			p_PSchElementVarsSrc->oSchElementGraph.oDbObjectFrame.dbY;
-	oDbPointPairResult.dbDst.dbX = p_PSchElementVarsDst->oSchElementGraph.oDbObjectPos.dbX +
-			p_PSchElementVarsDst->oSchElementGraph.oDbObjectFrame.dbX;
-	oDbPointPairResult.dbDst.dbY = p_PSchElementVarsDst->oSchElementGraph.oDbObjectPos.dbY +
-			p_PSchElementVarsDst->oSchElementGraph.oDbObjectFrame.dbY;
-	// Плюс порт.
-	oDbPointPairResult.dbSrc.dbX += oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX;
-	oDbPointPairResult.dbSrc.dbY += oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY;
-	oDbPointPairResult.dbDst.dbX += oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbX;
-	oDbPointPairResult.dbDst.dbY += oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbY;
 	//
+	oDbPointPairResult.dbSrc.dbX = p_PSchElementVarsSrc->oSchElementGraph.oDbObjectFrame.dbX +
+			oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX;
+	oDbPointPairResult.dbSrc.dbY = p_PSchElementVarsSrc->oSchElementGraph.oDbObjectFrame.dbY +
+			oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY;
+	oDbPointPairResult.dbDst.dbX = p_PSchElementVarsDst->oSchElementGraph.oDbObjectFrame.dbX +
+			oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbX;
+	oDbPointPairResult.dbDst.dbY = p_PSchElementVarsDst->oSchElementGraph.oDbObjectFrame.dbY +
+			oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbY;
 	return oDbPointPairResult;
 }
 

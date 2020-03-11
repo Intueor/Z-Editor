@@ -37,7 +37,7 @@ GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
 		setParentItem(p_PortParent);
 	}
 	setZValue(OVERMIN_NUMBER);
-	this->setAcceptedMouseButtons(0);
+	setAcceptedMouseButtons(0);
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.
@@ -45,8 +45,8 @@ QRectF GraphicsFrameItem::boundingRect() const
 {
 	if(ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 	{
-		return QRectF(p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX - 3,
-					  p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY - 3,
+		return QRectF(-3,
+					  -3,
 					  p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW + 6,
 					  p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH + 6);
 	}
@@ -78,8 +78,8 @@ void GraphicsFrameItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsIte
 	if(ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 	{
 		p_Painter->setPen(SchematicWindow::oQPenElementFrameFlash);
-		p_Painter->drawRect(p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX - 2,
-							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY - 2,
+		p_Painter->drawRect(-2,
+							-2,
 							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW + 4,
 							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH + 4);
 	}

@@ -107,12 +107,10 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPo
 				 (unsigned int)strName.toStdString().size() + 1);
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX = 0;
-	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY = 0;
+	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX = a_pntMapped.x();
+	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY = a_pntMapped.y();
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW = 275;
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH = 75;
-	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX = a_pntMapped.x();
-	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY = a_pntMapped.y();
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB).rgb();
 	p_GraphicsElementItem = new GraphicsElementItem(&oPSchElementBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsElementItem);
@@ -262,11 +260,11 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 					oQPointBR = p_QGraphicsRectItemSelectionDot->rect().bottomRight();
 					if(p_GraphicsElementItem)
 					{
-						if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX > oQPointTL.x()) &
-						   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY > oQPointTL.y()) &
-						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
+						if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX > oQPointTL.x()) &
+						   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY > oQPointTL.y()) &
+						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX +
 							 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW) < oQPointBR.x()) &
-						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
+						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY +
 							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH) < oQPointBR.y()))
 						{
 							if(!p_GraphicsElementItem->bSelected)
@@ -300,7 +298,9 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 			p_QGraphicsRectItemSelectionDot = nullptr;
 			setDragMode(DragMode::ScrollHandDrag);
 #ifndef WIN32
-			SchematicWindow::FocusCorrection();
+			QMouseEvent oEvent(QEvent::Type::MouseMove,
+							   MainWindow::p_SchematicWindow->p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+			MainWindow::p_SchematicWindow->p_SchematicView->mouseMoveEvent(&oEvent);
 #endif
 		}
 	}
@@ -572,10 +572,8 @@ gS:	TrySendBufferToServer;
 // Прикрепление позиции граф. порта к краям элемента.
 DbPoint SchematicView::BindToInnerEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial)
 {
-	double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
-			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
-	double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
-			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+	double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+	double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
 	double dbXMax = dbXMin +
 			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
 	double dbYMax = dbYMin +

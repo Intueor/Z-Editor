@@ -87,22 +87,20 @@ void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		return;
 	}
-	oDbPointPos.dbX = this->pos().x();
-	oDbPointPos.dbY = this->pos().y();
+	oDbPointPos.dbX = pos().x();
+	oDbPointPos.dbY = pos().y();
 	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
 	setPos(QPointF((int)pos().x(), (int)pos().y()));
-	if(p_Event->scenePos().x() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX +
-			p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX + ELEMENT_MIN_X)
+	if(p_Event->scenePos().x() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX + ELEMENT_MIN_X)
 	{
 		setX(oDbPointPos.dbX);
 	}
-	if(p_Event->scenePos().y() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY +
-			p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY + ELEMENT_MIN_Y)
+	if(p_Event->scenePos().y() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY + ELEMENT_MIN_Y)
 	{
 		setY(oDbPointPos.dbY);
 	}
-	oDbPointPos.dbX = this->pos().x() - oDbPointPos.dbX;
-	oDbPointPos.dbY = this->pos().y() - oDbPointPos.dbY;
+	oDbPointPos.dbX = pos().x() - oDbPointPos.dbX;
+	oDbPointPos.dbY = pos().y() - oDbPointPos.dbY;
 	p_ParentInt->oDbPointDimIncrements = oDbPointPos;
 	p_ParentInt->UpdateSelected(p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 	if(p_ParentInt->p_GraphicsGroupItemRel != nullptr) // По группе элемента без выборки, если она есть.
@@ -147,10 +145,10 @@ void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
 				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITH_FRAME,
-																	  WITHOUT_ELEMENTS_POSITION);
+																	  WITHOUT_ELEMENTS_FRAMES);
 			}
 		}
-		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION, WITH_FRAME);
+		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITH_FRAME);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(p_Event);

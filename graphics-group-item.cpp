@@ -97,9 +97,9 @@ void GraphicsGroupItem::IncomingUpdateGroupParameters(GraphicsGroupItem* p_Graph
 		{
 			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] shifting.");
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX += dbXShift;
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY += dbYShift;
-			p_GraphicsElementItem->UpdateSelected(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_POS | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX += dbXShift;
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY += dbYShift;
+			p_GraphicsElementItem->UpdateSelected(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] free by shifting.");
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = false;
 			p_GraphicsElementItem->SetBlockingPattern(p_GraphicsElementItem, false);
@@ -428,7 +428,7 @@ void GraphicsGroupItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 			if(bNoSelection)
 			{
 				strCaption = QString(m_chGroup) +
-						" [" + QString(this->oPSchGroupBaseInt.m_chName) + "]";
+						" [" + QString(oPSchGroupBaseInt.m_chName) + "]";
 			}
 			else
 			{
@@ -493,8 +493,8 @@ void GraphicsGroupItem::MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPoint
 	{
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
 		p_GraphicsElementItem->setPos(p_GraphicsElementItem->x() + a_QPointFRes.x(), p_GraphicsElementItem->y() + a_QPointFRes.y());
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbX += a_QPointFRes.x();
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectPos.dbY += a_QPointFRes.y();
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
 		p_GraphicsElementItem->UpdateSelected(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 	}
 }
@@ -534,7 +534,7 @@ void GraphicsGroupItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 
 // Отпускание группы и подготовка отправки по запросу.
 void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude, bool bWithFrame,
-										 bool bWithElementPositions)
+										 bool bWithElementFrames)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	PSchGroupVars oPSchGroupVars;
@@ -562,7 +562,7 @@ void GraphicsGroupItem::ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
 		if(p_GraphicsElementItem != p_GraphicsElementItemExclude)
 		{
-			p_GraphicsElementItem->ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP, bWithElementPositions);
+			p_GraphicsElementItem->ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP, bWithElementFrames);
 		}
 	}
 }
@@ -618,7 +618,7 @@ void GraphicsGroupItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 					oPSchGroupName.ullIDInt = oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
 																  sizeof(oPSchGroupName));
-					this->p_QLabel->setText(oPSchGroupName.m_chName);
+					p_QLabel->setText(oPSchGroupName.m_chName);
 					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();

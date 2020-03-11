@@ -1707,7 +1707,7 @@ void WidgetsThrAccess::AddGraphicsGroupItem()
 void SafeMenu::mousePressEvent(QMouseEvent* p_Event)
 {
 	if((p_Event->button() == Qt::MouseButton::RightButton) &
-	   ((p_Event->pos().x() > this->pos().x()) & (p_Event->pos().y() > this->pos().y()))) return;
+	   ((p_Event->pos().x() > pos().x()) & (p_Event->pos().y() > pos().y()))) return;
 	QMenu::mousePressEvent(p_Event);
 }
 
