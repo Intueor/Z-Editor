@@ -38,6 +38,15 @@ public:
 	/// Переопределение функции обработки отпускания мыши.
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
 							///< \param[in] p_Event Указатель на событие.
+	/// Для внешнего вызова базового метода.
+	void OBMousePressEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Для внешнего вызова базового метода.
+	void OBMouseMoveEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Для внешнего вызова базового метода.
+	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 protected:
 	/// Переопределение функции шага событий элемента.
 	void advance(int iStep) override;

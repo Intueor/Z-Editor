@@ -201,10 +201,21 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
 	/// Помощник коррекции точки порта по краю элемента.
 	static void BindPortToOuterEdgeHelper();
-	// Установка порта в позицию.
+	/// Установка порта в позицию.
 	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. порт.
-
+	/// Обработчик события нажатия мыши на элемент.
+	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с элементом.
+	static void ElementMouseMoveEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на элементе.
+	static void ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Event Указатель на событие.
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);

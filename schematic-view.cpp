@@ -4,6 +4,7 @@
 #include "schematic-view.h"
 #include "schematic-window.h"
 #include "z-editor-defs.h"
+#include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 bool SchematicView::bLMousePressed = false;
@@ -1694,4 +1695,341 @@ void SchematicView::SetPortToPos(GraphicsPortItem* p_GraphicsPortItem)
 		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = oDbPointPortCurrent.dbY;
 	}
 	UpdateSelectedInElement(p_GraphicsPortItem->p_ParentInt, SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN, nullptr, p_GraphicsPortItem->p_GraphicsLinkItemInt);
+}
+
+// Обработчик события нажатия мыши на элемент.
+void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	bool bLastSt;
+	//
+	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy
+	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{ //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
+		return;
+	}
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	{
+		// Создание нового порта.
+		if(p_Event->modifiers() == Qt::AltModifier)
+		{
+			PSchLinkBase oPSchLinkBase;
+			DbPoint oDbPointInitialClick;
+			//
+			oDbPointInitialClick.dbX = p_Event->scenePos().x();
+			oDbPointInitialClick.dbY = p_Event->scenePos().y();
+			//
+			oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+			oPSchLinkBase.oPSchLinkVars.ullIDDst = oPSchLinkBase.oPSchLinkVars.ullIDSrc; // Временно, пока не перетянут на новый элемент.
+			oPSchLinkBase.oPSchLinkVars.ushiSrcPort = DEFAULT_NEW_PORT;
+			oPSchLinkBase.oPSchLinkVars.ushiDstPort = DEFAULT_NEW_PORT;
+			// В координаты элемента.
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = oDbPointInitialClick;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX -=
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY -=
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
+			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = BindToInnerEdge(p_GraphicsElementItem, oDbPointInitialClick);
+			// Создание замкнутого линка (пока что).
+			p_GraphicsLinkItemNew = new GraphicsLinkItem(&oPSchLinkBase);
+			if(oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+			{
+				MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
+			}
+			else
+			{
+				delete p_GraphicsLinkItemNew;
+				p_GraphicsLinkItemNew = nullptr;
+				goto gNL;
+			}
+			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
+			UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
+			MainWindow::p_This->RemoteUpdateSchView();
+			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mousePressEvent(p_Event);
+			p_GraphicsElementItem->OBMousePressEvent(p_Event);
+			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+			SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem;
+			return;
+		}
+		//==== РАБОТА С ВЫБОРКОЙ. ====
+gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем предыдущее значение выбраности.
+		if(p_Event->modifiers() == Qt::ControlModifier)
+		{ // При удержании CTRL - инверсия флага выбраности.
+			p_GraphicsElementItem->bSelected = !p_GraphicsElementItem->bSelected;
+		}
+		if(p_GraphicsElementItem->bSelected) // ВЫБРАЛИ...
+			SelectElement(p_GraphicsElementItem, bLastSt);
+		else // ОТМЕНИЛИ ВЫБОР...
+			DeselectElement(p_GraphicsElementItem, bLastSt);
+	}
+	else if(p_Event->button() == Qt::MouseButton::RightButton)
+	{
+		if(SchematicWindow::p_SafeMenu == nullptr)
+		{
+			SchematicWindow::p_SafeMenu = new SafeMenu;
+			SchematicWindow::p_SafeMenu->setStyleSheet("SafeMenu::separator {color: palette(link);}");
+			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
+			// Объект.
+			QString strCaption;
+			bool bNoSelection = SchematicWindow::vp_SelectedElements.isEmpty();
+			//
+			if(bNoSelection)
+			{
+				strCaption = QString(m_chElement) +
+						" [" + QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "]";
+			}
+			else
+			{
+				strCaption = "Выборка элементов";
+			}
+			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 34);
+			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
+			// Имя.
+			if(bNoSelection)
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
+			}
+			else
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
+			}
+			// Удалить.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			// Порты.
+			for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
+			{
+				if(p_GraphicsElementItem == SchematicWindow::vp_Ports.at(iF)->p_ParentInt)
+				{
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
+					break;
+				}
+			}
+			// Создать группу.
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+			{
+				SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+			}
+			// В группу.
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+			{
+				if(SchematicWindow::vp_SelectedGroups.count() == 1)
+				{
+					SchematicWindow::p_SafeMenu->addAction(QString(QString(m_chMenuAddFreeSelected) +
+																   " [" + QString(SchematicWindow::vp_SelectedGroups.at(0)->oPSchGroupBaseInt.m_chName)
+																   + "]"))->setData(MENU_ADD_FREE_SELECTED);
+				}
+			}
+			// Из группы.
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUP);
+			}
+			// Цвет фона.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
+		}
+	}
+	TrySendBufferToServer;
+	p_GraphicsElementItem->OBMousePressEvent(p_Event);
+}
+
+// Обработчик события перемещения мыши с элементом.
+void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	int iC;
+	QPointF oQPointFInit;
+	QPointF oQPointFRes;
+	//
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		return;
+	}
+	if(SchematicView::p_GraphicsLinkItemNew != nullptr)
+	{
+		SchematicView::p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseMoveEvent(p_Event);
+		return;
+	}
+	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy) return;
+	oQPointFInit = p_GraphicsElementItem->pos();
+	p_GraphicsElementItem->OBMouseMoveEvent(p_Event);
+	oQPointFRes = p_GraphicsElementItem->pos();
+	oQPointFRes.setX(oQPointFRes.x() - oQPointFInit.x());
+	oQPointFRes.setY(oQPointFRes.y() - oQPointFInit.y());
+	if(p_GraphicsElementItem->bSelected)
+	{
+		iC = SchematicWindow::vp_SelectedElements.count();
+		for(int iE = 0; iE != iC; iE ++)
+		{
+			GraphicsElementItem* p_GraphicsElementItemUtil;
+			//
+			p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iE);
+			if(p_GraphicsElementItemUtil != p_GraphicsElementItem)
+			{
+				p_GraphicsElementItemUtil->setPos(p_GraphicsElementItemUtil->x() + oQPointFRes.x(), p_GraphicsElementItemUtil->y() + oQPointFRes.y());
+				p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX += oQPointFRes.x();
+				p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY += oQPointFRes.y();
+				SchematicView::UpdateSelectedInElement(p_GraphicsElementItemUtil, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN | SCH_UPDATE_GROUP);
+			}
+		}
+	}
+	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX = p_GraphicsElementItem->x();
+	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY = p_GraphicsElementItem->y();
+	SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN | SCH_UPDATE_GROUP);
+}
+
+// Обработчик события отпусканеия мыши на элементе.
+void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	int iC;
+	//
+	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		return;
+	}
+	if(p_GraphicsLinkItemNew != nullptr)
+	{
+		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseReleaseEvent(p_Event);
+		p_GraphicsLinkItemNew = nullptr;
+		p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
+		return;
+	}
+	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy) return;
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	{
+		if(p_GraphicsElementItem->bSelected)
+		{
+			iC = SchematicWindow::vp_SelectedElements.count();
+			for(int iE = 0; iE != iC; iE ++)
+			{
+				GraphicsElementItem* p_GraphicsElementItemUtil;
+				//
+				p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iE);
+				if(p_GraphicsElementItemUtil != p_GraphicsElementItem)
+				{
+					ReleaseElementAPFS(p_GraphicsElementItemUtil);
+				}
+			}
+		}
+		ReleaseElementAPFS(p_GraphicsElementItem);
+		TrySendBufferToServer;
+	}
+	p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
+	if(SchematicWindow::p_SafeMenu != nullptr)
+	{
+		QAction* p_SelectedMenuItem;
+		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
+		PSchElementName oPSchElementName;
+		char m_chName[SCH_OBJ_NAME_STR_LEN];
+		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
+		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
+		if(p_SelectedMenuItem != 0)
+		{
+			if(p_SelectedMenuItem->data() == MENU_RENAME)
+			{
+				CopyStrArray(p_GraphicsElementItem->oPSchElementBaseInt.m_chName, m_chName, SCH_OBJ_NAME_STR_LEN);
+				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Имя элемента", m_chName, SCH_OBJ_NAME_STR_LEN);
+				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
+				{
+					memset(&oPSchElementName, 0, sizeof(oPSchElementName));
+					CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
+					CopyStrArray(m_chName, p_GraphicsElementItem->oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
+					oPSchElementName.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
+																  sizeof(oPSchElementName));
+					p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
+					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
+				}
+				p_Set_Proposed_String_Dialog->deleteLater();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_DELETE)
+			{
+				if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem))
+				{
+					SchematicWindow::vp_SelectedElements.append(p_GraphicsElementItem);
+				}
+				DeleteSelectedAPFS();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_PORTS)
+			{
+
+			}
+			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
+			{
+				bool bForceSelected = false;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				PSchGroupBase oPSchGroupBase;
+				QString strName = QString(m_chNewGroup);
+				GraphicsElementItem* p_GraphicsElementItemUtil;
+				unsigned char uchR = rand() % 255;
+				unsigned char uchG = rand() % 255;
+				unsigned char uchB = rand() % 255;
+				vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
+				//
+				if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem))
+				{
+					SchematicWindow::vp_SelectedElements.append(p_GraphicsElementItem);
+					bForceSelected = true;
+				}
+				oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
+				strName += ": " + QString::number(oPSchGroupBase.oPSchGroupVars.ullIDInt);
+				CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+				SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB).rgb();
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.bBusy = false;
+				p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
+				MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsGroupItem);
+				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+				{
+					p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iF);
+					if(p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+					{
+						p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
+						p_GraphicsElementItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+						p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
+						vp_NewElementsForGroup->append(p_GraphicsElementItemUtil);
+					}
+				}
+				UpdateGroupFrameByElements(p_GraphicsGroupItem);
+				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
+						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+				MainWindow::p_Client->AddPocketToOutputBufferC(
+							PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
+				SortGroupElementsToTopAPFS(p_GraphicsGroupItem, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS,
+														   nullptr, DONT_GET_SELECTED_ELEMENTS_UP, DONT_APPLY_BLOCKINGPATTERN, SEND_ELEMENTS);
+				UpdateLinksZPos();
+				if(bForceSelected)
+				{
+					SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItem);
+				}
+				delete vp_NewElementsForGroup;
+				vp_NewElementsForGroup = nullptr;
+			}
+			else if(p_SelectedMenuItem->data() == MENU_ADD_FREE_SELECTED)
+			{
+				AddFreeSelectedElementsToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0), p_GraphicsElementItem);
+			}
+			else if(p_SelectedMenuItem->data() == MENU_REMOVE_FROM_GROUP)
+			{
+				bool bForceSelected = false;
+				//
+				if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem))
+				{
+					SchematicWindow::vp_SelectedElements.append(p_GraphicsElementItem);
+					bForceSelected = true;
+				}
+				DetachSelectedAPFS();
+				if(bForceSelected)
+				{
+					SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItem);
+				}
+			}
+			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
+			{
+
+			}
+			TrySendBufferToServer;
+		}
+		SchematicWindow::ResetMenu();
+	}
 }
