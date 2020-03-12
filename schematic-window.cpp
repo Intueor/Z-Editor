@@ -264,7 +264,7 @@ void SchematicWindow::ResetMenu()
 	p_SafeMenu->deleteLater();
 	p_SafeMenu = nullptr;
 #ifndef WIN32
-	QMouseEvent oEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-	p_SchematicView->mouseMoveEvent(&oEvent);
+	QMouseEvent oMEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+	p_SchematicView->mouseMoveEvent(&oMEvent);
 #endif
 }

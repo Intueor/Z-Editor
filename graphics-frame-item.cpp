@@ -3,22 +3,12 @@
 #include "graphics-frame-item.h"
 #include "z-editor-defs.h"
 
-//== МАКРОСЫ.
-#define LOG_NAME                                "Frame"
-#define LOG_DIR_PATH							"../Z-Editor/logs/"
-
-//== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
-LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsFrameItem)
-LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsFrameItem)
-
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс отображения фрейма.
 // Конструктор.
 GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
 									 GraphicsElementItem* p_ElementParent, GraphicsGroupItem* p_GroupParent, GraphicsPortItem* p_PortParent)
 {
-	LOG_CTRL_INIT_MULTIOBJECT;
-	//
 	p_ElementParentInt = p_ElementParent;
 	p_GroupParentInt = p_GroupParent;
 	ushKindOfItemInt = ushKindOfItem;

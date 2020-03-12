@@ -3,21 +3,11 @@
 #include "main-window.h"
 #include "graphics-scaler-item.h"
 
-//== МАКРОСЫ.
-#define LOG_NAME                                "Scaler"
-#define LOG_DIR_PATH							"../Z-Editor/logs/"
-
-//== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
-LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsScalerItem)
-LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsScalerItem)
-
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс отображения скалера.
 // Конструктор.
 GraphicsScalerItem::GraphicsScalerItem(GraphicsElementItem* p_Parent)
 {
-	LOG_CTRL_INIT_MULTIOBJECT;
-	//
 	p_ParentInt = p_Parent;
 	setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_SCALER);
@@ -70,9 +60,9 @@ void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 	{
 		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			p_ParentInt->p_GraphicsGroupItemRel->GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, true, p_ParentInt);
+			SchematicView::GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, true, p_ParentInt);
 		}
-		GraphicsElementItem::ElementToTopAPFS(p_ParentInt);
+		SchematicView::ElementToTopAPFS(p_ParentInt);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mousePressEvent(p_Event);
@@ -102,12 +92,12 @@ void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 	oDbPointPos.dbX = pos().x() - oDbPointPos.dbX;
 	oDbPointPos.dbY = pos().y() - oDbPointPos.dbY;
 	p_ParentInt->oDbPointDimIncrements = oDbPointPos;
-	p_ParentInt->UpdateSelected(p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
+	SchematicView::UpdateSelectedInElement(p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 	if(p_ParentInt->p_GraphicsGroupItemRel != nullptr) // По группе элемента без выборки, если она есть.
 	{
 		if(!p_ParentInt->p_GraphicsGroupItemRel->vp_ConnectedElements.isEmpty())
 		{
-			GraphicsElementItem::UpdateGroupFrameByElements(p_ParentInt->p_GraphicsGroupItemRel);
+			SchematicView::UpdateGroupFrameByElements(p_ParentInt->p_GraphicsGroupItemRel);
 		}
 	}
 }
@@ -144,11 +134,10 @@ void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 		{
 			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				p_ParentInt->p_GraphicsGroupItemRel->ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITH_FRAME,
-																	  WITHOUT_ELEMENTS_FRAMES);
+				SchematicView::ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITH_FRAME, WITHOUT_ELEMENTS_FRAMES);
 			}
 		}
-		GraphicsElementItem::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITH_FRAME);
+		SchematicView::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITH_FRAME);
 		TrySendBufferToServer;
 	}
 	QGraphicsItem::mouseReleaseEvent(p_Event);

@@ -5,7 +5,6 @@
 #include <QGraphicsItem>
 #include "graphics-link-item.h"
 #include "graphics-element-item.h"
-#include "../Z-Hub/logger.h"
 
 //== КЛАССЫ.
 /// Класс графического отображения порта.
@@ -43,10 +42,7 @@ public:
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* p_Event) override;
 							///< \param[in] p_Event Указатель на событие.
 private:
-	/// Коррекция точки порта по краю элемента.
-	void BindToOuterEdge();
-	// Установка порта в позицию.
-	void SetToPos();
+
 
 protected:
 	/// Переопределение функции шага событий элемента.
@@ -61,18 +57,8 @@ public:
 	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
 
 private:
-	LOGDECL_MULTIOBJECT
-	LOGDECL_PTHRD_INCLASS_ADD
 	ushort ushiPortInt; ///< Внутренняя переменная номера порта.
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
-	static bool bAltPressed; ///< Флаг нажатого модификатора Alt.
-	static bool bLMBPressed; ///< Флаг нажатой ЛКМ.
-	static DbPoint oDbPointRB; ///< Точка правого нижнего края элемента.
-	static DbPoint oDbPointCurrent; ///< Текщая точка.
-	static DbPoint oDbPointOld; ///< Старая точка.
-	static DbPoint oDbPointInitial; ///< Точка нажатия.
-	static bool bFromElement; ///< Флаг запроса от элемента.
-	static bool bMenuExecuted; ///< Флаг выполненного меню для отмены ховера.
 };
 
 #endif // GRAPHICSPORTITEM_H

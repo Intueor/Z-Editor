@@ -5,7 +5,6 @@
 #include <QGraphicsItem>
 #include "../Z-Hub/Server/protocol.h"
 #include "graphics-port-item.h"
-#include "../Z-Hub/logger.h"
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class GraphicsPortItem;
@@ -40,28 +39,16 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-	/// Входное обновление параметров линка по структуре.
-	static void IncomingUpdateLinkParameters(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkVars& a_SchLinkVars);
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
-							///< \param[in] a_SchLinkVars Ссылка на объект структуры с изменениями по линку.
-	/// Обновление Z-позиции по данным линка.
-	static void UpdateZPosition(GraphicsLinkItem* p_GraphicsLinkItem);
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
-	/// Обновление позиции по данным линка.
-	static void UpdatePosition(GraphicsLinkItem* p_GraphicsLinkItem);
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
-
-protected:
-	/// Переопределение функции шага событий линка.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
-private:
 	/// Вычисление квадрата и вместилища линии линка. Используется динамически.
 	CalcPortHelper CalcLinkLineWidthHeight() const;
 							///< \return Вмещающий прямоугольник и точки портов.
 	/// Вычисление точек портов. Используется динамически.
 	DbPointPair CalcPortsCoords() const;
 							///< \return Точки портов.
+protected:
+	/// Переопределение функции шага событий линка.
+	void advance(int iStep) override;
+							///< \param[in] iStep Текущий шаг сцены.
 public:
 	PSchLinkBase oPSchLinkBaseInt; ///< Внутренний объект структуры с параметрами линка.
 	GraphicsPortItem* p_GraphicsPortItemSrc; ///< Внутренний указатель на граф. объект структуры с параметрами порта источника.
@@ -70,8 +57,6 @@ public:
 	GraphicsElementItem* p_GraphicsElementItemDst; ///< Указатель на виджет приёмника.
 
 private:
-	LOGDECL_MULTIOBJECT
-	LOGDECL_PTHRD_INCLASS_ADD
 	PSchElementVars* p_PSchElementVarsSrc; ///< Указатель на элемент схемы источника.
 	PSchElementVars* p_PSchElementVarsDst; ///< Указатель на элемент схемы приёмника.
 };

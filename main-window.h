@@ -97,6 +97,18 @@ private:
 	/// Блокировка и разблокировка всех объектов сцены.
 	static void BlockSchematic(bool bBlock);
 							///< \param[in] bBlock true - заблокировать.
+	/// Входное обновление параметров элемента по структуре.
+	static void IncomingUpdateElementParameters(GraphicsElementItem* p_GraphicsElementItem, PSchElementVars &a_SchElementVars);
+							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
+							///< \param[in] a_SchElementVars Ссылка на объект структуры с изменениями по элементу.
+	/// Входное обновление параметров группы по структуре.
+	static void IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupVars& a_SchGroupVars);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
+							///< \param[in] a_SchGroupVars Ссылка на объект структуры с изменениями по группе.
+	/// Входное обновление параметров линка по структуре.
+	static void IncomingUpdateLinkParameters(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkVars& a_SchLinkVars);
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
+							///< \param[in] a_SchLinkVars Ссылка на объект структуры с изменениями по линку.
 private slots:
 	/// Процедуры остановки клиента.
 	static void SlotClientStopProcedures();

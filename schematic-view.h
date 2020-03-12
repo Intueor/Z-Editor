@@ -25,8 +25,11 @@ public:
 	/// Конструктор.
 	explicit SchematicView(QWidget* parent = nullptr);
 							///< \param[in] parent Указатель на родительский виджет.
+	/// Переопределение функции обработки перемещения мыши.
+	void mouseMoveEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 	/// Определение области видимости.
-	QRectF GetVisibleRect();
+	static QRectF GetVisibleRect();
 							///< \return Структура определения прямоугольника области видимости.
 	/// Установка указателя кэлбэка изменения окна обзора.
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
@@ -69,14 +72,139 @@ public:
 							///< \param[in] p_GraphicsElementItemNew Указатель на элемент.
 							///< \param[in] oDbPortPosIn Изначальная позиция порта.
 							///< \return Позиция порта на крае элемента.
-	/// Переопределение функции обработки перемещения мыши.
-	void mouseMoveEvent(QMouseEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие.
 	/// Получение длины строки выбранным шрифтом в пикселях.
 	static int GetStringWidthInPixels(const QFont& a_Font, QString& a_strText);
 							///< \param[in] a_Font Ссылка на шрифт.
 							///< \param[in] a_strText Ссылка на строку.
 							///< \return Ширина в пикселях.
+	/// Поднятие элемента на первый план и подготовка отсылки по запросу.
+	static void ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange = false, bool bAddBusyOrZPosToSending = true,
+												 bool bBlokingPattern = true, bool bSend = true);
+							///< \param[in] p_Element Указатель на граф. элемент.
+							///< \param[in] bAddElementGroupID При true - передача элементом изменения текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
+							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
+							///< \param[in] bSend При true - отправка.
+	/// Обновление фрейма группы по геометрии включённых элементов.
+	static void UpdateGroupFrameByElements(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
+	/// Обновление выбранных параметров в элементе.
+	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
+							   GraphicsPortItem* p_GraphicsPortItem = nullptr,
+							   GraphicsLinkItem *p_GraphicsLinkItem = nullptr, bool bIsIncoming = false);
+							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
+							///< \param[in] ushBits Биты флагов необходимых обновлений.
+							///< \param[in] p_GraphicsPortItem Указатель на граф. объект порта, при необходимости.
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. объект линка, при необходимости.
+							///< \param[in] bIsIncoming Признак того, что изменения пришли извне.
+	/// Обновление выбранных параметров в группе.
+	static void UpdateSelectedInGroup(GraphicsGroupItem* p_GraphicsGroupItem, unsigned short ushBits);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
+							///< \param[in] ushBits Биты флагов необходимых обновлений.
+	/// Установка паттерна блокировки на элемент.
+	static void SetElementBlockingPattern(GraphicsElementItem* p_GraphicsElementItem, bool bValue);
+							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
+							///< \param[in] bValue Вкл\Выкл блокировки.
+	/// Установка паттерна блокировки на группу.
+	static void SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
+							///< \param[in] bValue Вкл\Выкл блокировки.
+	/// Отпускание элемента и подготовка отправки по запросу.
+	static void ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true, bool bWithFrame = false);
+							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
+							///< \param[in] bWithElements При true - отпускать и содержащую группу.
+							///< \param[in] bWithFrame При true - передать на сервер фрейм элемента.
+	/// Удаление всех графических элементов портов с элемента по ID.
+	static void RemovePortsByID(unsigned long long ullID);
+							///< \param[in] ullID ID элемента.
+	/// Добавление свободных элементов в группу и подготовка к отправке по запросу.
+	static bool AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
+											   GraphicsElementItem* p_GraphicsElementItemInitial = nullptr);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
+							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
+							///< \return true, если добавлялись пакеты в буфер.
+	/// Выбор элемента.
+	static void SelectElement(GraphicsElementItem* p_GraphicsElementItem, bool bLastState = true);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] bLastState Последнее значение выбранности.
+	/// Отмена выбора элемента.
+	static void DeselectElement(GraphicsElementItem* p_GraphicsElementItem, bool bLastState = true);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] bLastState Последнее значение выбранности.
+	/// Подъём элементов группы на первый план с сортировкой и подготовкой отсылки.
+	static void SortGroupElementsToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
+										   bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true,
+										   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr, bool bWithSelectedDiff = true,
+										   bool bBlokingPatterns = true, bool bSend = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
+							///< \param[in] bAddNewElementsToGroupSending При true - передача включёнными в список элементами параметра текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
+							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
+							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
+							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
+							///< \param[in] bSend При true - отправка на сервер и клиентам.
+	/// Сортировка вектора элементов по Z-позиции с приоритетом по выборке.
+	static void SortElementsByZPos(QVector<GraphicsElementItem*>& avp_Elements,
+								   GraphicsElementItem* p_GraphicsElementItemExclude,
+								   QVector<GraphicsElementItem*>* pvp_SortedElements,
+								   QVector<GraphicsElementItem*>* pvp_SelectionSortedElements = nullptr);
+							///< \param[in] avp_Elements Ссылка на вектор указателей на элементы.
+							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
+							///< \param[in] pvp_SortedElements Указатель на вектор отсортированных элементов для заполнения.
+							///< \param[in] pvp_SelectionSortedElements Указатель на вектор отсортированных элементов выборки для заполнения.
+	/// Сортировка вектора групп по Z-позиции с приоритетом по выборке.
+	static void SortGroupsByZPos(QVector<GraphicsGroupItem*>& avp_Groups,
+								 GraphicsGroupItem* p_GraphicsGroupItemExclude,
+								 QVector<GraphicsGroupItem*>* pvp_SortedGroups,
+								 QVector<GraphicsGroupItem*>* pvp_SelectionSortedGroups = nullptr);
+							///< \param[in] аvp_Groups Ссылка на вектор указателей на группы.
+							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
+							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
+	/// Поднятие группы на первый план и подготовка к отсылке по запросу.
+	static void GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+							   bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+							   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+							   bool bBlokingPatterns = true, bool bSendElements = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
+							///< \param[in] bSend При true - отправка на сервер.
+							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
+							///< \param[in] bAddFrame При true - передача фрейма группы.
+							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
+							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
+							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
+	/// Отпускание группы и подготовка отправки по запросу.
+	static void ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+								 bool bWithFrame = true, bool bWithElementFrames = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
+							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
+							///< \param[in] bWithElementFrames При true - передать на сервер фреймы элементов.
+	/// Выбор группы.
+	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] bLastState Последнее значение выбранности.
+	/// Отмена выбора группы.
+	static void DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] bLastState Последнее значение выбранности.
+	/// Перемещение группы.
+	static void MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на перемещаемую группу.
+							///< \param[in] a_QPointFRes Ссылка на смещение для группы.
+							///< \param[in] bMoveBody При true - смещать и тело группы.
+	/// Обновление Z-позиции линка по данным элементов.
+	static void UpdateLinkZPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
+	/// Обновление позиции линка по данным элементов.
+	static void UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
+	/// Помощник коррекции точки порта по краю элемента.
+	static void BindPortToOuterEdgeHelper();
+	// Установка порта в позицию.
+	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. порт.
+
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);
@@ -114,6 +242,16 @@ public:
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDash; ///< Прямоугольник выборки, линии.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDot; ///< Прямоугольник выборки, точки.
 	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
+	static QVector<GraphicsElementItem*>* vp_NewElementsForGroup; ///< Вектор для заполнения новыми элементами для группы, очищается при добавлении.
+	static GraphicsLinkItem* p_GraphicsLinkItemNew; ///< Указатель на новосозданный линк.
+	static bool bPortAltPressed; ///< Флаг нажатого модификатора Alt для порта.
+	static bool bPortLMBPressed; ///< Флаг нажатой ЛКМ для порта.
+	static DbPoint oDbPointPortRB; ///< Точка правого нижнего края элемента для порта.
+	static DbPoint oDbPointPortCurrent; ///< Текщая точка для порта.
+	static DbPoint oDbPointPortOld; ///< Старая точка для порта.
+	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
+	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
+	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
 };
 
 #endif // SCHEMATICVIEW_H

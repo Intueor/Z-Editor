@@ -2,21 +2,11 @@
 #include "main-window.h"
 #include "graphics-link-item.h"
 
-//== МАКРОСЫ.
-#define LOG_NAME                                "Link"
-#define LOG_DIR_PATH							"../Z-Editor/logs/"
-
-//== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
-LOGDECL_INIT_INCLASS_MULTIOBJECT(GraphicsLinkItem)
-LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(GraphicsLinkItem)
-
 //== ФУНКЦИИ КЛАССОВ.
 // Класс графического линка.
 // Конструктор.
 GraphicsLinkItem::GraphicsLinkItem(PSchLinkBase* p_PSchLinkBase)
 {
-	LOG_CTRL_INIT_MULTIOBJECT;
-	//
 	setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_LINK);
 	memcpy(&oPSchLinkBaseInt, p_PSchLinkBase, sizeof(PSchLinkBase));
@@ -40,11 +30,11 @@ GraphicsLinkItem::GraphicsLinkItem(PSchLinkBase* p_PSchLinkBase)
 		}
 		if((p_GraphicsElementItemSrc != nullptr) && (p_GraphicsElementItemDst != nullptr))
 		{
-			p_GraphicsElementItemSrc->AddPort(this, true, p_GraphicsElementItemSrc);
-			p_GraphicsElementItemDst->AddPort(this, false, p_GraphicsElementItemDst);
+			SchematicWindow::vp_Ports.append(new GraphicsPortItem(this, true, p_GraphicsElementItemSrc));
+			SchematicWindow::vp_Ports.append(new GraphicsPortItem(this, false, p_GraphicsElementItemDst));
 			p_PSchElementVarsSrc = &p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars;
 			p_PSchElementVarsDst = &p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars;
-			UpdatePosition(this);
+			SchematicView::UpdateLinkPositionByElements(this);
 			this->setAcceptedMouseButtons(0);
 			return;
 		}
@@ -56,35 +46,6 @@ GraphicsLinkItem::GraphicsLinkItem(PSchLinkBase* p_PSchLinkBase)
 GraphicsLinkItem::~GraphicsLinkItem()
 {
 
-}
-
-// Входное обновление параметров линка по структуре.
-void GraphicsLinkItem::IncomingUpdateLinkParameters(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkVars& a_SchLinkVars)
-{
-	// Позиция порта источника.
-	if(a_SchLinkVars.oSchLinkGraph.uchChangesBits & SCH_LINK_BIT_SCR_PORT_POS)
-	{
-		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString()
-				<< "<>" << QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
-				<< "] scr port pos.");
-		p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
-				a_SchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
-		p_GraphicsLinkItem->p_GraphicsElementItemSrc->UpdateSelected(p_GraphicsLinkItem->p_GraphicsElementItemSrc,
-												 SCH_UPDATE_PORT_SRC_POS | SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN,
-												 p_GraphicsLinkItem->p_GraphicsPortItemSrc, p_GraphicsLinkItem);
-	}
-	// Позиция порта приёмника.
-	if(a_SchLinkVars.oSchLinkGraph.uchChangesBits & SCH_LINK_BIT_DST_PORT_POS)
-	{
-		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString()
-				<< "<>" << QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
-				<< "] dst port pos.");
-		p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos =
-				a_SchLinkVars.oSchLinkGraph.oDbDstPortGraphPos;
-		p_GraphicsLinkItem->p_GraphicsElementItemDst->UpdateSelected(p_GraphicsLinkItem->p_GraphicsElementItemDst,
-												 SCH_UPDATE_PORT_DST_POS | SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN,
-												 p_GraphicsLinkItem->p_GraphicsPortItemDst, p_GraphicsLinkItem);
-	}
 }
 
 // Вычисление точек портов.
@@ -202,47 +163,4 @@ void GraphicsLinkItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem
 void GraphicsLinkItem::advance(int iStep)
 {
 	iStep = iStep; // Заглушка.
-}
-
-// Обновление Z-позиции по данным линка.
-void GraphicsLinkItem::UpdateZPosition(GraphicsLinkItem* p_GraphicsLinkItem)
-{
-	if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos >
-			p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos)
-	{
-		p_GraphicsLinkItem->setZValue(p_GraphicsLinkItem->p_GraphicsElementItemSrc->
-									  oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos + SCH_LINK_Z_SHIFT);
-	}
-	else
-	{
-		p_GraphicsLinkItem->setZValue(p_GraphicsLinkItem->p_GraphicsElementItemDst->
-									  oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos + SCH_LINK_Z_SHIFT);
-	}
-}
-
-// Обновление позиции по данным линка.
-void GraphicsLinkItem::UpdatePosition(GraphicsLinkItem* p_GraphicsLinkItem)
-{
-	DbPoint oDbPoint;
-	DbPointPair oP;
-	//
-	oP = p_GraphicsLinkItem->CalcPortsCoords();
-	if(oP.dbSrc.dbX >= oP.dbDst.dbX)
-	{
-		oDbPoint.dbX = oP.dbDst.dbX;
-	}
-	else
-	{
-		oDbPoint.dbX = oP.dbSrc.dbX;
-	}
-	if(oP.dbSrc.dbY >= oP.dbDst.dbY)
-	{
-		oDbPoint.dbY = oP.dbDst.dbY;
-	}
-	else
-	{
-		oDbPoint.dbY = oP.dbSrc.dbY;
-	}
-	p_GraphicsLinkItem->setPos(OVERMAX_NUMBER, OVERMAX_NUMBER); // Вынужденная мера.
-	p_GraphicsLinkItem->setPos(oDbPoint.dbX, oDbPoint.dbY);
 }

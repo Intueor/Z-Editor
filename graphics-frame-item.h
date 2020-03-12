@@ -31,8 +31,6 @@ protected:
 	void advance(int iStep) override;
 							///< \param[in] iStep Текущий шаг сцены.
 private:
-	LOGDECL_MULTIOBJECT
-	LOGDECL_PTHRD_INCLASS_ADD
 	GraphicsElementItem* p_ElementParentInt; ///< Внутренний указатель на родитель-элемент.
 	GraphicsGroupItem* p_GroupParentInt; ///< Внутренний указатель на родитель-элемент.
 	unsigned short ushKindOfItemInt; ///< Внутренняя переменная типа родителя.

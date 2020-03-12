@@ -3,7 +3,6 @@
 
 //== ВКЛЮЧЕНИЯ.
 #include <QGraphicsItem>
-#include "../Z-Hub/logger.h"
 
 //== КЛАССЫ.
 /// Класс отображения скалера.
@@ -40,8 +39,6 @@ public:
 	GraphicsElementItem* p_ParentInt; ///< Внутренний указатель на родителя.
 
 private:
-	LOGDECL_MULTIOBJECT
-	LOGDECL_PTHRD_INCLASS_ADD
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
 };
 
