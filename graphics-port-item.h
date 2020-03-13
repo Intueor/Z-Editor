@@ -41,9 +41,15 @@ public:
 	/// Переопределение функции обработки ухода курсора с порта.
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* p_Event) override;
 							///< \param[in] p_Event Указатель на событие.
-private:
-
-
+	/// Для внешнего вызова базового метода.
+	void OBMousePressEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Для внешнего вызова базового метода.
+	void OBMouseMoveEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Для внешнего вызова базового метода.
+	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
 protected:
 	/// Переопределение функции шага событий элемента.
 	void advance(int iStep) override;
@@ -55,8 +61,6 @@ public:
 	GraphicsLinkItem* p_GraphicsLinkItemInt; ///< Внутренний указатель на линк.
 	bool bIsSrc; ///< Признак порта-источника.
 	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
-
-private:
 	ushort ushiPortInt; ///< Внутренняя переменная номера порта.
 	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
 };

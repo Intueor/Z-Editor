@@ -11,32 +11,7 @@
 // Конструктор.
 GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bSrc, GraphicsElementItem* p_Parent)
 {
-	p_ParentInt = p_Parent;
-	bIsSrc = bSrc;
-	SchematicView::bPortAltPressed = false;
-	p_PSchLinkVarsInt = &p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars;
-	p_GraphicsLinkItemInt = p_GraphicsLinkItem;
-	setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
-	setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_PORT);
-	setFlag(ItemIsMovable);
-	setAcceptHoverEvents(true);
-	setCursor(Qt::CursorShape::PointingHandCursor);
-	setParentItem(p_Parent);
-	p_SchElementGraph = &p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph;
-	if(bIsSrc)
-	{
-		setPos(p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX, p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY);
-		p_GraphicsLinkItemInt->p_GraphicsPortItemSrc = this;
-		setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiSrcPort));
-	}
-	else
-	{
-		setPos(p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX, p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY);
-		p_GraphicsLinkItemInt->p_GraphicsPortItemDst = this;
-		setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiDstPort));
-	}
-	p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, this);
-	p_GraphicsFrameItem->hide();
+	SchematicView::PortConstructorHandler(this, p_GraphicsLinkItem, bSrc, p_Parent);
 }
 
 // Деструктор.
@@ -52,24 +27,13 @@ QRectF GraphicsPortItem::boundingRect() const
 }
 
 // Переопределение функции рисования порта.
-void GraphicsPortItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem *p_Option, QWidget *p_Widget)
+void GraphicsPortItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
 {
 	// Заглушки.
 	p_Option = p_Option;
 	p_Widget = p_Widget;
 	//
-	SchematicWindow::SetTempBrushesStyle(p_ParentInt->oQBrush.style());
-	if(bIsSrc)
-	{
-		p_Painter->setBrush(SchematicWindow::oQBrushLight);
-	}
-	else
-	{
-		p_Painter->setBrush(SchematicWindow::oQBrushDark);
-	}
-	p_Painter->setPen(SchematicWindow::oQPenWhite);
-	p_Painter->drawEllipse(PORT_SHAPE);
-	SchematicWindow::RestoreBrushesStyles();
+	SchematicView::PortPaintHandler(this, p_Painter);
 }
 
 // Переопределение функции шага событий порта.
@@ -81,389 +45,48 @@ void GraphicsPortItem::advance(int iStep)
 // Переопределение функции обработки нажатия мыши.
 void GraphicsPortItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{
-		return;
-	}
-	SchematicView::bPortFromElement = SchematicView::p_GraphicsLinkItemNew != nullptr;
-	if(p_SchElementGraph->bBusy & (!SchematicView::bPortFromElement)) return;
-	SchematicView::bPortLMBPressed = false;
-	if(p_Event->button() == Qt::MouseButton::LeftButton)
-	{
-		SchematicView::oDbPointPortInitialClick.dbX = pos().x(); // Исходный X.
-		SchematicView::oDbPointPortInitialClick.dbY = pos().y(); // Исходный Y.
-		SchematicView::oDbPointPortRB.dbX = p_SchElementGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-		SchematicView::oDbPointPortRB.dbY = p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
-		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
-		{
-			SchematicView::GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-																ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, p_ParentInt, APPLY_BLOCKINGPATTERN, SEND_ELEMENTS);
-		}
-		SchematicView::ElementToTopAPFS(p_ParentInt, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY, APPLY_BLOCKINGPATTERN, SEND_ELEMENT);
-		TrySendBufferToServer;
-		if(p_Event->modifiers() == Qt::AltModifier)
-		{
-			SchematicView::oDbPointPortOld.dbX = SchematicView::oDbPointPortInitialClick.dbX;
-			SchematicView::oDbPointPortOld.dbY = SchematicView::oDbPointPortInitialClick.dbY;
-			SchematicView::bPortAltPressed = true;
-		}
-		else
-		{
-			SchematicView::bPortAltPressed = false;
-			SchematicView::oDbPointPortCurrent.dbX = pos().x(); // Текущий X.
-			SchematicView::oDbPointPortCurrent.dbY = pos().y(); // Текущий Y.
-		}
-		SchematicView::bPortLMBPressed = true;
-		SchematicView::p_GraphicsPortItemActive = this;
-	}
-	else if(p_Event->button() == Qt::MouseButton::RightButton)
-	{
-		if(SchematicWindow::p_SafeMenu == nullptr)
-		{
-			SchematicWindow::p_SafeMenu = new SafeMenu;
-			SchematicWindow::p_SafeMenu->setStyleSheet("SafeMenu::separator {color: palette(link);}");
-			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
-			QString strCaptionSrc = QString(p_GraphicsLinkItemInt->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
-			QString strCaptionDst = QString(p_GraphicsLinkItemInt->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
-			QString strPortSrc = QString::number(p_PSchLinkVarsInt->ushiSrcPort);
-			QString strPortDst = QString::number(p_PSchLinkVarsInt->ushiDstPort);
-			QString strName = QString(m_chLink + QString(" [") + strCaptionSrc + QString(" <> ") + strCaptionDst + QString("]"));
-			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strName) + 50);
-			// Линк.
-			SchematicWindow::p_SafeMenu->addSection(strName)->setDisabled(true);
-			// Порт.
-			if(bIsSrc)
-			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSelectedPort) + "[" + strPortSrc + "]")->setData(MENU_SELECTED_PORT);
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDstPort) + "[" + strPortDst + "]")->setData(MENU_DST_PORT);
-			}
-			else
-			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSelectedPort) + "[" + strPortDst + "]")->setData(MENU_SELECTED_PORT);
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSrcPort) + "[" + strPortSrc + "]")->setData(MENU_SRC_PORT);
-			}
-			// Удалить.
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
-
-		}
-	}
-	QGraphicsItem::mousePressEvent(p_Event);
+	SchematicView::PortMousePressEventHandler(this, p_Event);
 }
 
 // Переопределение функции обработки перемещения мыши.
 void GraphicsPortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	//
-	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{
-		return;
-	}
-	if(p_SchElementGraph->bBusy & (!SchematicView::bPortFromElement)) return;
-	//
-	if(SchematicView::bPortLMBPressed)
-	{
-		if(!SchematicView::bPortAltPressed)
-		{
-			SchematicView::oDbPointPortOld.dbX = pos().x(); // Исходный X.
-			SchematicView::oDbPointPortOld.dbY = pos().y(); // Исходный Y.
-		}
-	}
-	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
-	if(SchematicView::bPortLMBPressed)
-	{
-		SchematicView::oDbPointPortCurrent.dbX = pos().x(); // Текущий X.
-		SchematicView::oDbPointPortCurrent.dbY = pos().y(); // Текущий Y.
-		if(!SchematicView::bPortAltPressed)
-		{
-			SchematicView::BindPortToOuterEdgeHelper();
-		}
-		SchematicView::SetPortToPos(this);
-	}
+	SchematicView::PortMouseMoveEventHandler(this, p_Event);
 }
 
 // Переопределение функции обработки отпускания мыши.
 void GraphicsPortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	QGraphicsItem* p_QGraphicsItem;
-	QGraphicsItem* p_QGraphicsItemFounded = nullptr;
-	GraphicsElementItem* p_GraphicsElementItemFounded = nullptr;
-	GraphicsElementItem* p_GraphicsElementItem;
-	GraphicsGroupItem* p_GraphicsGroupItem;
-	GraphicsLinkItem* p_GraphicsLinkItem;
-	double dbZ = OVERMIN_NUMBER;
-	DbPoint oDbMapped;
-	char m_chPortNumber[PORT_NUMBER_STR_LEN];
-	//
-	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{
-		return;
-	}
-	if(p_SchElementGraph->bBusy & (!SchematicView::bPortFromElement)) return;
-	if(SchematicView::bPortLMBPressed)
-	{
-		if(SchematicView::bPortAltPressed) // Если жали Alt...
-		{
-			QList<QGraphicsItem*> lp_QGraphicsItems = MainWindow::p_SchematicWindow->oScene.items();
-			QVector<QGraphicsItem*> vp_QGraphicsItemsOnPosition;
-			// Позиция отпускания мышки на сцене.
-			oDbMapped.dbX = p_Event->scenePos().x();
-			oDbMapped.dbY = p_Event->scenePos().y();
-			// Поиск всех групп и элементов в данной точке.
-			for(int iF = 0; iF != lp_QGraphicsItems.count(); iF++)
-			{
-				p_QGraphicsItem = lp_QGraphicsItems.at(iF);
-				if(p_QGraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
-				{
-					double dbX, dbXR, dbY, dbYD;
-					if(p_QGraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_ELEMENT)
-					{
-						//
-						p_GraphicsElementItem = (GraphicsElementItem*) p_QGraphicsItem;
-						dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
-						dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
-						dbXR = dbX + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
-						dbYD = dbY + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
-						if(((oDbMapped.dbX > dbX) & (oDbMapped.dbX < dbXR)) & ((oDbMapped.dbY > dbY) & (oDbMapped.dbY < dbYD)))
-						{
-							vp_QGraphicsItemsOnPosition.append(p_QGraphicsItem);
-						}
-					}
-					else if(p_QGraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_GROUP)
-					{
-						p_GraphicsGroupItem = (GraphicsGroupItem*) p_QGraphicsItem;
-						dbX = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX;
-						dbY = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY;
-						dbXR = dbX + p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW;
-						dbYD = dbY + p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH;
-						if(((oDbMapped.dbX > dbX) & (oDbMapped.dbX < dbXR)) & ((oDbMapped.dbY > dbY) & (oDbMapped.dbY < dbYD)))
-						{
-							vp_QGraphicsItemsOnPosition.append(p_QGraphicsItem);
-						}
-					}
-				}
-			}
-			// Поиск самой верхней группы \ элемента.
-			for(int iF = 0; iF != vp_QGraphicsItemsOnPosition.count(); iF++)
-			{
-				double dbItemZ;
-				//
-				p_QGraphicsItem = vp_QGraphicsItemsOnPosition.at(iF);
-				dbItemZ = p_QGraphicsItem->zValue();
-				if(dbItemZ > dbZ)
-				{
-					dbZ = dbItemZ;
-					p_QGraphicsItemFounded = p_QGraphicsItem;
-				}
-			}
-			if(p_QGraphicsItemFounded->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_ELEMENT) // Если найденное самое верхнее - элемент...
-			{
-				p_GraphicsElementItemFounded = (GraphicsElementItem*) p_QGraphicsItemFounded; // Его в найденный рабочий.
-			}
-			if(p_GraphicsElementItemFounded) // Если есть найденный верхний рабочий...
-			{
-				// Поиск ошибки пользователя.
-				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
-						p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
-				{ // Если на исходный элемент...
-
-					SchematicView::oDbPointPortCurrent =
-							SchematicView::BindToInnerEdge(p_GraphicsElementItemFounded, oDbMapped); // Прикрепление с внутренней стороны.
-					if(SchematicView::bPortFromElement)
-					{
-gEld:					p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
-gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
-						SchematicWindow::vp_Ports.removeOne(p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
-						SchematicWindow::vp_Links.removeOne(p_GraphicsLinkItemInt);
-						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItemInt);
-						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
-						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
-						goto gF;
-					}
-					SchematicView::oDbPointPortCurrent =
-							SchematicView::BindToInnerEdge(p_GraphicsElementItemFounded, oDbMapped); // Прикрепление с внутренней стороны.
-					p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
-					goto gEr; // На устанвку позиции граф. порта и отправку данных об этом.
-				}
-				else if((bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDDst)) |
-						(!bIsSrc & (p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt == p_PSchLinkVarsInt->ullIDSrc)))
-				{ // Если замыкание линка...
-gED:				p_GraphicsElementItemFounded = nullptr;
-					if(SchematicView::bPortFromElement) goto gEl;
-					SchematicView::oDbPointPortCurrent = SchematicView::oDbPointPortInitialClick; // Возврат точки порта на начальную от нажатия на ПКМ.
-					SchematicView::SetPortToPos(this); // Установка позиции граф. порта.
-					goto gF; // На отпускание группы (по надобности) и элемента, затем - на выход.
-				}
-				// Тест на создание дупликата линка (те же элементы, те же порты).
-				for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
-				{
-					p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
-					if(SchematicView::bPortFromElement)
-					{
-						if((p_GraphicsLinkItem != SchematicView::p_GraphicsLinkItemNew) &
-						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
-							SchematicView::p_GraphicsLinkItemNew->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc) &
-						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
-							p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
-						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort == DEFAULT_NEW_PORT) &
-						   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort == DEFAULT_NEW_PORT))
-						{
-							goto gEld;
-						}
-					}
-					else
-					{
-						if(p_GraphicsLinkItem != p_GraphicsLinkItemInt)
-						{
-							if(!bIsSrc) // Если текущий порт - приёмник...
-							{
-								if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
-									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc) &
-								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort ==
-									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) &
-								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
-									p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
-								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort ==
-									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort))
-									goto gED;
-							}
-							else
-							{
-								if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
-									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst) &
-								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort ==
-									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) &
-								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
-									p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt) &
-								   (p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort ==
-									p_GraphicsLinkItemInt->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort))
-									goto gED;
-							}
-						}
-					}
-				}
-			}
-			// Отсутствие ошибок - на отпускание группы (по надобности) и элемента, затем - на замещение линка.
-			// Не нашли, но пришло с элемента - в отказ.
-			else if(SchematicView::bPortFromElement) goto gEl;
-		}
-		SchematicView::BindPortToOuterEdgeHelper();
-gEr:	SchematicView::SetPortToPos(this);
-		if(bIsSrc)
-		{
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = x();
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = y();
-			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
-		}
-		else
-		{
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = x();
-			p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = y();
-			p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
-		}
-		if(!SchematicView::bPortFromElement)
-		{
-			MainWindow::p_Client->AddPocketToOutputBufferC(
-						PROTO_O_SCH_LINK_VARS, (char*)p_PSchLinkVarsInt, sizeof(PSchLinkVars));
-		}
-gF:		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
-		{
-			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
-			{
-				SchematicView::ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITHOUT_FRAME, WITHOUT_ELEMENTS_FRAMES);
-			}
-		}
-		SchematicView::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);
-	}
-	QGraphicsItem::mouseReleaseEvent(p_Event);
-	if(SchematicView::bPortLMBPressed)
-	{
-		if(p_GraphicsElementItemFounded)
-		{
-			SchematicView::ReplaceLink(p_GraphicsLinkItemInt, p_GraphicsElementItemFounded, bIsSrc, oDbMapped, SchematicView::bPortFromElement);
-		}
-		SchematicView::p_GraphicsPortItemActive = nullptr;
-	}
-	else if(SchematicWindow::p_SafeMenu != nullptr)
-	{
-		QAction* p_SelectedMenuItem;
-		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
-		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
-		if(p_SelectedMenuItem != 0)
-		{
-			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog = nullptr;
-			PSchLinkBase oPSchLinkBase;
-			//
-			if((p_SelectedMenuItem->data() == MENU_SRC_PORT) |
-			   (p_SelectedMenuItem->data() == MENU_DST_PORT) |
-			   (p_SelectedMenuItem->data() == MENU_SELECTED_PORT))
-			{
-				oPSchLinkBase.oPSchLinkVars.oSchLinkGraph = p_PSchLinkVarsInt->oSchLinkGraph;
-				oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_PSchLinkVarsInt->ullIDSrc;
-				oPSchLinkBase.oPSchLinkVars.ullIDDst = p_PSchLinkVarsInt->ullIDDst;
-				oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_PSchLinkVarsInt->ushiSrcPort;
-				oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_PSchLinkVarsInt->ushiDstPort;
-				SchematicView::DeleteLinkAPFS(p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
-				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
-				{
-gSrc:				CopyStrArray((char*)QString::number(p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(), m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер или псевдоним порта источника",
-																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
-					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
-					{
-						p_PSchLinkVarsInt->ushiSrcPort = QString(m_chPortNumber).toUShort();
-						p_GraphicsLinkItemInt->p_GraphicsPortItemSrc->setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiSrcPort));
-						oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_PSchLinkVarsInt->ushiSrcPort;
-gSd:					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
-					}
-					p_Set_Proposed_String_Dialog->deleteLater();
-					goto gEx;
-				}
-				else if(p_SelectedMenuItem->data() == MENU_DST_PORT)
-				{
-gDst:				CopyStrArray((char*)QString::number(p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(), m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер или псевдоним порта приёмника",
-																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
-					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
-					{
-						p_PSchLinkVarsInt->ushiDstPort = QString(m_chPortNumber).toUShort();
-						p_GraphicsLinkItemInt->p_GraphicsPortItemDst->setToolTip(m_chPortTooltip + QString::number(p_PSchLinkVarsInt->ushiDstPort));
-						oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_PSchLinkVarsInt->ushiDstPort;
-						goto gSd;
-					}
-				}
-				else if(p_SelectedMenuItem->data() == MENU_SELECTED_PORT)
-				{
-					if(bIsSrc) goto gSrc;
-					else goto gDst;
-				}
-			}
-gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
-			{
-				SchematicView::DeleteLinkAPFS(p_GraphicsLinkItemInt);
-			}
-			if(p_Set_Proposed_String_Dialog) p_Set_Proposed_String_Dialog->deleteLater();
-		}
-		SchematicWindow::ResetMenu();
-		SchematicView::bPortMenuExecuted = true;
-	}
-	TrySendBufferToServer;
+	SchematicView::PortMouseReleaseEventHandler(this, p_Event);
 }
 
 // Переопределение функции обработки нахождения курсора над портом.
 void GraphicsPortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* p_Event)
 {
-	if(!SchematicView::bPortMenuExecuted)
-	{
-		p_GraphicsFrameItem->show(); // Зажигаем рамку.
-		SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsFrameItem;
-	}
-	else SchematicView::bPortMenuExecuted = false;
+	SchematicView::PortHoverEnterEventHandler(this);
 	QGraphicsItem::hoverEnterEvent(p_Event);
 }
 // Переопределение функции обработки ухода курсора с порта.
 void GraphicsPortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* p_Event)
 {
-	p_GraphicsFrameItem->hide(); // Гасим рамку.
-	SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
+	SchematicView::PortHoverLeaveEventHandler(this);
 	QGraphicsItem::hoverLeaveEvent(p_Event);
+}
+
+// Для внешнего вызова базового метода.
+void GraphicsPortItem::OBMousePressEvent(QGraphicsSceneMouseEvent* p_Event)
+{
+	QGraphicsItem::mousePressEvent(p_Event);
+}
+
+// Для внешнего вызова базового метода.
+void GraphicsPortItem::OBMouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
+{
+	QGraphicsItem::mouseMoveEvent(p_Event);
+}
+
+// Для внешнего вызова базового метода.
+void GraphicsPortItem::OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
+{
+	QGraphicsItem::mouseReleaseEvent(p_Event);
 }

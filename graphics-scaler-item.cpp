@@ -8,14 +8,7 @@
 // Конструктор.
 GraphicsScalerItem::GraphicsScalerItem(GraphicsElementItem* p_Parent)
 {
-	p_ParentInt = p_Parent;
-	setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
-	setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_SCALER);
-	setFlag(ItemIsMovable);
-	setAcceptHoverEvents(true);
-	setCursor(Qt::CursorShape::SizeFDiagCursor);
-	setParentItem(p_Parent);
-	p_SchElementGraph = &p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph;
+	SchematicView::ScalerConstructorHandler(this, p_Parent);
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.
@@ -25,22 +18,13 @@ QRectF GraphicsScalerItem::boundingRect() const
 }
 
 // Переопределение функции рисования скалера.
-void GraphicsScalerItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem *p_Option, QWidget *p_Widget)
+void GraphicsScalerItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
 {
 	// Заглушки.
 	p_Option = p_Option;
 	p_Widget = p_Widget;
 	//
-	if(p_ParentInt->bIsPositivePalette)
-	{
-		p_Painter->setPen(SchematicWindow::oQPenWhite);
-	}
-	else
-	{
-		p_Painter->setPen(SchematicWindow::oQPenBlack);
-	}
-	p_Painter->setBrush(p_ParentInt->oQBrush);
-	p_Painter->drawPolygon(SchematicWindow::oPolygonForScaler);
+	SchematicView::ScalerPaintHandler(this, p_Painter);
 }
 
 // Переопределение функции шага событий скалера.
@@ -52,93 +36,35 @@ void GraphicsScalerItem::advance(int iStep)
 // Переопределение функции обработки нажатия мыши.
 void GraphicsScalerItem::mousePressEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{
-		return;
-	}
-	if(p_Event->button() == Qt::MouseButton::LeftButton)
-	{
-		if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
-		{
-			SchematicView::GroupToTopAPFS(p_ParentInt->p_GraphicsGroupItemRel, true, p_ParentInt);
-		}
-		SchematicView::ElementToTopAPFS(p_ParentInt);
-		TrySendBufferToServer;
-	}
-	QGraphicsItem::mousePressEvent(p_Event);
+	SchematicView::ScalerMousePressEventHandler(this, p_Event);
 }
 
 // Переопределение функции обработки перемещения мыши.
 void GraphicsScalerItem::mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	DbPoint oDbPointPos;
-	//
-	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{
-		return;
-	}
-	oDbPointPos.dbX = pos().x();
-	oDbPointPos.dbY = pos().y();
-	QGraphicsItem::mouseMoveEvent(p_Event); // Даём мышке уйти.
-	setPos(QPointF((int)pos().x(), (int)pos().y()));
-	if(p_Event->scenePos().x() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX + ELEMENT_MIN_X)
-	{
-		setX(oDbPointPos.dbX);
-	}
-	if(p_Event->scenePos().y() < p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY + ELEMENT_MIN_Y)
-	{
-		setY(oDbPointPos.dbY);
-	}
-	oDbPointPos.dbX = pos().x() - oDbPointPos.dbX;
-	oDbPointPos.dbY = pos().y() - oDbPointPos.dbY;
-	p_ParentInt->oDbPointDimIncrements = oDbPointPos;
-	SchematicView::UpdateSelectedInElement(p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
-	if(p_ParentInt->p_GraphicsGroupItemRel != nullptr) // По группе элемента без выборки, если она есть.
-	{
-		if(!p_ParentInt->p_GraphicsGroupItemRel->vp_ConnectedElements.isEmpty())
-		{
-			SchematicView::UpdateGroupFrameByElements(p_ParentInt->p_GraphicsGroupItemRel);
-		}
-	}
+	SchematicView::ScalerMouseMoveEventHandler(this, p_Event);
 }
 
 // Переопределение функции обработки отпускания мыши.
 void GraphicsScalerItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_SchElementGraph->bBusy || MainWindow::bBlockingGraphics)
-	{
-		return;
-	}
-	if(p_Event->button() == Qt::MouseButton::LeftButton)
-	{
-		// Ищем линки к элементу-родителю скалера...
-		for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
-		{
-			GraphicsLinkItem* p_GraphicsLinkItem;
-			//
-			p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
-			if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc == p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
-			{
-				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
-				MainWindow::p_Client->AddPocketToOutputBufferC(
-							PROTO_O_SCH_LINK_VARS, (char*)&p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars, sizeof(PSchLinkVars));
-			}
-			if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst == p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
-			{
-				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
-				MainWindow::p_Client->AddPocketToOutputBufferC(
-							PROTO_O_SCH_LINK_VARS, (char*)&p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars, sizeof(PSchLinkVars));
-			}
-		}
-		if(p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
-		{
-			if(p_ParentInt->p_GraphicsGroupItemRel != nullptr)
-			{
-				SchematicView::ReleaseGroupAPFS(p_ParentInt->p_GraphicsGroupItemRel, p_ParentInt, WITH_FRAME, WITHOUT_ELEMENTS_FRAMES);
-			}
-		}
-		SchematicView::ReleaseElementAPFS(p_ParentInt, WITHOUT_GROUP, WITH_FRAME);
-		TrySendBufferToServer;
-	}
+	SchematicView::ScalerMouseReleaseEventHandler(this, p_Event);
+}
+
+// Для внешнего вызова базового метода.
+void GraphicsScalerItem::OBMousePressEvent(QGraphicsSceneMouseEvent* p_Event)
+{
+	QGraphicsItem::mousePressEvent(p_Event);
+}
+
+// Для внешнего вызова базового метода.
+void GraphicsScalerItem::OBMouseMoveEvent(QGraphicsSceneMouseEvent* p_Event)
+{
+	QGraphicsItem::mouseMoveEvent(p_Event);
+}
+
+// Для внешнего вызова базового метода.
+void GraphicsScalerItem::OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event)
+{
 	QGraphicsItem::mouseReleaseEvent(p_Event);
 }

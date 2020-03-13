@@ -30,7 +30,7 @@ protected:
 	/// Переопределение функции шага событий элемента.
 	void advance(int iStep) override;
 							///< \param[in] iStep Текущий шаг сцены.
-private:
+public:
 	GraphicsElementItem* p_ElementParentInt; ///< Внутренний указатель на родитель-элемент.
 	GraphicsGroupItem* p_GroupParentInt; ///< Внутренний указатель на родитель-элемент.
 	unsigned short ushKindOfItemInt; ///< Внутренняя переменная типа родителя.

@@ -14,12 +14,26 @@ class GraphicsElementItem;
 class GraphicsGroupItem;
 class GraphicsLinkItem;
 class GraphicsPortItem;
+class GraphicsFrameItem;
+class GraphicsScalerItem;
 
 //== КЛАССЫ.
 /// Класс виджета обзора.
 class SchematicView : public QGraphicsView
 {
 	Q_OBJECT
+
+public:
+	struct DbPointPair
+	{
+		DbPoint dbSrc;
+		DbPoint dbDst;
+	};
+	struct CalcPortHelper
+	{
+		QRectF oQRectF;
+		DbPointPair oDbPointPair;
+	};
 
 public:
 	/// Конструктор.
@@ -223,7 +237,7 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 	/// Обработчик конструктора элемента.
 	static void ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] GraphicsElementItem Указатель на элемент.
 							///< \param[in] p_PSchElementBase Указатель на структуру с параметрами элемента для копии внутрь.
 
 	/// Обработчик события нажатия мыши на группу.
@@ -247,6 +261,90 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
 
+	/// Обработчик функции рисования фрейма.
+	static void FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QPainter* p_Painter);
+							///< \param[in] GraphicsFrameItem Указатель на фрейм.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора фрейма.
+	static void FrameConstructorHandler(GraphicsFrameItem* p_GraphicsFrameItem, unsigned short ushKindOfItem,
+										GraphicsElementItem* p_ElementParent, GraphicsGroupItem* p_GroupParent, GraphicsPortItem* p_PortParent);
+							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
+							///< \param[in] ushKindOfItem Тип родителя.
+							///< \param[in] p_ElementParent Указатель на родитель-элемент.
+							///< \param[in] p_GroupParent Указатель на родитель-группу.
+							///< \param[in] p_PortParent Указатель на родитель-порт.
+	/// Обработчик вместилища фрейма.
+	static QRectF FrameBoundingRectHandler(GraphicsFrameItem* p_GraphicsFrameItem);
+							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
+							///< \return Вмещающий прямоугольник.
+
+	/// Обработчик функции рисования линка.
+	static void LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора линка.
+	static void LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkBase* p_PSchLinkBase);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \param[in] p_PSchLinkBase Указатель на структуру с параметрами линка для копии внутрь.
+	/// Вычисление квадрата и вместилища линии линка.
+	static CalcPortHelper CalcLinkLineWidthHeight(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \return Вмещающий прямоугольник и точки портов.
+	/// Вычисление точек портов.
+	static DbPointPair CalcPortsCoords(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \return Точки портов.
+
+	/// Обработчик события нажатия мыши на порт.
+	static void PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с портом.
+	static void PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на порте.
+	static void PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции рисования порта.
+	static void PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора порта.
+	static void PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem, GraphicsLinkItem* p_GraphicsLinkItem,
+									   bool bSrc, GraphicsElementItem* p_Parent);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
+							///< \param[in] bSrc Признак порта на источнике.
+							///< \param[in] p_Parent Указатель на родителя.
+	/// Обработчик нахождения курсора над портом.
+	static void PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+	/// Обработчик ухода курсора с порта.
+	static void PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+
+	/// Обработчик события нажатия мыши на скалер.
+	static void ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с скалером.
+	static void ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на скалере.
+	static void ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции рисования скалера.
+	static void ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора скалера.
+	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Parent Указатель на родителя.
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);

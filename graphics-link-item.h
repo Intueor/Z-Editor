@@ -14,18 +14,6 @@ class GraphicsPortItem;
 class GraphicsLinkItem : public QGraphicsItem
 {
 public:
-	struct DbPointPair
-	{
-		DbPoint dbSrc;
-		DbPoint dbDst;
-	};
-	struct CalcPortHelper
-	{
-		QRectF oQRectF;
-		DbPointPair oDbPointPair;
-	};
-
-public:
 	/// Конструктор.
 	explicit GraphicsLinkItem(PSchLinkBase* p_PSchLinkBase);
 							///< \param[in] p_PSchLinkBase Указатель на структуру с параметрами линка для копии внутрь.
@@ -39,12 +27,6 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-	/// Вычисление квадрата и вместилища линии линка. Используется динамически.
-	CalcPortHelper CalcLinkLineWidthHeight() const;
-							///< \return Вмещающий прямоугольник и точки портов.
-	/// Вычисление точек портов. Используется динамически.
-	DbPointPair CalcPortsCoords() const;
-							///< \return Точки портов.
 protected:
 	/// Переопределение функции шага событий линка.
 	void advance(int iStep) override;
@@ -55,8 +37,6 @@ public:
 	GraphicsPortItem* p_GraphicsPortItemDst; ///< Внутренний указатель на граф. объект структуры с параметрами порта приёмника.
 	GraphicsElementItem* p_GraphicsElementItemSrc; ///< Указатель на виджет источника.
 	GraphicsElementItem* p_GraphicsElementItemDst; ///< Указатель на виджет приёмника.
-
-private:
 	PSchElementVars* p_PSchElementVarsSrc; ///< Указатель на элемент схемы источника.
 	PSchElementVars* p_PSchElementVarsDst; ///< Указатель на элемент схемы приёмника.
 };
