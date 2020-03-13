@@ -62,8 +62,6 @@ public:
 	GraphicsGroupItem* p_GraphicsGroupItemRel; ///< Всп. указатель на группу.
 	QGroupBox* p_QGroupBox; ///< Указатель на объект основного групбокса.
 	GraphicsScalerItem* p_GraphicsScalerItem; ///< Указатель на графический объект скалера.
-
-private:
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
 };
 

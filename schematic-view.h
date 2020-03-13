@@ -204,6 +204,7 @@ public:
 	/// Установка порта в позицию.
 	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. порт.
+
 	/// Обработчик события нажатия мыши на элемент.
 	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
@@ -216,6 +217,36 @@ public:
 	static void ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции рисования элемента.
+	static void ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора элемента.
+	static void ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_PSchElementBase Указатель на структуру с параметрами элемента для копии внутрь.
+
+	/// Обработчик события нажатия мыши на группу.
+	static void GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с группой.
+	static void GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на группе.
+	static void GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции рисования группы.
+	static void GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора группы.
+	static void GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupBase* p_PSchGroupBase);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
+
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);

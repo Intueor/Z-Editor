@@ -1,6 +1,8 @@
 //== ВКЛЮЧЕНИЯ.
 #include <math.h>
 #include <QGraphicsSceneEvent>
+#include <QBoxLayout>
+#include <QGraphicsProxyWidget>
 #include "schematic-view.h"
 #include "schematic-window.h"
 #include "z-editor-defs.h"
@@ -2032,4 +2034,416 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 		}
 		SchematicWindow::ResetMenu();
 	}
+}
+
+// Обработчик функции рисования элемента.
+void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter)
+{
+	p_Painter->setRenderHints(QPainter::SmoothPixmapTransform);
+	p_Painter->setBrush(p_GraphicsElementItem->oQBrush);
+	if(p_GraphicsElementItem->bIsPositivePalette)
+	{
+		p_Painter->setPen(SchematicWindow::oQPenWhite);
+	}
+	else
+	{
+		p_Painter->setPen(SchematicWindow::oQPenBlack);
+	}
+	p_Painter->drawRect(0, 0,
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW,
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH);
+}
+
+// Обработчик конструктора элемента.
+void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase)
+{
+	int iR, iG, iB;
+	QColor oQColorBkg;
+	//
+	p_GraphicsElementItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
+	p_GraphicsElementItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_ELEMENT);
+	p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
+	memcpy(&p_GraphicsElementItem->oPSchElementBaseInt, p_PSchElementBase, sizeof(PSchElementBase));
+	p_GraphicsElementItem->setFlag(p_GraphicsElementItem->ItemIsMovable);
+	p_GraphicsElementItem->setAcceptHoverEvents(true);
+	p_GraphicsElementItem->setCursor(Qt::CursorShape::PointingHandCursor);
+	p_GraphicsElementItem->bSelected = false;
+	//
+	p_GraphicsElementItem->p_QGroupBox = new QGroupBox();
+	QVBoxLayout* p_QVBoxLayout = new QVBoxLayout;
+	p_GraphicsElementItem->p_QGroupBox->setLayout(p_QVBoxLayout);
+	p_GraphicsElementItem->p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
+	p_GraphicsElementItem->p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
+	p_GraphicsElementItem->p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
+	oQColorBkg = QColor(QRgb(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uiObjectBkgColor));
+	oQColorBkg.getRgb(&iR, &iG, &iB);
+	if(((iR + iG + iB) / 3) > 128)
+	{
+		p_GraphicsElementItem->p_QGroupBox->setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
+								   "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
+								   "left: 4px; padding-top: 0px; }");
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+		p_GraphicsElementItem->bIsPositivePalette = false;
+	}
+	else
+	{
+		p_GraphicsElementItem->p_QGroupBox->setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
+								   "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
+								   "left: 4px; padding-top: 0px; }");
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+		p_GraphicsElementItem->bIsPositivePalette = true;
+	}
+	p_GraphicsElementItem->p_QGraphicsProxyWidget =
+			MainWindow::p_SchematicWindow->GetSchematicView()->scene()->addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
+	p_GraphicsElementItem->p_QGroupBox->move(3, 0);
+	p_GraphicsElementItem->p_QGroupBox->setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW - 6,
+							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH - 3);
+	p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
+	p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
+	p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
+	p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
+	//
+	p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX,
+		   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY);
+	p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos);
+	if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos)
+	{
+		SchematicWindow::dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+	}
+	p_GraphicsElementItem->oQBrush.setColor(QRgb(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uiObjectBkgColor));
+	//
+	p_GraphicsElementItem->p_GraphicsScalerItem = new GraphicsScalerItem(p_GraphicsElementItem);
+	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
+	p_GraphicsElementItem->p_GraphicsScalerItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW,
+								 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH);
+	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
+	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
+	//
+	SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy);
+}
+
+// Обработчик события нажатия мыши на группу.
+void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	bool bLastSt;
+	//
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy
+	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
+		return;
+	}
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	{
+		//==== РАБОТА С ВЫБОРКОЙ. ====
+		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем предыдущее значение выбраности.
+		if(p_Event->modifiers() == Qt::ControlModifier)
+		{ // При удержании CTRL - инверсия флага выбраности.
+			p_GraphicsGroupItem->bSelected = !p_GraphicsGroupItem->bSelected;
+		}
+		if(p_GraphicsGroupItem->bSelected)// ВЫБРАЛИ...
+			SchematicView::SelectGroup(p_GraphicsGroupItem, bLastSt);
+		else // ОТМЕНИЛИ ВЫБОР...
+			SchematicView::DeselectGroup(p_GraphicsGroupItem, bLastSt);
+	}
+	else if(p_Event->button() == Qt::MouseButton::RightButton)
+	{
+		if(SchematicWindow::p_SafeMenu == nullptr)
+		{
+			SchematicWindow::p_SafeMenu = new SafeMenu;
+			SchematicWindow::p_SafeMenu->setStyleSheet("SafeMenu::separator {color: palette(link);}");
+			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
+			// Объект.
+			QString strCaption;
+			bool bNoSelection = SchematicWindow::vp_SelectedGroups.isEmpty();
+			//
+			if(bNoSelection)
+			{
+				strCaption = QString(m_chGroup) +
+						" [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]";
+			}
+			else
+			{
+				strCaption = "Выборка групп";
+			}
+			SchematicWindow::p_SafeMenu->setMinimumWidth(SchematicView::GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 50);
+			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
+			// Имя.
+			if(bNoSelection)
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRename))->setData(MENU_RENAME);
+			}
+			else
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
+			}
+			// Удалить.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			// Расформировать.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
+			// Создать элемент в группе.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
+			// Добавить выбранные свободные объекты.
+			if(!SchematicWindow::vp_SelectedElements.isEmpty())
+			{
+				SchematicWindow::vp_SelectedFreeElements.clear();
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+				{
+					GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+					if(p_GraphicsElementItem->p_GraphicsGroupItemRel == nullptr)
+					{
+						SchematicWindow::vp_SelectedFreeElements.append(p_GraphicsElementItem);
+					}
+				}
+				if(!SchematicWindow::vp_SelectedFreeElements.isEmpty())
+				{
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_FREE_SELECTED);
+				}
+			}
+			// Цвет фона.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
+		}
+	}
+	TrySendBufferToServer;
+	p_GraphicsGroupItem->OBMousePressEvent(p_Event);
+}
+
+// Обработчик события перемещения мыши с группой.
+void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	int iC;
+	QPointF oQPointFInit;
+	QPointF oQPointFRes;
+	//
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy
+	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		return;
+	}
+	oQPointFInit = p_GraphicsGroupItem->pos();
+	p_GraphicsGroupItem->OBMouseMoveEvent(p_Event);
+	oQPointFRes = p_GraphicsGroupItem->pos();
+	oQPointFRes.setX(oQPointFRes.x() - oQPointFInit.x()); // Смещение по X.
+	oQPointFRes.setY(oQPointFRes.y() - oQPointFInit.y()); // Смещение по Y.
+	if(p_GraphicsGroupItem->bSelected)
+	{
+		iC = SchematicWindow::vp_SelectedGroups.count();
+		for(int iE = 0; iE != iC; iE ++)
+		{
+			GraphicsGroupItem* p_GraphicsGroupItemUtil;
+			//
+			p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iE);
+			if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
+			{
+				SchematicView::MoveGroup(p_GraphicsGroupItemUtil, oQPointFRes);
+			}
+		}
+	}
+	SchematicView::MoveGroup(p_GraphicsGroupItem, oQPointFRes, false);
+}
+
+// Обработчик события отпусканеия мыши на группе.
+void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy
+	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		return;
+	}
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	{
+		if(p_GraphicsGroupItem->bSelected)
+		{
+			QVector<GraphicsGroupItem*> vp_SortedGroups;
+			//
+			SchematicView::SortGroupsByZPos(SchematicWindow::vp_SelectedGroups, p_GraphicsGroupItem, &vp_SortedGroups); // Сортировка групп в выборке.
+			for(int iE = 0; iE != vp_SortedGroups.count(); iE ++)
+			{
+				GraphicsGroupItem* p_GraphicsGroupItemUtil;
+				//
+				p_GraphicsGroupItemUtil = vp_SortedGroups.at(iE);
+				if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
+				{
+					SchematicView::ReleaseGroupAPFS(p_GraphicsGroupItemUtil);
+				}
+			}
+		}
+		SchematicView::ReleaseGroupAPFS(p_GraphicsGroupItem);
+		TrySendBufferToServer;
+	}
+	p_GraphicsGroupItem->OBMouseReleaseEvent(p_Event);
+	if(SchematicWindow::p_SafeMenu != nullptr)
+	{
+		QAction* p_SelectedMenuItem;
+		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
+		PSchGroupName oPSchGroupName;
+		char m_chName[SCH_OBJ_NAME_STR_LEN];
+		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
+		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
+		if(p_SelectedMenuItem != 0)
+		{
+			if(p_SelectedMenuItem->data() == MENU_RENAME)
+			{
+				CopyStrArray(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, m_chName, SCH_OBJ_NAME_STR_LEN);
+				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Имя группы", m_chName, SCH_OBJ_NAME_STR_LEN);
+				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
+				{
+					memset(&oPSchGroupName, 0, sizeof(oPSchGroupName));
+					CopyStrArray(m_chName, oPSchGroupName.m_chName, SCH_OBJ_NAME_STR_LEN);
+					CopyStrArray(m_chName, p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
+					oPSchGroupName.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
+																  sizeof(oPSchGroupName));
+					p_GraphicsGroupItem->p_QLabel->setText(oPSchGroupName.m_chName);
+					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
+				}
+				p_Set_Proposed_String_Dialog->deleteLater();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_DELETE)
+			{
+				if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
+				{
+					SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+				}
+				SchematicView::DeleteSelectedAPFS();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_ADD_FREE_SELECTED)
+			{
+				SchematicView::AddFreeSelectedElementsToGroupAPFS(p_GraphicsGroupItem);
+			}
+			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
+			{
+				bool bForceSelected = false;
+				QVector<GraphicsElementItem*> vp_SortedElements;
+				GraphicsGroupItem* p_GraphicsGroupItemUtil;
+				//
+				if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
+				{
+					SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+					bForceSelected = true;
+				}
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+				{
+					p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
+					SchematicView::SortElementsByZPos(p_GraphicsGroupItemUtil->vp_ConnectedElements, nullptr, &vp_SortedElements);
+					for(int iF = 0; iF != vp_SortedElements.count(); iF++)
+					{
+						GraphicsElementItem* p_GraphicsElementItem = vp_SortedElements.at(iF);
+						PSchElementVars oPSchElementVars;
+						//
+						p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+						SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+						p_GraphicsElementItem->update();
+						oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+						oPSchElementVars.ullIDGroup = 0;
+						oPSchElementVars.oSchElementGraph.dbObjectZPos =
+								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
+						oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
+						p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
+						MainWindow::p_Client->AddPocketToOutputBufferC(
+									PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
+						SchematicView::UpdateLinksZPos();
+					}
+					SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItemUtil);
+					MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItemUtil);
+					vp_SortedElements.clear();
+				}
+				if(bForceSelected)
+				{
+					SchematicWindow::vp_SelectedGroups.removeOne(p_GraphicsGroupItem);
+				}
+			}
+			else if(p_SelectedMenuItem->data() == MENU_ADD_ELEMENT)
+			{
+				GraphicsElementItem* p_GraphicsElementItem;
+				//
+				p_GraphicsElementItem = SchematicView::CreateNewElementAPFS((char*)m_chNewElement, p_GraphicsGroupItem->mapToScene(p_Event->pos()),
+																			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
+				p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
+				p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+				SchematicView::UpdateGroupFrameByElements(p_GraphicsGroupItem);
+				SchematicView::GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
+														  nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
+				SchematicView::UpdateLinksZPos();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
+			{
+
+			}
+		}
+		TrySendBufferToServer;
+		SchematicWindow::ResetMenu();
+	}
+}
+
+// Обработчик функции рисования группы.
+void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QPainter* p_Painter)
+{
+	p_Painter->setRenderHints(QPainter::SmoothPixmapTransform);
+	p_Painter->setBrush(p_GraphicsGroupItem->oQBrush);
+	if(p_GraphicsGroupItem->bIsPositivePalette)
+	{
+		p_Painter->setPen(SchematicWindow::oQPenWhite);
+	}
+	else
+	{
+		p_Painter->setPen(SchematicWindow::oQPenBlack);
+	}
+	p_Painter->drawRect(0, 0, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW,
+						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH);
+	p_Painter->drawLine(1, 18, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW - 1, 18);
+}
+
+// Обработчик конструктора группы.
+void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupBase* p_PSchGroupBase)
+{
+	int iR, iG, iB;
+	QColor oQColorBkg;
+	//
+	p_GraphicsGroupItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
+	p_GraphicsGroupItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_GROUP);
+	memcpy(&p_GraphicsGroupItem->oPSchGroupBaseInt, p_PSchGroupBase, sizeof(PSchGroupBase));
+	p_GraphicsGroupItem->setFlag(p_GraphicsGroupItem->ItemIsMovable);
+	p_GraphicsGroupItem->setAcceptHoverEvents(true);
+	p_GraphicsGroupItem->setCursor(Qt::CursorShape::PointingHandCursor);
+	p_GraphicsGroupItem->bSelected = false;
+	//
+	oQColorBkg = QColor(QRgb(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor));
+	oQColorBkg.getRgb(&iR, &iG, &iB);
+	if(((iR + iG + iB) / 3) > 128)
+	{
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+		p_GraphicsGroupItem->bIsPositivePalette = false;
+	}
+	else
+	{
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+		p_GraphicsGroupItem->bIsPositivePalette = true;
+	}
+	//
+	p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX,
+		   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY);
+	p_GraphicsGroupItem->setZValue(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos);
+	if(SchematicWindow::dbObjectZPos <= p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos)
+	{
+		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+	}
+	p_GraphicsGroupItem->oQBrush.setColor(QRgb(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor));
+	//
+	p_GraphicsGroupItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_GROUP, nullptr, p_GraphicsGroupItem);
+	p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
+	//
+	p_GraphicsGroupItem->p_QLabel = new QLabel(QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName));
+	p_GraphicsGroupItem->p_QLabel->setAttribute(Qt::WA_TranslucentBackground);
+	p_GraphicsGroupItem->p_QLabel->setCursor(Qt::CursorShape::PointingHandCursor);
+	p_GraphicsGroupItem->p_QLabel->move(3, 3);
+	p_GraphicsGroupItem->p_QLabel->setFixedSize(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW - 6, 13);
+	p_GraphicsGroupItem->p_QGraphicsProxyWidget = MainWindow::p_SchematicWindow->oScene.addWidget(p_GraphicsGroupItem->p_QLabel);
+	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
+	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsGroupItem);
+	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
+	//
+	SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
 }
