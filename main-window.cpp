@@ -3,6 +3,7 @@
 #include "ui_main-window.h"
 #include "../Z-Hub/Dialogs/message-dialog.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
+#include "../Z-Hub/z-hub-defs.h"
 
 //== МАКРОСЫ.
 #define LOG_NAME				"main-window"

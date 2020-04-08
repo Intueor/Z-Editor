@@ -98,25 +98,6 @@
 #define SCALER_DIM						9
 #define ELEMENT_MIN_X					40
 #define ELEMENT_MIN_Y					30
-// Коды изменяемых полей.
-#define SCH_ELEMENT_BIT_BUSY            0b00000001
-#define SCH_ELEMENT_BIT_BKG_COLOR       0b00000010
-#define SCH_ELEMENT_BIT_FRAME           0b00000100
-#define SCH_ELEMENT_BIT_GROUP           0b00001000
-#define SCH_ELEMENT_BIT_ZPOS            0b00010000
-//
-#define SCH_LINK_BIT_SCR_PORT_POS       0b00000001
-#define SCH_LINK_BIT_DST_PORT_POS       0b00000010
-#define SCH_LINK_BIT_INIT_ERROR         0b11111111
-//
-#define SCH_GROUP_BIT_BUSY              0b00000001
-#define SCH_GROUP_BIT_BKG_COLOR         0b00000010
-#define SCH_GROUP_BIT_FRAME             0b00000100
-#define SCH_GROUP_BIT_ZPOS              0b00001000
-#define SCH_GROUP_BIT_ELEMENTS_SHIFT    0b00010000
-//
-#define SCH_NEXT_Z_SHIFT				1.0f
-#define SCH_LINK_Z_SHIFT				0.1f
 //
 #define DEFAULT_NEW_PORT				0
 
@@ -130,9 +111,6 @@ const char m_chStatusConnected[] = "Соединён";
 const char m_chMsgServerPassword[] = "Пароль сервера.";
 const char m_chNewElement[] = "Новый элемент";
 const char m_chNewGroup[] = "Новая группа";
-const char m_chGroup[] = "Группа";
-const char m_chElement[] = "Элемент";
-const char m_chLink[] = "Линк";
 const char m_chPortTooltip[] = "Порт: ";
 //
 const char m_chMenuDelete[] = "Удалить";

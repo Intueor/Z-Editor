@@ -7,6 +7,7 @@
 #include "schematic-window.h"
 #include "z-editor-defs.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
+#include "../Z-Hub/z-hub-defs.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 bool SchematicView::bLMousePressed = false;
