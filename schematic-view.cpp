@@ -376,7 +376,7 @@ bool SchematicView::PrepareForRemoveElementFromScene(GraphicsElementItem* p_Grap
 		}
 		else
 		{
-			UpdateGroupFrameByElements(p_GraphicsGroupItem); // При непустой группе - коррекция её фрейма.
+			UpdateGroupFrameByContent(p_GraphicsGroupItem); // При непустой группе - коррекция её фрейма.
 			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 			oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
@@ -492,7 +492,7 @@ bool SchematicView::DetachSelectedAPFS()
 				{
 					vp_AffectedGroups.append(p_GraphicsGroupItem); // Добавление в затронутые.
 				}
-				UpdateGroupFrameByElements(p_GraphicsGroupItem);
+				UpdateGroupFrameByContent(p_GraphicsGroupItem);
 			}
 			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
@@ -785,8 +785,8 @@ void SchematicView::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddEl
 	UpdateLinksZPos();
 }
 
-// Обновление фрейма группы по геометрии включённых элементов.
-void SchematicView::UpdateGroupFrameByElements(GraphicsGroupItem* p_GraphicsGroupItem)
+// Обновление фрейма группы по геометрии контента.
+void SchematicView::UpdateGroupFrameByContent(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	DbPoint oDbPointLeftTop;
 	DbPoint oDbPointRightBottom;
@@ -1090,7 +1090,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 		{
 			if(!p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.isEmpty())
 			{
-				UpdateGroupFrameByElements(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+				UpdateGroupFrameByContent(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 			}
 		}
 	}
@@ -1239,7 +1239,7 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 	}
 	if(bAction)
 	{
-		UpdateGroupFrameByElements(p_GraphicsGroupItem);
+		UpdateGroupFrameByContent(p_GraphicsGroupItem);
 		GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
 					   p_GraphicsElementItemInitial, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 		if(p_GraphicsElementItemInitial != nullptr)
@@ -1981,6 +1981,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.bBusy = false;
+				oPSchGroupBase.oPSchGroupVars.ullIDGroup = 0;
 				p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
 				MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsGroupItem);
 				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
@@ -1995,7 +1996,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 						vp_NewElementsForGroup->append(p_GraphicsElementItemUtil);
 					}
 				}
-				UpdateGroupFrameByElements(p_GraphicsGroupItem);
+				UpdateGroupFrameByContent(p_GraphicsGroupItem);
 				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 				MainWindow::p_Client->AddPocketToOutputBufferC(
@@ -2367,7 +2368,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-				UpdateGroupFrameByElements(p_GraphicsGroupItem);
+				UpdateGroupFrameByContent(p_GraphicsGroupItem);
 				GroupToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
 							   nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 				UpdateLinksZPos();
@@ -2408,6 +2409,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	//
 	p_GraphicsGroupItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsGroupItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_GROUP);
+	p_GraphicsGroupItem->p_GraphicsGroupItemRel = nullptr;
 	memcpy(&p_GraphicsGroupItem->oPSchGroupBaseInt, p_PSchGroupBase, sizeof(PSchGroupBase));
 	p_GraphicsGroupItem->setFlag(p_GraphicsGroupItem->ItemIsMovable);
 	p_GraphicsGroupItem->setAcceptHoverEvents(true);
@@ -3171,7 +3173,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	{
 		if(!p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel->vp_ConnectedElements.isEmpty())
 		{
-			UpdateGroupFrameByElements(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel);
+			UpdateGroupFrameByContent(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel);
 		}
 	}
 }

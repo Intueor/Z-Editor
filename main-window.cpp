@@ -389,7 +389,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 							bGroupFounded = true;
 							if(p_GraphicsElementItem->oPSchElementBaseInt.bRequestGroupUpdate)
 							{
-								SchematicView::UpdateGroupFrameByElements(p_GraphicsGroupItem);
+								SchematicView::UpdateGroupFrameByContent(p_GraphicsGroupItem);
 							}
 							break;
 						}
@@ -600,8 +600,10 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 				PSchGroupBase oPSchGroupBase;
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				GraphicsGroupItem* p_GraphicsGroupItemInt;
+				GraphicsGroupItem* p_GraphicsGroupItemIntHelper;
 				GraphicsElementItem* p_GraphicsElementItem;
 				GraphicsElementItem* p_GraphicsElementItemInt;
+				bool bGroupFounded = false;
 				//
 				oPSchGroupBase = *(PSchGroupBase*)p_ReceivedData;
 				LOG_P_2(LOG_CAT_I, "{In} Group base [" << QString(oPSchGroupBase.m_chName).toStdString() << "]");
@@ -646,7 +648,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 							p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem); // Добавление в группу.
 							if(p_GraphicsElementItem->oPSchElementBaseInt.bRequestGroupUpdate)
 							{
-								SchematicView::UpdateGroupFrameByElements(p_GraphicsGroupItem);
+								SchematicView::UpdateGroupFrameByContent(p_GraphicsGroupItem);
 							}
 							p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 							// По всем элементам в ожидании групп.
@@ -664,26 +666,25 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 						}
 					}
 				}
-				// Добавление в остальные группы всех ожидающих привязанных элементов (подстраховка от рассинхрона,
-				// по тестам - желательно убрать).
+				// Добавление в остальные группы всех ожидающих привязанных элементов (подстраховка от рассинхрона).
 				if(!SchematicWindow::vp_LonelyElements.isEmpty()) // Если вообще есть ожидающие...
 				{
-					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // По всем группам, кроме текущей.
+					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // По всем группам...
 					{
 						p_GraphicsGroupItemInt = SchematicWindow::vp_Groups.at(iF);
-						if(p_GraphicsGroupItemInt != p_GraphicsGroupItem)
+						if(p_GraphicsGroupItemInt != p_GraphicsGroupItem) // ... кроме текущей.
 						{
-							// По всем элементам в ожидании групп.
+							// По всем элементам в ожидании групп (одиноким).
 							for(int iF = 0; iF < SchematicWindow::vp_LonelyElements.count(); iF++)
 							{
 								p_GraphicsElementItem = SchematicWindow::vp_LonelyElements.at(iF);
 								if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup ==
 										p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
-									// Если элемент принадлежит группе...
+									// Если одинокий элемент принадлежит текущей группе...
 								{
 									bool bAlreadyPresent = false;
 									for(int iF = 0; iF < p_GraphicsGroupItemInt->vp_ConnectedElements.count(); iF++)
-										// По всем вписанным элементам.
+										// По всем вписанным в текущую элементам.
 									{
 										if(p_GraphicsGroupItemInt->vp_ConnectedElements.at(iF)->
 												oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
@@ -708,6 +709,83 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 						}
 					}
 				}
+
+				// Добавение группы в группы.
+				if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup != 0)
+				{
+					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // По всем группам...
+					{
+						p_GraphicsGroupItemInt = SchematicWindow::vp_Groups.at(iF);
+						if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup ==
+						   p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt) // Если группа принадлежит группе...
+						{
+							p_GraphicsGroupItemInt->vp_ConnectedGroups.push_front(p_GraphicsGroupItem); // Добавление в группу.
+							if(p_GraphicsGroupItem->oPSchGroupBaseInt.bRequestGroupUpdate)
+							{
+								SchematicView::UpdateGroupFrameByContent(p_GraphicsGroupItemInt);
+							}
+							p_GraphicsGroupItem->p_GraphicsGroupItemRel = p_GraphicsGroupItemInt;
+							bGroupFounded = true;
+							// По всем группам в ожидании групп.
+							for(int iF = 0; iF < SchematicWindow::vp_LonelyGroups.count(); iF++)
+							{
+								p_GraphicsGroupItemInt = SchematicWindow::vp_LonelyGroups.at(iF);
+								if(p_GraphicsGroupItem == p_GraphicsGroupItemInt)
+									// Если присоединённая группа была в списке ожидающих...
+								{
+									// Удаление из ожидающих, счётчик на один назад.
+									SchematicWindow::vp_LonelyGroups.removeAt(iF);
+									iF--;
+								}
+							}
+						}
+					}
+					if(!bGroupFounded)
+					{
+						SchematicWindow::vp_LonelyGroups.push_front(p_GraphicsGroupItem);
+					}
+				}
+
+				// Добавление в остальные группы всех ожидающих привязанных групп (подстраховка от рассинхрона).
+				if(!SchematicWindow::vp_LonelyGroups.isEmpty()) // Если вообще есть ожидающие...
+				{
+					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // По всем группам...
+					{
+						p_GraphicsGroupItemInt = SchematicWindow::vp_Groups.at(iF); // В p_GraphicsGroupItemInt - текущая группа для сравнения с одинокой.
+						// По всем группам в ожидании групп (одиноким).
+						for(int iF = 0; iF < SchematicWindow::vp_LonelyGroups.count(); iF++)
+						{
+							p_GraphicsGroupItemIntHelper = SchematicWindow::vp_LonelyGroups.at(iF); // В p_GraphicsGroupItemIntHelper - текущая одинок.
+							if(p_GraphicsGroupItemIntHelper->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup ==
+							   p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
+								// Если одинокая группа принадлежит текущей группе...
+							{
+								bool bAlreadyPresent = false;
+								for(int iF = 0; iF < p_GraphicsGroupItemInt->vp_ConnectedGroups.count(); iF++)
+									// По всем вписанным в текущую группу группам.
+								{
+									if(p_GraphicsGroupItemInt->vp_ConnectedGroups.at(iF)->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+									   p_GraphicsGroupItemIntHelper->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
+										// Если уже вписана - игнор.
+									{
+										bAlreadyPresent = true;
+										break;
+									}
+								}
+								if(bAlreadyPresent == false) // Если новый для группы...
+								{
+									// Добавление в группу.
+									p_GraphicsGroupItemInt->vp_ConnectedGroups.push_front(p_GraphicsGroupItemIntHelper);
+									p_GraphicsGroupItemIntHelper->p_GraphicsGroupItemRel = p_GraphicsGroupItemInt;
+									// Удаление из ожидающих, счётчик на один назад.
+									SchematicWindow::vp_LonelyGroups.removeAt(iF);
+									iF--;
+								}
+							}
+						}
+					}
+				}
+
 				//
 gG:				if(oPSchGroupBase.oPSchGroupVars.bLastInQueue)
 				{
@@ -830,7 +908,7 @@ gGN:			if(oPSchGroupName.bLastInQueue)
 										p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 										break;
 									}
-									SchematicView::UpdateGroupFrameByElements(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+									SchematicView::UpdateGroupFrameByContent(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 									break;
 								}
 							}
@@ -1670,7 +1748,7 @@ void MainWindow::IncomingUpdateElementParameters(GraphicsElementItem* p_Graphics
 				}
 				else
 				{ // Ещё остались...
-					SchematicView::UpdateGroupFrameByElements(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+					SchematicView::UpdateGroupFrameByContent(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 				}
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;

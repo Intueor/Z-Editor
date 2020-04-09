@@ -38,6 +38,7 @@ QVector<GraphicsGroupItem*> SchematicWindow::vp_Groups;
 QVector<GraphicsLinkItem*> SchematicWindow::vp_Links;
 QVector<GraphicsPortItem*> SchematicWindow::vp_Ports;
 QVector<GraphicsElementItem*> SchematicWindow::vp_LonelyElements;
+QVector<GraphicsGroupItem*> SchematicWindow::vp_LonelyGroups;
 unsigned char SchematicWindow::uchElementSelectionFlashCounter = 1;
 unsigned char SchematicWindow::uchGroupSelectionFlashCounter = 1;
 unsigned char SchematicWindow::uchPortSelectionFlashCounter = 1;

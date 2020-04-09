@@ -72,6 +72,8 @@ public:
 	bool bSelected; ///< Признак выбранной группы.
 	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
 	QVector<GraphicsElementItem*> vp_ConnectedElements; ///< Вектор указателей на графические элементы, включённые в группу.
+	QVector<GraphicsGroupItem*> vp_ConnectedGroups; ///< Вектор указателей на графические группы, включённые в группу.
+	GraphicsGroupItem* p_GraphicsGroupItemRel; ///< Всп. указатель на группу-родителя.
 	QLabel* p_QLabel; ///< Указатель на объект метки названия группы.
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
 };

@@ -99,8 +99,8 @@ public:
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
-	/// Обновление фрейма группы по геометрии включённых элементов.
-	static void UpdateGroupFrameByElements(GraphicsGroupItem* p_GraphicsGroupItem);
+	/// Обновление фрейма группы по геометрии контента.
+	static void UpdateGroupFrameByContent(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
 	/// Обновление выбранных параметров в элементе.
 	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,

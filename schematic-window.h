@@ -82,6 +82,7 @@ public:
 	static QVector<GraphicsPortItem*> vp_Ports; ///< Вектор с указателями на граф. порты.
 	//
 	static QVector<GraphicsElementItem*> vp_LonelyElements; ///< Вектор с указателями на граф. элементы, ожидающие группу.
+	static QVector<GraphicsGroupItem*> vp_LonelyGroups; ///< Вектор с указателями на граф. группы, ожидающие группу.
 	//
 	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
 	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
