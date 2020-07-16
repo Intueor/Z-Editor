@@ -369,9 +369,9 @@ void SchematicView::PrepareForRemoveElementFromScene(GraphicsElementItem* p_Grap
 	if(p_GraphicsGroupItemRel != nullptr)
 	{
 		p_GraphicsGroupItemRel->vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление из группы.
-		if(!GroupCheckEmptyAndRemoveRecursive(p_GraphicsGroupItemRel))
+		if(!GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItemRel))
 		{
-			UpdateGroupFrameByContentRecursive(p_GraphicsGroupItemRel); // При непустой группе - коррекция её фрейма.
+			UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemRel); // При непустой группе - коррекция её фрейма.
 			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 					p_GraphicsGroupItemRel->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 			oPSchGroupVars.ullIDInt = p_GraphicsGroupItemRel->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
@@ -463,13 +463,13 @@ bool SchematicView::DetachSelectedAPFS()
 			GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItem->p_GraphicsGroupItemRel;
 			//
 			p_GraphicsGroupItem->vp_ConnectedElements.removeOne(p_GraphicsElementItem);
-			if(!GroupCheckEmptyAndRemoveRecursive(p_GraphicsGroupItem))
+			if(!GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem))
 			{
 				if(!vp_AffectedGroups.contains(p_GraphicsGroupItem)) // Может быть игнор на случай остоединения более одного элемента от группы.
 				{
 					vp_AffectedGroups.append(p_GraphicsGroupItem); // Добавление в затронутые.
 				}
-				UpdateGroupFrameByContentRecursive(p_GraphicsGroupItem);
+				UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
 			}
 			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
@@ -763,7 +763,7 @@ void SchematicView::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddEl
 }
 
 // Обновление фрейма группы по геометрии контента рекурсивно.
-void SchematicView::UpdateGroupFrameByContentRecursive(GraphicsGroupItem* p_GraphicsGroupItem)
+void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	DbPoint oDbPointLeftTop;
 	DbPoint oDbPointRightBottom;
@@ -801,7 +801,7 @@ void SchematicView::UpdateGroupFrameByContentRecursive(GraphicsGroupItem* p_Grap
 	}
 	// ГРУППЫ.
 	// Цикл по группам для наращивания.
-	for(int iF = 1; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
+	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
 	{
 		DbPoint oDbPointLeftTopTemp;
 		DbPoint oDbPointRightBottomTemp;
@@ -829,7 +829,7 @@ void SchematicView::UpdateGroupFrameByContentRecursive(GraphicsGroupItem* p_Grap
 	UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_FRAME | SCH_UPDATE_MAIN);
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel)
 	{
-		UpdateGroupFrameByContentRecursive(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
 	}
 }
 
@@ -1091,7 +1091,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 	{
 		if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
 		{
-			UpdateGroupFrameByContentRecursive(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+			UpdateGroupFrameByContentRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 		}
 	}
 	if(ushBits & SCH_UPDATE_MAIN)
@@ -1165,7 +1165,7 @@ void SchematicView::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementIte
 	{
 		if(bWithGroup)
 		{
-			ReleaseGroupAPFSRecursive(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+			ReleaseGroupAPFSRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 			return;
 		}
 	}
@@ -1239,8 +1239,8 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 	}
 	if(bAction)
 	{
-		UpdateGroupFrameByContentRecursive(p_GraphicsGroupItem);
-		GroupToTopAPFSRecursive(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
+		GroupToTopAPFSRecursively(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
 					   p_GraphicsElementItemInitial, nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 		if(p_GraphicsElementItemInitial != nullptr)
 		{
@@ -1281,7 +1281,7 @@ void SchematicView::SelectElement(GraphicsElementItem* p_GraphicsElementItem, bo
 		{
 			if(p_GraphicsElementItemUtil->p_GraphicsGroupItemRel != nullptr)
 			{
-				GroupToTopAPFSRecursive(p_GraphicsElementItemUtil->p_GraphicsGroupItemRel,
+				GroupToTopAPFSRecursively(p_GraphicsElementItemUtil->p_GraphicsGroupItemRel,
 							   SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 							   DONT_ADD_SEND_FRAME, p_GraphicsElementItemUtil, nullptr,
 							   ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS); // Не поднимать элемент.
@@ -1293,7 +1293,7 @@ void SchematicView::SelectElement(GraphicsElementItem* p_GraphicsElementItem, bo
 	}
 	if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr) // Если присутствует - поднятие, исключая текущий элемент.
 	{
-		GroupToTopAPFSRecursive(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+		GroupToTopAPFSRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 					   DONT_ADD_SEND_FRAME, p_GraphicsElementItem, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	}
 	ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
@@ -1317,7 +1317,7 @@ void SchematicView::DeselectElement(GraphicsElementItem* p_GraphicsElementItem, 
 	}
 	if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr) // Если присутствует - поднятие, исключая текущий элемент.
 	{
-		GroupToTopAPFSRecursive(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+		GroupToTopAPFSRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 					   DONT_ADD_SEND_FRAME, p_GraphicsElementItem, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	}
 	ElementToTopAPFS(p_GraphicsElementItem, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
@@ -1456,7 +1456,7 @@ gSE:		pvp_SortedGroups->append(p_GraphicsGroupItem);
 }
 
 // Поднятие группы на первый план и подготовка к отсылке по запросу рекурсивно.
-void SchematicView::GroupToTopAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
+void SchematicView::GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
 											bool bAddNewElementsToGroupSending, bool bAddBusyOrZPosToSending, bool bAddFrame,
 											GraphicsElementItem* p_GraphicsElementItemExclude, GraphicsGroupItem* p_GraphicsGroupItemExclude,
 											bool bBlokingPatterns, bool bSendElements, bool bUplevel)
@@ -1465,7 +1465,7 @@ void SchematicView::GroupToTopAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupIt
 	//
 	if((p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr) & bUplevel)
 	{
-		GroupToTopAPFSRecursive(p_GraphicsGroupItem->p_GraphicsGroupItemRel, bSend, bAddNewElementsToGroupSending, bAddBusyOrZPosToSending, bAddFrame,
+		GroupToTopAPFSRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel, bSend, bAddNewElementsToGroupSending, bAddBusyOrZPosToSending, bAddFrame,
 								nullptr, p_GraphicsGroupItem, bBlokingPatterns, bSendElements);
 	}
 	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
@@ -1502,14 +1502,14 @@ void SchematicView::GroupToTopAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupIt
 		GraphicsGroupItem* p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
 		if(p_GraphicsGroupItemHelper != p_GraphicsGroupItemExclude)
 		{
-			GroupToTopAPFSRecursive(p_GraphicsGroupItemHelper, bSend, bAddNewElementsToGroupSending,
+			GroupToTopAPFSRecursively(p_GraphicsGroupItemHelper, bSend, bAddNewElementsToGroupSending,
 									bAddBusyOrZPosToSending, bAddFrame, nullptr, nullptr, bBlokingPatterns, bSendElements, false);
 		}
 	}
 }
 
 // Отпускание группы и подготовка отправки по запросу рекурсивно.
-void SchematicView::ReleaseGroupAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude,
+void SchematicView::ReleaseGroupAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude,
 											  GraphicsGroupItem* p_GraphicsGroupItemExclude, bool bWithFrame,
 											  bool bWithElementFrames, bool bUplevel)
 {
@@ -1520,7 +1520,7 @@ void SchematicView::ReleaseGroupAPFSRecursive(GraphicsGroupItem* p_GraphicsGroup
 		return;
 	if((p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr) & bUplevel)
 	{
-		ReleaseGroupAPFSRecursive(p_GraphicsGroupItem->p_GraphicsGroupItemRel, nullptr, p_GraphicsGroupItem,
+		ReleaseGroupAPFSRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel, nullptr, p_GraphicsGroupItem,
 								  bWithFrame, bWithElementFrames);
 	}
 	oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
@@ -1552,7 +1552,7 @@ void SchematicView::ReleaseGroupAPFSRecursive(GraphicsGroupItem* p_GraphicsGroup
 		GraphicsGroupItem* p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
 		if(p_GraphicsGroupItemHelper != p_GraphicsGroupItemExclude)
 		{
-			ReleaseGroupAPFSRecursive(p_GraphicsGroupItemHelper, nullptr, nullptr, bWithFrame, bWithElementFrames, false);
+			ReleaseGroupAPFSRecursively(p_GraphicsGroupItemHelper, nullptr, nullptr, bWithFrame, bWithElementFrames, false);
 		}
 	}
 }
@@ -1577,11 +1577,11 @@ void SchematicView::SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLa
 		// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
 		if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
 		{
-			GroupToTopAPFSRecursive(p_GraphicsGroupItemUtil, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+			GroupToTopAPFSRecursively(p_GraphicsGroupItemUtil, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 						   DONT_ADD_SEND_FRAME, nullptr, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 		}
 	}
-	GroupToTopAPFSRecursive(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+	GroupToTopAPFSRecursively(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 				   DONT_ADD_SEND_FRAME, nullptr, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	p_GraphicsGroupItem->bSelected = true;
 }
@@ -1600,15 +1600,16 @@ void SchematicView::DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool b
 			p_GraphicsGroupItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
 		}
 	}
-	GroupToTopAPFSRecursive(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
+	GroupToTopAPFSRecursively(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_BUSY,
 				   DONT_ADD_SEND_FRAME, nullptr, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	p_GraphicsGroupItem->bSelected = false;
 }
 
-// Перемещение группы.
-void SchematicView::MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody)
+// Перемещение группы рекурсивно.
+void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
+	GraphicsGroupItem* p_GraphicsGroupItemHelper;
 	//
 	if(bMoveBody)
 	{
@@ -1625,6 +1626,11 @@ void SchematicView::MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
 		UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
+	}
+	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
+	{
+		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
+		MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
 	}
 }
 
@@ -2028,7 +2034,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 						vp_NewElementsForGroup->append(p_GraphicsElementItemUtil);
 					}
 				}
-				UpdateGroupFrameByContentRecursive(p_GraphicsGroupItem);
+				UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
 				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 				MainWindow::p_Client->AddPocketToOutputBufferC(
@@ -2271,11 +2277,11 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 			p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iE);
 			if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
 			{
-				MoveGroup(p_GraphicsGroupItemUtil, oQPointFRes);
+				MoveGroupRecursively(p_GraphicsGroupItemUtil, oQPointFRes);
 			}
 		}
 	}
-	MoveGroup(p_GraphicsGroupItem, oQPointFRes, false);
+	MoveGroupRecursively(p_GraphicsGroupItem, oQPointFRes, false);
 }
 
 // Обработчик события отпусканеия мыши на группе.
@@ -2300,11 +2306,11 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				p_GraphicsGroupItemUtil = vp_SortedGroups.at(iE);
 				if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
 				{
-					ReleaseGroupAPFSRecursive(p_GraphicsGroupItemUtil);
+					ReleaseGroupAPFSRecursively(p_GraphicsGroupItemUtil);
 				}
 			}
 		}
-		ReleaseGroupAPFSRecursive(p_GraphicsGroupItem);
+		ReleaseGroupAPFSRecursively(p_GraphicsGroupItem);
 		TrySendBufferToServer;
 	}
 	p_GraphicsGroupItem->OBMouseReleaseEvent(p_Event);
@@ -2400,8 +2406,8 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-				UpdateGroupFrameByContentRecursive(p_GraphicsGroupItem);
-				GroupToTopAPFSRecursive(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
+				UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
+				GroupToTopAPFSRecursively(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME,
 							   nullptr, nullptr, ELEMENTS_BLOCKING_PATTERN_OFF, SEND_ELEMENTS);
 				UpdateLinksZPos();
 			}
@@ -2487,14 +2493,14 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 }
 
 // Рекурсивное удаление пустых групп.
-bool SchematicView::GroupCheckEmptyAndRemoveRecursive(GraphicsGroupItem* p_GraphicsGroupItem)
+bool SchematicView::GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	if(p_GraphicsGroupItem->vp_ConnectedElements.isEmpty() & p_GraphicsGroupItem->vp_ConnectedGroups.isEmpty()) // Если пустая группа...
 	{
 		if(p_GraphicsGroupItem->p_GraphicsGroupItemRel) // Если была в составе другой...
 		{
 			p_GraphicsGroupItem->p_GraphicsGroupItemRel->vp_ConnectedGroups.removeOne(p_GraphicsGroupItem); // Удаление из состава.
-			GroupCheckEmptyAndRemoveRecursive(p_GraphicsGroupItem->p_GraphicsGroupItemRel); // Теперь та же проверка для хост-группы.
+			GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel); // Теперь та же проверка для хост-группы.
 		}
 		SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
@@ -2739,7 +2745,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 		oDbPointPortRB.dbY = p_GraphicsPortItem->p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 		if(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			GroupToTopAPFSRecursive(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel,
+			GroupToTopAPFSRecursively(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel,
 						   SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
 						   ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, p_GraphicsPortItem->p_ParentInt, nullptr,
 						   APPLY_BLOCKINGPATTERN, SEND_ELEMENTS);
@@ -3015,7 +3021,7 @@ gF:		if(p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ul
 		{
 			if(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				ReleaseGroupAPFSRecursive(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel, p_GraphicsPortItem->p_ParentInt, nullptr,
+				ReleaseGroupAPFSRecursively(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel, p_GraphicsPortItem->p_ParentInt, nullptr,
 								 WITHOUT_FRAME, WITHOUT_ELEMENTS_FRAMES);
 			}
 		}
@@ -3183,7 +3189,7 @@ void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsS
 	{
 		if(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 		{
-			GroupToTopAPFSRecursive(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel, true, p_GraphicsScalerItem->p_ParentInt);
+			GroupToTopAPFSRecursively(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel, true, p_GraphicsScalerItem->p_ParentInt);
 		}
 		ElementToTopAPFS(p_GraphicsScalerItem->p_ParentInt);
 		TrySendBufferToServer;
@@ -3220,7 +3226,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	UpdateSelectedInElement(p_GraphicsScalerItem->p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 	if(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr) // По группе элемента без выборки, если она есть.
 	{
-		UpdateGroupFrameByContentRecursive(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel);
+		UpdateGroupFrameByContentRecursively(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel);
 	}
 }
 
@@ -3258,7 +3264,7 @@ void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_Graphic
 		{
 			if(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr)
 			{
-				ReleaseGroupAPFSRecursive(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel,
+				ReleaseGroupAPFSRecursively(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel,
 								 p_GraphicsScalerItem->p_ParentInt, nullptr, WITH_FRAME, WITHOUT_ELEMENTS_FRAMES);
 			}
 		}

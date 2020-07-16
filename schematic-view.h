@@ -100,7 +100,7 @@ public:
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
 	/// Обновление фрейма группы по геометрии контента рекурсивно.
-	static void UpdateGroupFrameByContentRecursive(GraphicsGroupItem* p_GraphicsGroupItem);
+	static void UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
 	/// Обновление выбранных параметров в элементе.
 	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
@@ -175,7 +175,7 @@ public:
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
 	/// Поднятие группы на первый план и подготовка к отсылке по запросу.
-	static void GroupToTopAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+	static void GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
 										bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 										GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 										GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
@@ -191,7 +191,7 @@ public:
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bUplevel При true - рекурсия на верхний элемент.
 	/// Отпускание группы и подготовка отправки по запросу рекурсивно.
-	static void ReleaseGroupAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupItem,
+	static void ReleaseGroupAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
 										  bool bWithFrame = true, bool bWithElementFrames = true, bool bUplevel = true);
@@ -209,8 +209,8 @@ public:
 	static void DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] bLastState Последнее значение выбранности.
-	/// Перемещение группы.
-	static void MoveGroup(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);
+	/// Перемещение группы рекурсивно.
+	static void MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на перемещаемую группу.
 							///< \param[in] a_QPointFRes Ссылка на смещение для группы.
 							///< \param[in] bMoveBody При true - смещать и тело группы.
@@ -269,7 +269,7 @@ public:
 							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
 
 	/// Рекурсивное удаление пустых групп.
-	static bool GroupCheckEmptyAndRemoveRecursive(GraphicsGroupItem* p_GraphicsGroupItem);
+	static bool GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \return true, если было удаление.
 	/// Обработчик функции рисования фрейма.
