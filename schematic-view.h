@@ -99,8 +99,8 @@ public:
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
-	/// Обновление фрейма группы по геометрии контента.
-	static void UpdateGroupFrameByContent(GraphicsGroupItem* p_GraphicsGroupItem);
+	/// Обновление фрейма группы по геометрии контента рекурсивно.
+	static void UpdateGroupFrameByContentRecursive(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
 	/// Обновление выбранных параметров в элементе.
 	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
@@ -175,25 +175,32 @@ public:
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
 	/// Поднятие группы на первый план и подготовка к отсылке по запросу.
-	static void GroupToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
-							   bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
-							   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-							   bool bBlokingPatterns = true, bool bSendElements = true);
+	static void GroupToTopAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+										bool bAddNewElementsToGroupSending = false, bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+										GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+										GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
+										bool bBlokingPatterns = true, bool bSendElements = true, bool bUplevel = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
 							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
+							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
-	/// Отпускание группы и подготовка отправки по запросу.
-	static void ReleaseGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-								 bool bWithFrame = true, bool bWithElementFrames = true);
+							///< \param[in] bUplevel При true - рекурсия на верхний элемент.
+	/// Отпускание группы и подготовка отправки по запросу рекурсивно.
+	static void ReleaseGroupAPFSRecursive(GraphicsGroupItem* p_GraphicsGroupItem,
+										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
+										  bool bWithFrame = true, bool bWithElementFrames = true, bool bUplevel = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
+							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
 							///< \param[in] bWithElementFrames При true - передать на сервер фреймы элементов.
+							///< \param[in] bUplevel При true - рекурсия на верхний элемент.
 	/// Выбор группы.
 	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
@@ -261,6 +268,10 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
 
+	/// Рекурсивное удаление пустых групп.
+	static bool GroupCheckEmptyAndRemoveRecursive(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \return true, если было удаление.
 	/// Обработчик функции рисования фрейма.
 	static void FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QPainter* p_Painter);
 							///< \param[in] GraphicsFrameItem Указатель на фрейм.
@@ -364,9 +375,8 @@ protected:
 							///< \param[in] p_Event Указатель на событие клавиши.
 private:
 	/// Подготовка удаления графического элемента из сцены и группы, возврат флага на удаление группы элемента.
-	static bool PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem);
+	static void PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \return true, если был удалён пустой графический объект группы.
 private:
 	static bool bLMousePressed; ///< Признак нажатия на ЛКМ.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
