@@ -1632,6 +1632,10 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
 		MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
 	}
+	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
+	{
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
+	}
 }
 
 // Обновление Z-позиции линка по данным элементов.
