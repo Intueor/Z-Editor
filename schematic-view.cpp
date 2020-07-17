@@ -1637,7 +1637,10 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 	}
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
 	{
-		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
+		if(!p_GraphicsGroupItem->p_GraphicsGroupItemRel->bSelected)
+		{
+			UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
+		}
 	}
 }
 
