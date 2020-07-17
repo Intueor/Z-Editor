@@ -123,14 +123,14 @@ const char m_chMenuDstPort[] = "Порт приёмника ";
 #define MENU_DST_PORT			4
 const char m_chMenuSelectedPort[] = "Выбранный порт ";
 #define MENU_SELECTED_PORT		5
-const char m_chMenuRemoveFromGroup[] = "Удалить из группы выбранные элементы";
-#define MENU_REMOVE_FROM_GROUP	6
-const char m_chMenuCreateGroup[] = "Создать группу с выбранными элементами";
+const char m_chMenuRemoveFromGroup[] = "Удалить выбранное из групп";
+#define MENU_REMOVE_FROM_GROUPS	6
+const char m_chMenuCreateGroup[] = "Создать группу с выбранным";
 #define MENU_CREATE_GROUP		7
 const char m_chMenuCreateElement[] = "Создать элемент";
 #define MENU_CREATE_ELEMENT		8
-const char m_chMenuAddFreeSelected[] = "Добавить выбранные свободные элементы в группу";
-#define MENU_ADD_FREE_SELECTED	9
+const char m_chMenuAddFreeSelected[] = "Добавить выбранное в группу";
+#define MENU_ADD_SELECTED		9
 const char m_chMenuBackground[] = "Изменить цвет фона";
 #define MENU_CHANGE_BACKGROUND	10
 const char m_chMenuDisband[] = "Расформировать выбранные группы";

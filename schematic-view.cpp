@@ -435,7 +435,7 @@ void SchematicView::DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
 }
 
-// Остоединение выбранных элементов от группы и подготовка отправки всех изменеий на сервер.
+// Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
 bool SchematicView::DetachSelectedAPFS()
 {
 	bool bAction = false;
@@ -1868,13 +1868,13 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				{
 					SchematicWindow::p_SafeMenu->addAction(QString(QString(m_chMenuAddFreeSelected) +
 																   " [" + QString(SchematicWindow::vp_SelectedGroups.at(0)->oPSchGroupBaseInt.m_chName)
-																   + "]"))->setData(MENU_ADD_FREE_SELECTED);
+																   + "]"))->setData(MENU_ADD_SELECTED);
 				}
 			}
 			// Из группы.
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUP);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUPS);
 			}
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
@@ -2059,11 +2059,11 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				delete vp_NewElementsForGroup;
 				vp_NewElementsForGroup = nullptr;
 			}
-			else if(p_SelectedMenuItem->data() == MENU_ADD_FREE_SELECTED)
+			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
 				AddFreeSelectedElementsToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0), p_GraphicsElementItem);
 			}
-			else if(p_SelectedMenuItem->data() == MENU_REMOVE_FROM_GROUP)
+			else if(p_SelectedMenuItem->data() == MENU_REMOVE_FROM_GROUPS)
 			{
 				bool bForceSelected = false;
 				//
@@ -2249,7 +2249,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				}
 				if(!SchematicWindow::vp_SelectedFreeElements.isEmpty())
 				{
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_FREE_SELECTED);
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
 				}
 			}
 			// Цвет фона.
@@ -2359,7 +2359,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				}
 				DeleteSelectedAPFS();
 			}
-			else if(p_SelectedMenuItem->data() == MENU_ADD_FREE_SELECTED)
+			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
 				AddFreeSelectedElementsToGroupAPFS(p_GraphicsGroupItem);
 			}
