@@ -1630,7 +1630,10 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
 	{
 		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
-		MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
+		if(!p_GraphicsGroupItemHelper->bSelected)
+		{
+			MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
+		}
 	}
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
 	{
