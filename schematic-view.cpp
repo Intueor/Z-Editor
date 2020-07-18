@@ -1473,6 +1473,7 @@ void SchematicView::GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroup
 {
 	PSchGroupVars oPSchGroupVars;
 	//
+	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
 	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
