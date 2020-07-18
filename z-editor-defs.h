@@ -23,6 +23,8 @@
 #define WITHOUT_GROUP						false
 #define SEND_NEW_ELEMENTS_TO_GROUP			true
 #define DONT_SEND_NEW_ELEMENTS_TO_GROUP		false
+#define SEND_NEW_GROUPS_TO_GROUP			true
+#define DONT_SEND_NEW_GROUPS_TO_GROUP		false
 #define SEND_ELEMENT_GROUP_CHANGE			true
 #define DONT_SEND_ELEMENT_GROUP_CHANGE		false
 #define ADD_SEND_BUSY						true
@@ -31,8 +33,8 @@
 #define ADD_SEND_ZPOS						false
 #define ADD_SEND_FRAME						true
 #define DONT_ADD_SEND_FRAME					false
-#define GET_SELECTED_ELEMENTS_UP			true
-#define DONT_GET_SELECTED_ELEMENTS_UP		false
+#define GET_SELECTED_OBJECTS_UP				true
+#define DONT_GET_SELECTED_OBJECTS_UP		false
 #define WITH_FRAME							true
 #define WITHOUT_FRAME						false
 #define WITH_POSITION						true
