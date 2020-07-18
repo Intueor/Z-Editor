@@ -185,13 +185,28 @@ public:
 							///< \param[in] аvp_Groups Ссылка на вектор указателей на группы.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
-	/// Поднятие группы на первый план и подготовка к отсылке по запросу.
+	/// Поднятие вертикали на первый план и подготовка к отсылке по запросу.
+	static void VerticalToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
+										  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+										  bool bBlokingPatterns = true, bool bSendElements = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
+							///< \param[in] bSend При true - отправка на сервер.
+							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
+							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
+							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
+							///< \param[in] bAddFrame При true - передача фрейма группы.
+							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
+							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
+							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
+	/// Поднятие группы на первый план и подготовка к отсылке по запросу рекурсивно.
 	static void GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
 										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
 										  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-										  bool bBlokingPatterns = true, bool bSendElements = true, bool bUplevel = true);
+										  bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
@@ -202,18 +217,16 @@ public:
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
-							///< \param[in] bUplevel При true - рекурсия на верхний элемент.
 	/// Отпускание группы и подготовка отправки по запросу рекурсивно.
 	static void ReleaseGroupAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-										  bool bWithFrame = true, bool bWithElementFrames = true, bool bUplevel = true);
+										  bool bWithFrame = true, bool bWithElementFrames = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
 							///< \param[in] bWithElementFrames При true - передать на сервер фреймы элементов.
-							///< \param[in] bUplevel При true - рекурсия на верхний элемент.
 	/// Выбор группы.
 	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
