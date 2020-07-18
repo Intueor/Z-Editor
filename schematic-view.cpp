@@ -30,6 +30,7 @@ DbPoint SchematicView::oDbPointPortOld;
 DbPoint SchematicView::oDbPointPortInitialClick;
 bool SchematicView::bPortFromElement;
 bool SchematicView::bPortMenuExecuted = false;
+QVector<GraphicsGroupItem*> SchematicView::v_AlreadyMovedGroups;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -1564,19 +1565,6 @@ void SchematicView::SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLa
 		p_GraphicsGroupItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
 	}
 	//
-	for(int iE = 0; iE != SchematicWindow::vp_SelectedGroups.count(); iE ++)
-	{
-		GraphicsGroupItem* p_GraphicsGroupItemUtil;
-		//
-		p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iE);
-		// Отправка наверх всех выбранных групп кроме текущей (её потом, в последнюю очередь, над всеми).
-		if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
-		{
-			VerticalToTopAPFS(p_GraphicsGroupItemUtil, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-									  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-									  DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
-		}
-	}
 	VerticalToTopAPFS(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
 							  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
 							  DONT_ADD_SEND_FRAME, nullptr, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
@@ -1609,36 +1597,34 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItemHelper;
 	//
-	if(bMoveBody)
+	if(!v_AlreadyMovedGroups.contains(p_GraphicsGroupItem))
 	{
-		p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->x() + a_QPointFRes.x(), p_GraphicsGroupItem->y() + a_QPointFRes.y());
-	}
-	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
-	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
-	UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_MAIN);
-	//
-	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
-	{
-		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
-		p_GraphicsElementItem->setPos(p_GraphicsElementItem->x() + a_QPointFRes.x(), p_GraphicsElementItem->y() + a_QPointFRes.y());
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
-		UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
+		if(bMoveBody)
+		{
+			p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->x() + a_QPointFRes.x(), p_GraphicsGroupItem->y() + a_QPointFRes.y());
+		}
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
+		UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_MAIN);
+		//
+		for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
+		{
+			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
+			p_GraphicsElementItem->setPos(p_GraphicsElementItem->x() + a_QPointFRes.x(), p_GraphicsElementItem->y() + a_QPointFRes.y());
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
+			UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
+		}
+		v_AlreadyMovedGroups.append(p_GraphicsGroupItem);
 	}
 	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
 	{
 		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
-		if(!p_GraphicsGroupItemHelper->bSelected)
-		{
-			MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
-		}
+		MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
 	}
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
 	{
-		if(!p_GraphicsGroupItem->p_GraphicsGroupItemRel->bSelected)
-		{
-			UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
-		}
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
 	}
 }
 
@@ -2261,7 +2247,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 // Обработчик события перемещения мыши с группой.
 void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	int iC;
 	QPointF oQPointFInit;
 	QPointF oQPointFRes;
 	//
@@ -2275,10 +2260,11 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 	oQPointFRes = p_GraphicsGroupItem->pos();
 	oQPointFRes.setX(oQPointFRes.x() - oQPointFInit.x()); // Смещение по X.
 	oQPointFRes.setY(oQPointFRes.y() - oQPointFInit.y()); // Смещение по Y.
+	v_AlreadyMovedGroups.clear();
+	MoveGroupRecursively(p_GraphicsGroupItem, oQPointFRes, false);
 	if(p_GraphicsGroupItem->bSelected)
 	{
-		iC = SchematicWindow::vp_SelectedGroups.count();
-		for(int iE = 0; iE != iC; iE ++)
+		for(int iE = 0; iE != SchematicWindow::vp_SelectedGroups.count(); iE ++)
 		{
 			GraphicsGroupItem* p_GraphicsGroupItemUtil;
 			//
@@ -2289,7 +2275,6 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 			}
 		}
 	}
-	MoveGroupRecursively(p_GraphicsGroupItem, oQPointFRes, false);
 }
 
 // Обработчик события отпусканеия мыши на группе.

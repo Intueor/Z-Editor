@@ -412,6 +412,7 @@ private:
 	static QPointF pntMouseMoveMapped; ///< Точка смещения от клика в координатах сцены.
 	qreal rScaleFactor; ///<
 	qreal rFactor; ///<
+	static QVector<GraphicsGroupItem*> v_AlreadyMovedGroups; ///< Список указателей на уже перемещённые за цикл группы.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
