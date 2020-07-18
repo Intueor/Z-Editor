@@ -205,7 +205,7 @@ public:
 										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
 										  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
+										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr, bool bWithSelectedDiff = true,
 										  bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
@@ -215,6 +215,7 @@ public:
 							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
+							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 	/// Отпускание группы и подготовка отправки по запросу рекурсивно.
