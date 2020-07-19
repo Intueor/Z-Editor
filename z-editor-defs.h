@@ -47,6 +47,8 @@
 #define NOT_FROM_ELEMENT					false
 #define REMOVE_FROM_CLIENT					true
 #define DONT_REMOVE_FROM_CLIENT				false
+#define TO_TOP								true
+#define LEAVE_IN_PLACE						false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9

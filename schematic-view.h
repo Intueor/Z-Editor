@@ -96,21 +96,22 @@ public:
 							///< \param[in] a_Font Ссылка на шрифт.
 							///< \param[in] a_strText Ссылка на строку.
 							///< \return Ширина в пикселях.
-	/// Поднятие элемента на первый план и подготовка отсылки по запросу.
-	static void ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange = false, bool bAddBusyOrZPosToSending = true,
-												 bool bBlokingPattern = true, bool bSend = true);
+	/// Поднятие элемента на первый план, блокировка и подготовка отсылки по запросу.
+	static void ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange = false, bool bAddBusyOrZPosToSending = true,
+									   bool bBlokingPattern = true, bool bSend = true, bool bToTop = true);
 							///< \param[in] p_Element Указатель на граф. элемент.
 							///< \param[in] bAddElementGroupID При true - передача элементом изменения текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
+							///< \param[in] bToTop При true - поднятие на передний план на клиенте.
 	/// Обновление фрейма группы по геометрии контента рекурсивно.
 	static void UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
 	/// Обновление выбранных параметров в элементе.
 	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
-							   GraphicsPortItem* p_GraphicsPortItem = nullptr,
-							   GraphicsLinkItem *p_GraphicsLinkItem = nullptr, bool bIsIncoming = false);
+										GraphicsPortItem* p_GraphicsPortItem = nullptr,
+										GraphicsLinkItem *p_GraphicsLinkItem = nullptr, bool bIsIncoming = false);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] ushBits Биты флагов необходимых обновлений.
 							///< \param[in] p_GraphicsPortItem Указатель на граф. объект порта, при необходимости.
@@ -135,7 +136,7 @@ public:
 							///< \param[in] ullID ID элемента.
 	/// Добавление свободных элементов в группу и подготовка к отправке по запросу.
 	static bool AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
-											   GraphicsElementItem* p_GraphicsElementItemInitial = nullptr);
+												   GraphicsElementItem* p_GraphicsElementItemInitial = nullptr);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
 							///< \return true, если добавлялись пакеты в буфер.
@@ -147,20 +148,6 @@ public:
 	static void DeselectElement(GraphicsElementItem* p_GraphicsElementItem, bool bLastState = true);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] bLastState Последнее значение выбранности.
-	/// Подъём содержания группы на первый план с сортировкой и подготовкой отсылки.
-	static void SortGroupContentToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
-										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
-										  bool bAddBusyOrZPosToSending = true,
-										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr, bool bBlokingPatterns = true, bool bSend = true);
-							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
-							///< \param[in] bAddNewElementsToGroupSending При true - передача включёнными в список элементами параметра текущей группы.
-							///< \param[in] bAddNewGroupsToGroupSending При true - передача включёнными в список группами параметра текущей группы.
-							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
-							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
-							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
-							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
-							///< \param[in] bSend При true - отправка на сервер и клиентам.
 	/// Сортировка векторов элементов и групп по Z-позиции с приоритетом по выборке.
 	static void SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Elements, GraphicsElementItem* p_GraphicsElementItemExclude,
 								  QVector<GraphicsGroupItem*>& avp_Groups, GraphicsGroupItem* p_GraphicsGroupItemExclude,
@@ -180,10 +167,10 @@ public:
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
 	/// Поднятие вертикали на первый план и подготовка к отсылке по запросу.
 	static void VerticalToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
-										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
-										  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
-										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  bool bBlokingPatterns = true, bool bSendElements = true);
+								  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
+								  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+								  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+								  bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
@@ -193,13 +180,13 @@ public:
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
-	/// Поднятие группы на первый план и подготовка к отсылке по запросу рекурсивно.
-	static void GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
-										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
-										  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
-										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-										  bool bBlokingPatterns = true, bool bSendElements = true);
+	// Поднятие корня групп на первый план и подготовка к отсылке по запросу рекурсивно.
+	static void GroupsRootToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
+											   bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
+											   bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
+											   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
+											   GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
+											   bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
