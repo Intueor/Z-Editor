@@ -152,28 +152,24 @@ public:
 										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
 										  bool bAddBusyOrZPosToSending = true,
 										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-										  bool bWithSelectedDiff = true, bool bBlokingPatterns = true, bool bSend = true);
+										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr, bool bBlokingPatterns = true, bool bSend = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача включёнными в список элементами параметра текущей группы.
 							///< \param[in] bAddNewGroupsToGroupSending При true - передача включёнными в список группами параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
-							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSend При true - отправка на сервер и клиентам.
 	/// Сортировка векторов элементов и групп по Z-позиции с приоритетом по выборке.
 	static void SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Elements, GraphicsElementItem* p_GraphicsElementItemExclude,
 								  QVector<GraphicsGroupItem*>& avp_Groups, GraphicsGroupItem* p_GraphicsGroupItemExclude,
-								  QVector<EGPointersVariant>* pv_EGPointersVariants,
-								  QVector<EGPointersVariant>* pv_SelectionEGPointersVariants = nullptr);
+								  QVector<EGPointersVariant>* pv_EGPointersVariants);
 							///< \param[in] avp_Elements Ссылка на вектор указателей на элементы или nullptr.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] avp_Groups Ссылка на вектор указателей на группы или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] pv_EGPointersVariants Указатель на вектор отсортированных вариантов для заполнения.
-							///< \param[in] pv_SelectionEGPointersVariants Ук. на вектор отсортированных вариантов выборки для заполнения или nullptr.
 	/// Сортировка вектора групп по Z-позиции с приоритетом по выборке.
 	static void SortGroupsByZPos(QVector<GraphicsGroupItem*>& avp_Groups,
 								 GraphicsGroupItem* p_GraphicsGroupItemExclude,
@@ -202,7 +198,7 @@ public:
 										  bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
 										  bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr, bool bWithSelectedDiff = true,
+										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
 										  bool bBlokingPatterns = true, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
@@ -212,7 +208,6 @@ public:
 							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
-							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 	/// Выбор группы.
