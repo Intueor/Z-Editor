@@ -1393,6 +1393,7 @@ void SchematicView::VerticalToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bo
 	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsFocusedBranch;
 	bool bElementSelected = false;
 	bool bGroupSelected = false;
+	QVector<GraphicsGroupItem*> vp_SelectedGroupsWithElements;
 	// Вниз, к корню группы в фокусе.
 	if(p_GraphicsGroupItem != nullptr)
 	{
@@ -1404,21 +1405,28 @@ void SchematicView::VerticalToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bo
 		}
 	}
 	// По остальным корням групп... !!! ВОЗМОЖНО, ПОТРЕБУЕТСЯ СОРТИРОВКА КОРНЕЙ !!!
-	QVector<GraphicsGroupItem*> vp_SelectedGroupsWithElements = SchematicWindow::vp_SelectedGroups;
+	vp_SelectedGroupsWithElements.clear();
 	if(p_GraphicsElementItemExclude != nullptr)
 	{
 		if(!p_GraphicsElementItemExclude->bSelected) goto gN;
 		else bElementSelected = true;
 	}
-	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+	else
 	{
-		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
-		//
-		if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
+		vp_SelectedGroupsWithElements = SchematicWindow::vp_SelectedGroups;
+	}
+	if(p_GraphicsElementItemExclude != nullptr)
+	{
+		for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 		{
-			if(!vp_SelectedGroupsWithElements.contains(p_GraphicsElementItem->p_GraphicsGroupItemRel))
+			GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+			//
+			if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
 			{
-				vp_SelectedGroupsWithElements.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+				if(!vp_SelectedGroupsWithElements.contains(p_GraphicsElementItem->p_GraphicsGroupItemRel))
+				{
+					vp_SelectedGroupsWithElements.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+				}
 			}
 		}
 	}
