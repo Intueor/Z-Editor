@@ -31,6 +31,7 @@ DbPoint SchematicView::oDbPointPortInitialClick;
 bool SchematicView::bPortFromElement;
 bool SchematicView::bPortMenuExecuted = false;
 QVector<GraphicsGroupItem*> SchematicView::v_AlreadyMovedGroups;
+QVector<SchematicView::EGPointersVariant> SchematicView::v_OccupiedByClient;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -717,6 +718,7 @@ void SchematicView::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddEl
 									 bool bBlokingPattern, bool bSend)
 {
 	PSchElementVars oPSchElementVars;
+	EGPointersVariant oEGPointersVariant;
 	//
 	p_Element->setZValue(SchematicWindow::dbObjectZPos);
 	p_Element->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
@@ -750,6 +752,9 @@ void SchematicView::ElementToTopAPFS(GraphicsElementItem* p_Element, bool bAddEl
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 													   sizeof(oPSchElementVars));
 	}
+	oEGPointersVariant.p_GraphicsElementItem = p_Element;
+	oEGPointersVariant.p_GraphicsGroupItem = nullptr;
+	v_OccupiedByClient.append(oEGPointersVariant);
 	SetElementBlockingPattern(p_Element, bBlokingPattern);
 	UpdateLinksZPos();
 }
@@ -1146,33 +1151,46 @@ void SchematicView::SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupIt
 	UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_MAIN);
 }
 
-// Отпускание элемента и подготовка отправки по запросу.
-void SchematicView::ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup, bool bWithFrame)
+// Отпускание занятого клиентом.
+void SchematicView::ReleaseOccupiedAPFS()
 {
 	PSchElementVars oPSchElementVars;
+	PSchGroupVars oPSchGroupVars;
 	//
-	if(p_GraphicsElementItem->oQBrush.style() == Qt::SolidPattern)
-		return;
-	if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
+	for(int iF = 0; iF != v_OccupiedByClient.count(); iF++)
 	{
-		if(bWithGroup)
+		EGPointersVariant oEGPointersVariant = v_OccupiedByClient.at(iF);
+		//
+		if(oEGPointersVariant.p_GraphicsElementItem != nullptr)
 		{
-			ReleaseGroupAPFSRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
-			return;
+			SetElementBlockingPattern(oEGPointersVariant.p_GraphicsElementItem, false);
+			oPSchElementVars.ullIDInt = oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+			oPSchElementVars.oSchElementGraph.dbObjectZPos =
+					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
+			oPSchElementVars.oSchElementGraph.bBusy = false;
+			oPSchElementVars.oSchElementGraph.oDbObjectFrame =
+					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame;
+			oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY | SCH_ELEMENT_BIT_FRAME;
+			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
+		}
+		else
+		{
+			SetGroupBlockingPattern(oEGPointersVariant.p_GraphicsGroupItem, false);
+			oPSchGroupVars.ullIDInt = oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+			oPSchGroupVars.oSchGroupGraph.dbObjectZPos =
+					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
+			oPSchGroupVars.oSchGroupGraph.bBusy = false;
+			oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX =
+					oEGPointersVariant.p_GraphicsGroupItem->x();
+			oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY =
+					oEGPointersVariant.p_GraphicsGroupItem->y();
+			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
+					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+			oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_BUSY | SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_ZPOS;
+			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
 		}
 	}
-	SetElementBlockingPattern(p_GraphicsElementItem, false);
-	oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-	oPSchElementVars.oSchElementGraph.dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
-	oPSchElementVars.oSchElementGraph.bBusy = false;
-	oPSchElementVars.oSchElementGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY;
-	if(bWithFrame)
-	{
-		oPSchElementVars.oSchElementGraph.uchChangesBits |= SCH_ELEMENT_BIT_FRAME;
-		oPSchElementVars.oSchElementGraph.oDbObjectFrame = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame;
-	}
-	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
-												   sizeof(PSchElementVars));
+	v_OccupiedByClient.clear();
 }
 
 // Удаление всех графических элементов портов с элемента по ID.
@@ -1301,50 +1319,50 @@ void SchematicView::SortGroupContentToTopAPFS(GraphicsGroupItem* p_GraphicsGroup
 											  GraphicsElementItem* p_GraphicsElementItemExclude, GraphicsGroupItem* p_GraphicsGroupItemExclude,
 											  bool bWithSelectedDiff, bool bBlokingPatterns, bool bSend)
 {
-	QVector<SortedPointersVariant> v_SortedPointersVariants;
-	QVector<SortedPointersVariant> v_SelectedSortedPointersVariants;
-	QVector<SortedPointersVariant>* pv_SelectedSortedPointersVariants;
-	const SortedPointersVariant* p_SortedPointersVariant;
+	QVector<EGPointersVariant> v_EGPointersVariants;
+	QVector<EGPointersVariant> v_SelectedEGPointersVariants;
+	QVector<EGPointersVariant>* pv_SelectedEGPointersVariants;
+	const EGPointersVariant* p_EGPointersVariant;
 	//
 	if(bWithSelectedDiff)
 	{
-		pv_SelectedSortedPointersVariants = &v_SelectedSortedPointersVariants;
+		pv_SelectedEGPointersVariants = &v_SelectedEGPointersVariants;
 	}
 	else
 	{
-		pv_SelectedSortedPointersVariants = nullptr;
+		pv_SelectedEGPointersVariants = nullptr;
 	}
 	SortObjectsByZPos(p_GraphicsGroupItem->vp_ConnectedElements, p_GraphicsElementItemExclude,
 					  p_GraphicsGroupItem->vp_ConnectedGroups, p_GraphicsGroupItemExclude,
-					  &v_SortedPointersVariants, pv_SelectedSortedPointersVariants);
-	for(int iF = 0; iF != v_SortedPointersVariants.count(); iF++)
+					  &v_EGPointersVariants, pv_SelectedEGPointersVariants);
+	for(int iF = 0; iF != v_EGPointersVariants.count(); iF++)
 	{
-		p_SortedPointersVariant = &v_SortedPointersVariants.at(iF);
-		if(p_SortedPointersVariant->p_GraphicsElementItem != nullptr)
+		p_EGPointersVariant = &v_EGPointersVariants.at(iF);
+		if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 		{
-			ElementToTopAPFS(p_SortedPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
+			ElementToTopAPFS(p_EGPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
 							 bAddBusyOrZPosToSending, bBlokingPatterns, bSend);
 		}
 		else
 		{
-			GroupToTopAPFSRecursively(p_SortedPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
+			GroupToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
 									  bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
 									  false, nullptr, p_GraphicsGroupItemExclude, bWithSelectedDiff, bBlokingPatterns);
 		}
 	}
 	if(bWithSelectedDiff)
 	{
-		for(int iF = v_SelectedSortedPointersVariants.count() - 1; iF != -1; iF--)
+		for(int iF = v_SelectedEGPointersVariants.count() - 1; iF != -1; iF--)
 		{
-			p_SortedPointersVariant = &v_SelectedSortedPointersVariants.at(iF);
-			if(p_SortedPointersVariant->p_GraphicsElementItem != nullptr)
+			p_EGPointersVariant = &v_SelectedEGPointersVariants.at(iF);
+			if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 			{
-				ElementToTopAPFS(p_SortedPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
+				ElementToTopAPFS(p_EGPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
 								 bAddBusyOrZPosToSending, bBlokingPatterns, bSend);
 			}
 			else
 			{
-				GroupToTopAPFSRecursively(p_SortedPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
+				GroupToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
 										  bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
 										  false, nullptr, p_GraphicsGroupItemExclude, bWithSelectedDiff, bBlokingPatterns);
 			}
@@ -1356,14 +1374,14 @@ void SchematicView::SortGroupContentToTopAPFS(GraphicsGroupItem* p_GraphicsGroup
 // Сортировка векторов элементов и групп по Z-позиции с приоритетом по выборке.
 void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Elements, GraphicsElementItem* p_GraphicsElementItemExclude,
 									  QVector<GraphicsGroupItem*>& avp_Groups, GraphicsGroupItem* p_GraphicsGroupItemExclude,
-									  QVector<SortedPointersVariant>* pv_SortedPointersVariants,
-									  QVector<SortedPointersVariant>* pv_SelectionSortedPointersVariants)
+									  QVector<EGPointersVariant>* pv_EGPointersVariants,
+									  QVector<EGPointersVariant>* pv_SelectionEGPointersVariants)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItem;
-	QVector<SortedPointersVariant> v_PointersVariants;
-	SortedPointersVariant oSortedPointersVariant;
-	const SortedPointersVariant* p_SortedPointersVariant;
+	QVector<EGPointersVariant> v_PointersVariants;
+	EGPointersVariant oEGPointersVariant;
+	const EGPointersVariant* p_EGPointersVariant;
 	//
 	// Копия для работы.
 	for(int iF = 0; iF < avp_Elements.count(); iF++)
@@ -1371,9 +1389,9 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 		p_GraphicsElementItem = avp_Elements.at(iF);
 		if(p_GraphicsElementItem != p_GraphicsElementItemExclude)
 		{
-			oSortedPointersVariant.p_GraphicsElementItem = p_GraphicsElementItem;
-			oSortedPointersVariant.p_GraphicsGroupItem = nullptr;
-			v_PointersVariants.append(oSortedPointersVariant);
+			oEGPointersVariant.p_GraphicsElementItem = p_GraphicsElementItem;
+			oEGPointersVariant.p_GraphicsGroupItem = nullptr;
+			v_PointersVariants.append(oEGPointersVariant);
 		}
 	}
 	for(int iF = 0; iF < avp_Groups.count(); iF++)
@@ -1381,9 +1399,9 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 		p_GraphicsGroupItem = avp_Groups.at(iF);
 		if(p_GraphicsGroupItem != p_GraphicsGroupItemExclude)
 		{
-			oSortedPointersVariant.p_GraphicsElementItem = nullptr;
-			oSortedPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
-			v_PointersVariants.append(oSortedPointersVariant);
+			oEGPointersVariant.p_GraphicsElementItem = nullptr;
+			oEGPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
+			v_PointersVariants.append(oEGPointersVariant);
 		}
 	}
 	// Сортировка.
@@ -1393,32 +1411,32 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 		qreal dbZ = OVERMAX_NUMBER;
 		for(int iF = 0; iF < v_PointersVariants.count(); iF++)
 		{
-			p_SortedPointersVariant = &v_PointersVariants.at(iF);
-			if(p_SortedPointersVariant->p_GraphicsElementItem != nullptr)
+			p_EGPointersVariant = &v_PointersVariants.at(iF);
+			if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 			{
-				if(dbZ > p_SortedPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos)
+				if(dbZ > p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos)
 				{
-					dbZ = p_SortedPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
+					dbZ = p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
 					iVariant = iF;
 				}
 			}
 			else
 			{
-				if(dbZ > p_SortedPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos)
+				if(dbZ > p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos)
 				{
-					dbZ = p_SortedPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
+					dbZ = p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
 					iVariant = iF;
 				}
 			}
 		}
-		p_SortedPointersVariant = &v_PointersVariants.at(iVariant);
-		if(pv_SelectionSortedPointersVariants != nullptr)
+		p_EGPointersVariant = &v_PointersVariants.at(iVariant);
+		if(pv_SelectionEGPointersVariants != nullptr)
 		{
-			if(p_SortedPointersVariant->p_GraphicsElementItem != nullptr)
+			if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 			{
-				if(SchematicWindow::vp_SelectedElements.contains(p_SortedPointersVariant->p_GraphicsElementItem))
+				if(SchematicWindow::vp_SelectedElements.contains(p_EGPointersVariant->p_GraphicsElementItem))
 				{
-					pv_SelectionSortedPointersVariants->append(*p_SortedPointersVariant);
+					pv_SelectionEGPointersVariants->append(*p_EGPointersVariant);
 				}
 				else
 				{
@@ -1427,9 +1445,9 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 			}
 			else
 			{
-				if(SchematicWindow::vp_SelectedGroups.contains(p_SortedPointersVariant->p_GraphicsGroupItem))
+				if(SchematicWindow::vp_SelectedGroups.contains(p_EGPointersVariant->p_GraphicsGroupItem))
 				{
-					pv_SelectionSortedPointersVariants->append(*p_SortedPointersVariant);
+					pv_SelectionEGPointersVariants->append(*p_EGPointersVariant);
 				}
 				else
 				{
@@ -1440,7 +1458,7 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 		}
 		else
 		{
-gSE:		pv_SortedPointersVariants->append(*p_SortedPointersVariant);
+gSE:		pv_EGPointersVariants->append(*p_EGPointersVariant);
 		}
 		v_PointersVariants.removeAt(iVariant);
 	}
@@ -1490,6 +1508,7 @@ void SchematicView::GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroup
 											bool bWithSelectedDiff, bool bBlokingPatterns, bool bSendElements)
 {
 	PSchGroupVars oPSchGroupVars;
+	EGPointersVariant oEGPointersVariant;
 	//
 	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
 	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
@@ -1498,7 +1517,6 @@ void SchematicView::GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroup
 	p_GraphicsGroupItem->update();
 	if(bSend)
 	{
-		SetGroupBlockingPattern(p_GraphicsGroupItem, bBlokingPatterns);
 		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 		if(bAddBusyOrZPosToSending)
 		{
@@ -1518,58 +1536,13 @@ void SchematicView::GroupToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroup
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 													   sizeof(PSchGroupVars));
 	}
+	oEGPointersVariant.p_GraphicsElementItem = nullptr;
+	oEGPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
+	v_OccupiedByClient.append(oEGPointersVariant);
+	SetGroupBlockingPattern(p_GraphicsGroupItem, bBlokingPatterns);
 	if(bSend == false) bSendElements = false;
 	SortGroupContentToTopAPFS(p_GraphicsGroupItem, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
 							  p_GraphicsElementItemExclude, p_GraphicsGroupItemExclude, bWithSelectedDiff, bBlokingPatterns, bSendElements);
-}
-
-// Отпускание группы и подготовка отправки по запросу рекурсивно.
-void SchematicView::ReleaseGroupAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, GraphicsElementItem* p_GraphicsElementItemExclude,
-											  GraphicsGroupItem* p_GraphicsGroupItemExclude, bool bWithFrame,
-											  bool bWithElementFrames)
-{
-	GraphicsElementItem* p_GraphicsElementItem;
-	PSchGroupVars oPSchGroupVars;
-	//
-	if(p_GraphicsGroupItem->oQBrush.style() == Qt::SolidPattern)
-		return;
-	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
-	{
-		ReleaseGroupAPFSRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel, nullptr, p_GraphicsGroupItem,
-								  bWithFrame, bWithElementFrames);
-	}
-	oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-	SetGroupBlockingPattern(p_GraphicsGroupItem, false);
-	oPSchGroupVars.oSchGroupGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
-	oPSchGroupVars.oSchGroupGraph.bBusy = false;
-	oPSchGroupVars.oSchGroupGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
-	if(bWithFrame)
-	{
-		oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_FRAME;
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX = p_GraphicsGroupItem->x();
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY = p_GraphicsGroupItem->y();
-		oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
-				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
-	}
-	oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_ZPOS;
-	MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
-												   sizeof(PSchGroupVars));
-	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
-	{
-		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
-		if(p_GraphicsElementItem != p_GraphicsElementItemExclude)
-		{
-			ReleaseElementAPFS(p_GraphicsElementItem, WITHOUT_GROUP, bWithElementFrames);
-		}
-	}
-	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
-	{
-		GraphicsGroupItem* p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
-		if(p_GraphicsGroupItemHelper != p_GraphicsGroupItemExclude)
-		{
-			ReleaseGroupAPFSRecursively(p_GraphicsGroupItemHelper, nullptr, nullptr, bWithFrame, bWithElementFrames);
-		}
-	}
 }
 
 // Выбор группы.
@@ -1931,8 +1904,6 @@ void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_Graphics
 // Обработчик события отпусканеия мыши на элементе.
 void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	int iC;
-	//
 	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
@@ -1947,21 +1918,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		if(p_GraphicsElementItem->bSelected)
-		{
-			iC = SchematicWindow::vp_SelectedElements.count();
-			for(int iE = 0; iE != iC; iE ++)
-			{
-				GraphicsElementItem* p_GraphicsElementItemUtil;
-				//
-				p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iE);
-				if(p_GraphicsElementItemUtil != p_GraphicsElementItem)
-				{
-					ReleaseElementAPFS(p_GraphicsElementItemUtil);
-				}
-			}
-		}
-		ReleaseElementAPFS(p_GraphicsElementItem);
+		ReleaseOccupiedAPFS();
 		TrySendBufferToServer;
 	}
 	p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
@@ -2303,20 +2260,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		if(p_GraphicsGroupItem->bSelected)
-		{
-			for(int iE = 0; iE != SchematicWindow::vp_SelectedGroups.count(); iE ++)
-			{
-				GraphicsGroupItem* p_GraphicsGroupItemUtil;
-				//
-				p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iE);
-				if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
-				{
-					ReleaseGroupAPFSRecursively(p_GraphicsGroupItemUtil);
-				}
-			}
-		}
-		ReleaseGroupAPFSRecursively(p_GraphicsGroupItem);
+		ReleaseOccupiedAPFS();
 		TrySendBufferToServer;
 	}
 	p_GraphicsGroupItem->OBMouseReleaseEvent(p_Event);
@@ -3021,15 +2965,7 @@ gEr:	SetPortToPos(p_GraphicsPortItem);
 			MainWindow::p_Client->AddPocketToOutputBufferC(
 						PROTO_O_SCH_LINK_VARS, (char*)p_GraphicsPortItem->p_PSchLinkVarsInt, sizeof(PSchLinkVars));
 		}
-gF:		if(p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
-		{
-			if(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr)
-			{
-				ReleaseGroupAPFSRecursively(p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel, p_GraphicsPortItem->p_ParentInt, nullptr,
-								 WITHOUT_FRAME, WITHOUT_ELEMENTS_FRAMES);
-			}
-		}
-		ReleaseElementAPFS(p_GraphicsPortItem->p_ParentInt, WITHOUT_GROUP, WITHOUT_POSITION);
+gF:		ReleaseOccupiedAPFS();
 	}
 	p_GraphicsPortItem->OBMouseReleaseEvent(p_Event);
 	if(bPortLMBPressed)
@@ -3266,15 +3202,7 @@ void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_Graphic
 							PROTO_O_SCH_LINK_VARS, (char*)&p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars, sizeof(PSchLinkVars));
 			}
 		}
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
-		{
-			if(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr)
-			{
-				ReleaseGroupAPFSRecursively(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel,
-								 p_GraphicsScalerItem->p_ParentInt, nullptr, WITH_FRAME, WITHOUT_ELEMENTS_FRAMES);
-			}
-		}
-		ReleaseElementAPFS(p_GraphicsScalerItem->p_ParentInt, WITHOUT_GROUP, WITH_FRAME);
+		ReleaseOccupiedAPFS();
 		TrySendBufferToServer;
 	}
 	p_GraphicsScalerItem->OBMouseReleaseEvent(p_Event);

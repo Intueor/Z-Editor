@@ -34,7 +34,7 @@ public:
 		QRectF oQRectF;
 		DbPointPair oDbPointPair;
 	};
-	struct SortedPointersVariant
+	struct EGPointersVariant
 	{
 		GraphicsElementItem* p_GraphicsElementItem;
 		GraphicsGroupItem* p_GraphicsGroupItem;
@@ -128,11 +128,8 @@ public:
 	static void SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] bValue Вкл\Выкл блокировки.
-	/// Отпускание элемента и подготовка отправки по запросу.
-	static void ReleaseElementAPFS(GraphicsElementItem* p_GraphicsElementItem, bool bWithGroup = true, bool bWithFrame = false);
-							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
-							///< \param[in] bWithElements При true - отпускать и содержащую группу.
-							///< \param[in] bWithFrame При true - передать на сервер фрейм элемента.
+	/// Отпускание занятого клиентом.
+	static void ReleaseOccupiedAPFS();
 	/// Удаление всех графических элементов портов с элемента по ID.
 	static void RemovePortsByID(unsigned long long ullID);
 							///< \param[in] ullID ID элемента.
@@ -169,14 +166,14 @@ public:
 	/// Сортировка векторов элементов и групп по Z-позиции с приоритетом по выборке.
 	static void SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Elements, GraphicsElementItem* p_GraphicsElementItemExclude,
 								  QVector<GraphicsGroupItem*>& avp_Groups, GraphicsGroupItem* p_GraphicsGroupItemExclude,
-								  QVector<SortedPointersVariant>* pv_SortedPointersVariants,
-								  QVector<SortedPointersVariant>* pv_SelectionSortedPointersVariants = nullptr);
+								  QVector<EGPointersVariant>* pv_EGPointersVariants,
+								  QVector<EGPointersVariant>* pv_SelectionEGPointersVariants = nullptr);
 							///< \param[in] avp_Elements Ссылка на вектор указателей на элементы или nullptr.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] avp_Groups Ссылка на вектор указателей на группы или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на элемент для исключения или nullptr.
-							///< \param[in] pv_SortedPointersVariants Указатель на вектор отсортированных вариантов для заполнения.
-							///< \param[in] pv_SelectionSortedPointersVariants Ук. на вектор отсортированных вариантов выборки для заполнения или nullptr.
+							///< \param[in] pv_EGPointersVariants Указатель на вектор отсортированных вариантов для заполнения.
+							///< \param[in] pv_SelectionEGPointersVariants Ук. на вектор отсортированных вариантов выборки для заполнения или nullptr.
 	/// Сортировка вектора групп по Z-позиции с приоритетом по выборке.
 	static void SortGroupsByZPos(QVector<GraphicsGroupItem*>& avp_Groups,
 								 GraphicsGroupItem* p_GraphicsGroupItemExclude,
@@ -218,16 +215,6 @@ public:
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных элементов на передний план.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
-	/// Отпускание группы и подготовка отправки по запросу рекурсивно.
-	static void ReleaseGroupAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
-										  GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-										  GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-										  bool bWithFrame = true, bool bWithElementFrames = true);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент.
-							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
-							///< \param[in] bWithFrame При true - передать на сервер фрейм группы.
-							///< \param[in] bWithElementFrames При true - передать на сервер фреймы элементов.
 	/// Выбор группы.
 	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
@@ -414,6 +401,7 @@ private:
 	qreal rScaleFactor; ///<
 	qreal rFactor; ///<
 	static QVector<GraphicsGroupItem*> v_AlreadyMovedGroups; ///< Список указателей на уже перемещённые за цикл группы.
+	static QVector<EGPointersVariant> v_OccupiedByClient; ///< Список занятого клиентом.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
