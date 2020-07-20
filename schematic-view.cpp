@@ -1271,7 +1271,29 @@ void SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 
 void SchematicView::AddFreeSelectedGroupsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
 {
-
+	GraphicsGroupItem* p_GraphicsGroupItemHelper;
+	bool bAction;
+	//
+	if(SchematicWindow::vp_SelectedFreeGroups.isEmpty()) return;
+	bAction = false;
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+	{
+		p_GraphicsGroupItemHelper = SchematicWindow::vp_SelectedGroups.at(iF);
+		if((p_GraphicsGroupItemHelper != p_GraphicsGroupItem) & (p_GraphicsGroupItemHelper->p_GraphicsGroupItemRel == nullptr))
+		{
+			p_GraphicsGroupItem->vp_ConnectedGroups.push_front(p_GraphicsGroupItemHelper);
+			p_GraphicsGroupItemHelper->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+			p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+			bAction = true;
+		}
+	}
+	if(bAction)
+	{
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
+		BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, SEND_NEW_GROUPS_TO_GROUP,
+									   ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+		UpdateLinksZPos();
+	}
 }
 
 // Выбор элемента.
@@ -1528,6 +1550,14 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 		{
 			oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_FRAME;
 			oPSchGroupVars.oSchGroupGraph.oDbObjectFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
+		}
+		if(bAddNewGroupsToGroupSending)
+		{
+			if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup != 0)
+			{
+				oPSchGroupVars.oSchGroupGraph.uchChangesBits |= SCH_GROUP_BIT_GROUP;
+				oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup;
+			}
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 													   sizeof(PSchGroupVars));
@@ -2309,7 +2339,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
 				AddFreeSelectedElementsToGroupAPFS(p_GraphicsGroupItem);
-
+				AddFreeSelectedGroupsToGroupAPFS(p_GraphicsGroupItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
 			{
