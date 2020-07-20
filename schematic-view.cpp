@@ -784,33 +784,49 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItemInt;
 	// ЭЛЕМЕНТЫ.
-	p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(0);
-	// Получаем крайние точки первого элемента в группе.
-	oDbPointLeftTop.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
-	oDbPointLeftTop.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
-	oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
-	oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
-	// Цикл по остальным элементам для наращивания.
-	for(int iF = 1; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
+	if(!p_GraphicsGroupItem->vp_ConnectedElements.isEmpty())
 	{
-		DbPoint oDbPointLeftTopTemp;
-		DbPoint oDbPointRightBottomTemp;
-		//
-		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
-		// Получаем крайние точки следующего элемента в группе.
-		oDbPointLeftTopTemp.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
-		oDbPointLeftTopTemp.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
-		oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
+		// Если есть элементы - начинаем с них.
+		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(0);
+		// Получаем крайние точки первого элемента в группе.
+		oDbPointLeftTop.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+		oDbPointLeftTop.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
-		oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+		oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
-		// Расширяем до показателей текущего элемента при зашкаливании по любой точке периметра.
-		if(oDbPointLeftTop.dbX > oDbPointLeftTopTemp.dbX) oDbPointLeftTop.dbX = oDbPointLeftTopTemp.dbX;
-		if(oDbPointLeftTop.dbY > oDbPointLeftTopTemp.dbY) oDbPointLeftTop.dbY = oDbPointLeftTopTemp.dbY;
-		if(oDbPointRightBottom.dbX < oDbPointRightBottomTemp.dbX) oDbPointRightBottom.dbX = oDbPointRightBottomTemp.dbX;
-		if(oDbPointRightBottom.dbY < oDbPointRightBottomTemp.dbY) oDbPointRightBottom.dbY = oDbPointRightBottomTemp.dbY;
+		// Цикл по остальным элементам для наращивания.
+		for(int iF = 1; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
+		{
+			DbPoint oDbPointLeftTopTemp;
+			DbPoint oDbPointRightBottomTemp;
+			//
+			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
+			// Получаем крайние точки следующего элемента в группе.
+			oDbPointLeftTopTemp.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbX;
+			oDbPointLeftTopTemp.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY;
+			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW;
+			oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH;
+			// Расширяем до показателей текущего элемента при зашкаливании по любой точке периметра.
+			if(oDbPointLeftTop.dbX > oDbPointLeftTopTemp.dbX) oDbPointLeftTop.dbX = oDbPointLeftTopTemp.dbX;
+			if(oDbPointLeftTop.dbY > oDbPointLeftTopTemp.dbY) oDbPointLeftTop.dbY = oDbPointLeftTopTemp.dbY;
+			if(oDbPointRightBottom.dbX < oDbPointRightBottomTemp.dbX) oDbPointRightBottom.dbX = oDbPointRightBottomTemp.dbX;
+			if(oDbPointRightBottom.dbY < oDbPointRightBottomTemp.dbY) oDbPointRightBottom.dbY = oDbPointRightBottomTemp.dbY;
+		}
+	}
+	else
+	{
+		// Если нет элементов - начинаем с групп.
+		p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(0);
+		// Получаем крайние точки первой группы в группе.
+		oDbPointLeftTop.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbX;
+		oDbPointLeftTop.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbY;
+		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
+				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbW;
+		oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
+				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame.dbH;
 	}
 	// ГРУППЫ.
 	// Цикл по группам для наращивания.
@@ -2011,6 +2027,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				PSchGroupBase oPSchGroupBase;
 				QString strName = QString(m_chNewGroup);
 				GraphicsElementItem* p_GraphicsElementItemUtil;
+				GraphicsGroupItem* p_GraphicsGroupItemUtil;
 				unsigned char uchR = rand() % 255;
 				unsigned char uchG = rand() % 255;
 				unsigned char uchB = rand() % 255;
@@ -2038,13 +2055,26 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 						p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
 					}
 				}
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+				{
+					p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
+					if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
+					{
+						if(p_GraphicsGroupItemUtil->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup == 0)
+						{
+							p_GraphicsGroupItemUtil->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
+							p_GraphicsGroupItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+							p_GraphicsGroupItem->vp_ConnectedGroups.append(p_GraphicsGroupItemUtil);
+						}
+					}
+				}
 				UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
 				oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 				MainWindow::p_Client->AddPocketToOutputBufferC(
 							PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
 				BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsGroupItem,
-												 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+												 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, SEND_NEW_GROUPS_TO_GROUP,
 												 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 				UpdateLinksZPos();
 				TempDeselectElement(p_GraphicsElementItem);
@@ -2246,6 +2276,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			{
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
 			}
+			//
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
 		}
