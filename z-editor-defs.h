@@ -17,8 +17,6 @@
 #define DONT_SEND_ELEMENT					false
 #define SEND_GROUP							true
 #define DONT_SEND_GROUP						false
-#define ELEMENTS_BLOCKING_PATTERN_ON		true
-#define ELEMENTS_BLOCKING_PATTERN_OFF		false
 #define WITH_GROUP							true
 #define WITHOUT_GROUP						false
 #define SEND_NEW_ELEMENTS_TO_GROUP			true
@@ -28,8 +26,8 @@
 #define SEND_ELEMENT_GROUP_CHANGE			true
 #define DONT_SEND_ELEMENT_GROUP_CHANGE		false
 #define ADD_SEND_BUSY						true
-#define APPLY_BLOCKINGPATTERN				true
-#define DONT_APPLY_BLOCKINGPATTERN			false
+#define APPLY_BLOCKING_PATTERN				true
+#define DONT_APPLY_BLOCKING_PATTERN			false
 #define ADD_SEND_ZPOS						false
 #define ADD_SEND_FRAME						true
 #define DONT_ADD_SEND_FRAME					false
@@ -49,6 +47,8 @@
 #define DONT_REMOVE_FROM_CLIENT				false
 #define TO_TOP								true
 #define LEAVE_IN_PLACE						false
+#define AFFECT_SELECTED						true
+#define DONT_AFFECT_SELECTED				false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9

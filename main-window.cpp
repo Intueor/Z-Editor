@@ -1418,11 +1418,11 @@ void MainWindow::BlockSchematic(bool bBlock)
 		p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		if(bBlock)
 		{
-			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, true); // Если блокируется схемой - блокировка в любом случае.
+			SchematicView::SetElementBLOCKING_PATTERN(p_GraphicsElementItem, true); // Если блокируется схемой - блокировка в любом случае.
 		}
 		else
 		{
-			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
+			SchematicView::SetElementBLOCKING_PATTERN(p_GraphicsElementItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
 													  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy);
 		}
 
@@ -1434,11 +1434,11 @@ void MainWindow::BlockSchematic(bool bBlock)
 		p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
 		if(bBlock)
 		{
-			SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, true); // Если блокируется схемой - блокировка в любом случае.
+			SchematicView::SetGroupBLOCKING_PATTERN(p_GraphicsGroupItem, true); // Если блокируется схемой - блокировка в любом случае.
 		}
 		else
 		{
-			SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
+			SchematicView::SetGroupBLOCKING_PATTERN(p_GraphicsGroupItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
 													  p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
 		}
 	}
@@ -1790,7 +1790,7 @@ gFn:if(a_SchElementVars.oSchElementGraph.uchChangesBits & SCH_ELEMENT_BIT_ZPOS)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] busy.");
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = a_SchElementVars.oSchElementGraph.bBusy;
-		SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->
+		SchematicView::SetElementBLOCKING_PATTERN(p_GraphicsElementItem, p_GraphicsElementItem->
 												  oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy);
 	}
 }
@@ -1816,7 +1816,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 			SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] free by shifting.");
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy = false;
-			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, false);
+			SchematicView::SetElementBLOCKING_PATTERN(p_GraphicsElementItem, false);
 		}
 	}
 	// Фрейм.
@@ -1841,7 +1841,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] busy.");
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy = a_SchGroupVars.oSchGroupGraph.bBusy;
-		SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
+		SchematicView::SetGroupBLOCKING_PATTERN(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
 	}
 	// Z-позиция.
 	if(a_SchGroupVars.oSchGroupGraph.uchChangesBits & SCH_GROUP_BIT_ZPOS)
