@@ -736,8 +736,7 @@ int SchematicView::GetStringWidthInPixels(const QFont& a_Font, QString& a_strTex
 
 // Поднятие элемента на первый план, блокировка и подготовка отсылки по запросу.
 void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange,
-									 bool bAddBusyOrZPosToSending,
-									 bool bBlokingPattern, bool bSend, bool bToTop)
+									 bool bAddBusyOrZPosToSending, bool bSend, bool bToTop)
 {
 	PSchElementVars oPSchElementVars;
 	EGPointersVariant oEGPointersVariant;
@@ -780,7 +779,7 @@ void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool 
 	oEGPointersVariant.p_GraphicsElementItem = p_Element;
 	oEGPointersVariant.p_GraphicsGroupItem = nullptr;
 	v_OccupiedByClient.append(oEGPointersVariant);
-	SetElementBLOCKING_PATTERN(p_Element, bBlokingPattern);
+	SetElementBlockingPattern(p_Element, bAddBusyOrZPosToSending);
 	UpdateLinksZPos();
 }
 
@@ -1149,7 +1148,7 @@ void SchematicView::UpdateSelectedInGroup(GraphicsGroupItem* p_GraphicsGroupItem
 }
 
 // Установка блокировки на элемент.
-void SchematicView::SetElementBLOCKING_PATTERN(GraphicsElementItem* p_GraphicsElementItem, bool bValue)
+void SchematicView::SetElementBlockingPattern(GraphicsElementItem* p_GraphicsElementItem, bool bValue)
 {
 	if(bValue)
 	{
@@ -1163,7 +1162,7 @@ void SchematicView::SetElementBLOCKING_PATTERN(GraphicsElementItem* p_GraphicsEl
 }
 
 // Установка блокировки на группу.
-void SchematicView::SetGroupBLOCKING_PATTERN(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue)
+void SchematicView::SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue)
 {
 	if(bValue)
 	{
@@ -1188,7 +1187,7 @@ void SchematicView::ReleaseOccupiedAPFS()
 		//
 		if(oEGPointersVariant.p_GraphicsElementItem != nullptr)
 		{
-			SetElementBLOCKING_PATTERN(oEGPointersVariant.p_GraphicsElementItem, false);
+			SetElementBlockingPattern(oEGPointersVariant.p_GraphicsElementItem, false);
 			oPSchElementVars.ullIDInt = oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 			oPSchElementVars.oSchElementGraph.dbObjectZPos =
 					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos;
@@ -1200,7 +1199,7 @@ void SchematicView::ReleaseOccupiedAPFS()
 		}
 		else
 		{
-			SetGroupBLOCKING_PATTERN(oEGPointersVariant.p_GraphicsGroupItem, false);
+			SetGroupBlockingPattern(oEGPointersVariant.p_GraphicsGroupItem, false);
 			oPSchGroupVars.ullIDInt = oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 			oPSchGroupVars.oSchGroupGraph.dbObjectZPos =
 					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos;
@@ -1273,8 +1272,7 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
 		BlockingVerticalsAndPopupElement(p_GraphicsElementItemInitial, p_GraphicsGroupItem,
 										 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-										 ADD_SEND_ZPOS, ADD_SEND_FRAME,
-										 DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
+										 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		UpdateLinksZPos();
 	}
 	TempDeselectElement(p_GraphicsElementItemInitial);
@@ -1397,8 +1395,7 @@ void SchematicView::PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGro
 // Блокировка вертикалей и поднятие выбранного элемента.
 void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem,
 													 bool bSend, bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
-													 bool bAddBusyOrZPosToSending, bool bAddFrame,
-													 bool bBlokingPatterns, bool bSendElements, bool bAffectSelected)
+													 bool bAddBusyOrZPosToSending, bool bAddFrame, bool bSendElements, bool bAffectSelected)
 {
 	GraphicsGroupItem* p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
 	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsFocusedBranch;
@@ -1431,7 +1428,7 @@ void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_Grap
 				if(p_GraphicsElementItemHelper != p_GraphicsElementItem)
 				{
 					ElementToTopOrBusyAPFS(p_GraphicsElementItemHelper, DONT_SEND_ELEMENT_GROUP_CHANGE, bAddBusyOrZPosToSending,
-									 bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
+										   bSendElements, LEAVE_IN_PLACE);
 				}
 			}
 		}
@@ -1446,8 +1443,7 @@ void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_Grap
 			{
 				GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
 												 bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-												 bAddFrame, p_GraphicsElementItem, nullptr,
-												 bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
+												 bAddFrame, p_GraphicsElementItem, nullptr, bSendElements, LEAVE_IN_PLACE);
 			}
 		}
 	}
@@ -1455,19 +1451,17 @@ void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_Grap
 	{
 		PullUpZOfBranch(vp_GraphicsGroupItemsFocusedBranch);
 		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
-										 bAddBusyOrZPosToSending, bAddFrame, p_GraphicsElementItem, p_GraphicsGroupItem,
-										 bBlokingPatterns, bSendElements);
+										 bAddBusyOrZPosToSending, bAddFrame, p_GraphicsElementItem, p_GraphicsGroupItem, bSendElements);
 		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-										 bAddFrame, p_GraphicsElementItem, nullptr, bBlokingPatterns, bSendElements);
+										 bAddFrame, p_GraphicsElementItem, nullptr, bSendElements);
 	}
-	ElementToTopOrBusyAPFS(p_GraphicsElementItem, bAddNewElementsToGroupSending, bAddBusyOrZPosToSending,
-						   bBlokingPatterns, bSendElements);
+	ElementToTopOrBusyAPFS(p_GraphicsElementItem, bAddNewElementsToGroupSending, bAddBusyOrZPosToSending, bSendElements);
 }
 
 // Блокировка вертикалей и поднятие выбранной группы.
 void SchematicView::BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_GraphicsGroupItem,
 												   bool bSend, bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
-												   bool bAddBusyOrZPosToSending, bool bAddFrame, bool bBlokingPatterns, bool bSendElements)
+												   bool bAddBusyOrZPosToSending, bool bAddFrame, bool bSendElements)
 {
 	GraphicsGroupItem* p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
 	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsFocusedBranch;
@@ -1493,17 +1487,15 @@ void SchematicView::BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_Graphics
 			{
 				GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
 												 bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-												 bAddFrame, nullptr, nullptr,
-												 bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
+												 bAddFrame, nullptr, nullptr, bSendElements, LEAVE_IN_PLACE);
 			}
 		}
 	}
 	PullUpZOfBranch(vp_GraphicsGroupItemsFocusedBranch);
 	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
-									 bAddBusyOrZPosToSending, bAddFrame, nullptr, p_GraphicsGroupItem,
-									 bBlokingPatterns, bSendElements);
+									 bAddBusyOrZPosToSending, bAddFrame, nullptr, p_GraphicsGroupItem, bSendElements);
 	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-									 bAddFrame, nullptr, nullptr, bBlokingPatterns, bSendElements);
+									 bAddFrame, nullptr, nullptr, bSendElements);
 }
 
 // Поднятие ветки групп на первый план и подготовка к отсылке по запросу рекурсивно.
@@ -1511,7 +1503,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 													 bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
 													 bool bAddBusyOrZPosToSending, bool bAddFrame,
 													 GraphicsElementItem* p_GraphicsElementItemExclude, GraphicsGroupItem* p_GraphicsGroupItemExclude,
-													 bool bBlokingPattern, bool bSendElements, bool bToTop)
+													 bool bSendElements, bool bToTop)
 {
 	PSchGroupVars oPSchGroupVars;
 	EGPointersVariant oEGPointersVariant;
@@ -1550,7 +1542,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 	oEGPointersVariant.p_GraphicsElementItem = nullptr;
 	oEGPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
 	v_OccupiedByClient.append(oEGPointersVariant);
-	SetGroupBLOCKING_PATTERN(p_GraphicsGroupItem, bBlokingPattern);
+	SetGroupBlockingPattern(p_GraphicsGroupItem, bAddBusyOrZPosToSending);
 	if(bSend == false) bSendElements = false;
 	// Сортировка.
 	SortObjectsByZPos(p_GraphicsGroupItem->vp_ConnectedElements, p_GraphicsElementItemExclude,
@@ -1563,13 +1555,13 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 		if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 		{
 			ElementToTopOrBusyAPFS(p_EGPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
-							 bAddBusyOrZPosToSending, bBlokingPattern, bSendElements, bToTop);
+							 bAddBusyOrZPosToSending, bSendElements, bToTop);
 		}
 		else
 		{
 			GroupsBranchToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
 										   bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-										   DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude, bBlokingPattern, SEND_ELEMENTS, bToTop);
+										   DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude, SEND_ELEMENTS, bToTop);
 		}
 	}
 	UpdateLinksZPos();
@@ -1586,7 +1578,7 @@ void SchematicView::SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLa
 	//
 	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
 					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-					  DONT_ADD_SEND_FRAME, APPLY_BLOCKING_PATTERN, SEND_ELEMENTS);
+					  DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
 	p_GraphicsGroupItem->bSelected = true;
 }
 
@@ -1605,8 +1597,7 @@ void SchematicView::DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool b
 		}
 	}
 	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-					  DONT_ADD_SEND_FRAME, APPLY_BLOCKING_PATTERN, SEND_ELEMENTS);
+					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY, SEND_ELEMENTS);
 	p_GraphicsGroupItem->bSelected = false;
 }
 
@@ -2033,8 +2024,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 							PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
 				BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsGroupItem,
 												 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-												 ADD_SEND_ZPOS, ADD_SEND_FRAME,
-												 DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
+												 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 				UpdateLinksZPos();
 				TempDeselectElement(p_GraphicsElementItem);
 				delete vp_NewElementsForGroup;
@@ -2144,7 +2134,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 	//
-	SetElementBLOCKING_PATTERN(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy);
+	SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.bBusy);
 }
 
 // Обработчик события нажатия мыши на группу.
@@ -2363,8 +2353,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
 				BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsGroupItem,
 												 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-												 ADD_SEND_ZPOS, ADD_SEND_FRAME,
-												 DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
+												 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 				UpdateLinksZPos();
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
@@ -2445,7 +2434,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsGroupItem);
 	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
 	//
-	SetGroupBLOCKING_PATTERN(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
+	SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
 }
 
 // Рекурсивное удаление пустых групп.
@@ -2701,8 +2690,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 		oDbPointPortRB.dbY = p_GraphicsPortItem->p_SchElementGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
 		BlockingVerticalsAndPopupElement(p_GraphicsPortItem->p_ParentInt, p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel,
 						  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME,
-						  APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
+						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		TrySendBufferToServer;
 		if(p_Event->modifiers() == Qt::AltModifier)
 		{
@@ -3132,7 +3120,7 @@ void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsS
 	{
 		BlockingVerticalsAndPopupElement(p_GraphicsScalerItem->p_ParentInt, p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel, SEND_GROUP,
 						  DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
+						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		TrySendBufferToServer;
 	}
 	p_GraphicsScalerItem->OBMousePressEvent(p_Event);

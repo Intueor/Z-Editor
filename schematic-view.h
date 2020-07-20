@@ -97,12 +97,11 @@ public:
 							///< \param[in] a_strText Ссылка на строку.
 							///< \return Ширина в пикселях.
 	/// Поднятие элемента на первый план, блокировка и подготовка отсылки по запросу.
-	static void ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange = false, bool bAddBusyOrZPosToSending = true,
-									   bool bBlokingPattern = true, bool bSend = true, bool bToTop = true);
+	static void ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool bAddElementGroupChange = false,
+									   bool bAddBusyOrZPosToSending = true, bool bSend = true, bool bToTop = true);
 							///< \param[in] p_Element Указатель на граф. элемент.
 							///< \param[in] bAddElementGroupID При true - передача элементом изменения текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
-							///< \param[in] bBlokingPattern При true - включение блокировочного паттерна на элемент.
 							///< \param[in] bSend При true - отправка.
 							///< \param[in] bToTop При true - поднятие на передний план на клиенте.
 	/// Обновление фрейма группы по геометрии контента рекурсивно.
@@ -122,11 +121,11 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] ushBits Биты флагов необходимых обновлений.
 	/// Установка паттерна блокировки на элемент.
-	static void SetElementBLOCKING_PATTERN(GraphicsElementItem* p_GraphicsElementItem, bool bValue);
+	static void SetElementBlockingPattern(GraphicsElementItem* p_GraphicsElementItem, bool bValue);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] bValue Вкл\Выкл блокировки.
 	/// Установка паттерна блокировки на группу.
-	static void SetGroupBLOCKING_PATTERN(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
+	static void SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
 							///< \param[in] bValue Вкл\Выкл блокировки.
 	/// Отпускание занятого клиентом.
@@ -172,7 +171,7 @@ public:
 	static void BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem = nullptr,
 												 bool bSend = true, bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
-												 bool bBlokingPatterns = true, bool bSendElements = true, bool bAffectSelected = true);
+												 bool bSendElements = true, bool bAffectSelected = true);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
@@ -180,29 +179,25 @@ public:
 							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флагов занятости, иначе - отправка z-позиций (для нового содерж.)
 							///< \param[in] bAddFrame При true - передача фреймов групп.
-							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bAffectSelected При true - обработка занятостей выбранных элементов кроме текущего.
 	/// Блокировка вертикалей и поднятие выбранной группы.
 	static void BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_GraphicsGroupItem,
 											   bool bSend = true, bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
-											   bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
-											   bool bBlokingPatterns = true, bool bSendElements = true);
+											   bool bAddBusyOrZPosToSending = true, bool bAddFrame = false, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
 							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флагов занятости, иначе - отправка z-позиций (для нового содерж.)
 							///< \param[in] bAddFrame При true - передача фреймов групп.
-							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 	// Поднятие ветки групп на первый план и подготовка к отсылке по запросу рекурсивно.
 	static void GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
 												 bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 												 GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-												 GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-												 bool bBlokingPattern = true, bool bSendElements = true, bool bToTop = true);
+												 GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr, bool bSendElements = true, bool bToTop = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
@@ -211,7 +206,6 @@ public:
 							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
-							///< \param[in] bBlokingPattern При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bToTop При true - поднятие содержимого.
 	/// Выбор группы.
