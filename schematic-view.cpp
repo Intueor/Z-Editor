@@ -33,6 +33,28 @@ bool SchematicView::bPortMenuExecuted = false;
 QVector<GraphicsGroupItem*> SchematicView::v_AlreadyMovedGroups;
 QVector<SchematicView::EGPointersVariant> SchematicView::v_OccupiedByClient;
 
+//== МАКРОСЫ.
+#define TempSelectGroup(group)			bool _bForceSelected = false;\
+										if(!SchematicWindow::vp_SelectedGroups.contains(group))\
+										{\
+											SchematicWindow::vp_SelectedGroups.append(group);\
+											_bForceSelected = true;\
+										}
+#define TempDeselectGroup(group)		if(_bForceSelected)\
+										{\
+											SchematicWindow::vp_SelectedGroups.removeOne(group);\
+										}
+#define TempSelectElement(element)		bool _bForceSelected = false;\
+										if(!SchematicWindow::vp_SelectedElements.contains(element))\
+										{\
+											SchematicWindow::vp_SelectedElements.append(element);\
+											_bForceSelected = true;\
+										}
+#define TempDeselectElement(element)	if(_bForceSelected)\
+										{\
+											SchematicWindow::vp_SelectedElements.removeOne(element);\
+										}
+
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
 // Конструктор.
@@ -1221,18 +1243,14 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 													   GraphicsElementItem* p_GraphicsElementItemInitial)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
-	bool bForceSelected = false;
 	bool bAction;
 	//
 	vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
-	if(p_GraphicsElementItemInitial != nullptr)
+	if(p_GraphicsElementItemInitial == nullptr)
 	{
-		if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItemInitial))
-		{
-			SchematicWindow::vp_SelectedElements.append(p_GraphicsElementItemInitial);
-			bForceSelected = true;
-		}
+		p_GraphicsElementItemInitial = SchematicWindow::vp_SelectedElements.at(0);
 	}
+	TempSelectElement(p_GraphicsElementItemInitial);
 	bAction = false;
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
@@ -1259,10 +1277,7 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 										 DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		UpdateLinksZPos();
 	}
-	if(bForceSelected)
-	{
-		SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItemInitial);
-	}
+	TempDeselectElement(p_GraphicsElementItemInitial);
 	delete vp_NewElementsForGroup;
 	vp_NewElementsForGroup = nullptr;
 	return bAction;
@@ -1979,7 +1994,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
 			{
-				bool bForceSelected = false;
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				PSchGroupBase oPSchGroupBase;
 				QString strName = QString(m_chNewGroup);
@@ -1990,11 +2004,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				unsigned char uchA = 200;
 				vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
 				//
-				if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem))
-				{
-					SchematicWindow::vp_SelectedElements.append(p_GraphicsElementItem);
-					bForceSelected = true;
-				}
+				TempSelectElement(p_GraphicsElementItem);
 				oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
 				strName += ": " + QString::number(oPSchGroupBase.oPSchGroupVars.ullIDInt);
 				CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
@@ -2025,10 +2035,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 //				SortGroupContentToTopAPFS(p_GraphicsGroupItem, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_ZPOS,
 //										  nullptr, nullptr, DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS);
 				UpdateLinksZPos();
-				if(bForceSelected)
-				{
-					SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItem);
-				}
+				TempDeselectElement(p_GraphicsElementItem);
 				delete vp_NewElementsForGroup;
 				vp_NewElementsForGroup = nullptr;
 			}
@@ -2038,18 +2045,9 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_REMOVE_FROM_GROUPS)
 			{
-				bool bForceSelected = false;
-				//
-				if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem))
-				{
-					SchematicWindow::vp_SelectedElements.append(p_GraphicsElementItem);
-					bForceSelected = true;
-				}
+				TempSelectElement(p_GraphicsElementItem);
 				DetachSelectedAPFS();
-				if(bForceSelected)
-				{
-					SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItem);
-				}
+				TempDeselectElement(p_GraphicsElementItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
 			{
@@ -2321,14 +2319,9 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
 			{
-				bool bForceSelected = false;
 				GraphicsGroupItem* p_GraphicsGroupItemUtil;
 				//
-				if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
-				{
-					SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
-					bForceSelected = true;
-				}
+				TempSelectGroup(p_GraphicsGroupItem);
 				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 				{
 					p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
@@ -2355,10 +2348,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 					SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItemUtil);
 					MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItemUtil);
 				}
-				if(bForceSelected)
-				{
-					SchematicWindow::vp_SelectedGroups.removeOne(p_GraphicsGroupItem);
-				}
+				TempDeselectGroup(p_GraphicsGroupItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_ELEMENT)
 			{
