@@ -1292,7 +1292,7 @@ void SchematicView::SelectElement(GraphicsElementItem* p_GraphicsElementItem, bo
 	//
 	BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
 									 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-									 DONT_ADD_SEND_FRAME, APPLY_BLOCKING_PATTERN, SEND_ELEMENTS);
+									 DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
 	p_GraphicsElementItem->bSelected = true;
 }
 
@@ -1312,7 +1312,7 @@ void SchematicView::DeselectElement(GraphicsElementItem* p_GraphicsElementItem, 
 	}
 	BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
 									 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-									 DONT_ADD_SEND_FRAME, APPLY_BLOCKING_PATTERN, SEND_ELEMENTS);
+									 DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
 	p_GraphicsElementItem->bSelected = false;
 }
 

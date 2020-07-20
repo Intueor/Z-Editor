@@ -26,8 +26,6 @@
 #define SEND_ELEMENT_GROUP_CHANGE			true
 #define DONT_SEND_ELEMENT_GROUP_CHANGE		false
 #define ADD_SEND_BUSY						true
-#define APPLY_BLOCKING_PATTERN				true
-#define DONT_APPLY_BLOCKING_PATTERN			false
 #define ADD_SEND_ZPOS						false
 #define ADD_SEND_FRAME						true
 #define DONT_ADD_SEND_FRAME					false
