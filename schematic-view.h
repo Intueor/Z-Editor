@@ -186,7 +186,7 @@ public:
 											   bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 											   GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 											   GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-											   bool bBlokingPatterns = true, bool bSendElements = true);
+											   bool bBlokingPatterns = true, bool bSendElements = true, bool bToTop = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
@@ -197,6 +197,7 @@ public:
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bBlokingPatterns При true - включение блокировочных паттернов на элементы.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
+							///< \param[in] bToTop При true - поднятие содержимого.
 	/// Выбор группы.
 	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.

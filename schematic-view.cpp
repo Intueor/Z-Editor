@@ -1444,7 +1444,7 @@ gN:	if(bGroupSelected | bElementSelected)
 				GroupsRootToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
 											   bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
 											   bAddFrame, p_GraphicsElementItemExclude, nullptr,
-											   bBlokingPatterns, bSendElements);
+											   bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
 			}
 		}
 	}
@@ -1471,7 +1471,7 @@ void SchematicView::GroupsRootToTopAPFSRecursively(GraphicsGroupItem* p_Graphics
 												   bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
 												   bool bAddBusyOrZPosToSending, bool bAddFrame,
 												   GraphicsElementItem* p_GraphicsElementItemExclude, GraphicsGroupItem* p_GraphicsGroupItemExclude,
-												   bool bBlokingPatterns, bool bSendElements)
+												   bool bBlokingPatterns, bool bSendElements, bool bToTop)
 {
 	PSchGroupVars oPSchGroupVars;
 	EGPointersVariant oEGPointersVariant;
@@ -1479,10 +1479,13 @@ void SchematicView::GroupsRootToTopAPFSRecursively(GraphicsGroupItem* p_Graphics
 	const EGPointersVariant* p_EGPointersVariant;
 	//
 	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
-	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-	p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
-	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-	p_GraphicsGroupItem->update();
+	if(bToTop)
+	{
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+		p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
+		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+		p_GraphicsGroupItem->update();
+	}
 	if(bSend)
 	{
 		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
@@ -1520,13 +1523,13 @@ void SchematicView::GroupsRootToTopAPFSRecursively(GraphicsGroupItem* p_Graphics
 		if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 		{
 			ElementToTopOrBusyAPFS(p_EGPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
-							 bAddBusyOrZPosToSending, bBlokingPatterns, bSendElements);
+							 bAddBusyOrZPosToSending, bBlokingPatterns, bSendElements, bToTop);
 		}
 		else
 		{
 			GroupsRootToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
 										   bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-										   false, nullptr, p_GraphicsGroupItemExclude, bBlokingPatterns);
+										   DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude, bBlokingPatterns, SEND_ELEMENTS, bToTop);
 		}
 	}
 	UpdateLinksZPos();
