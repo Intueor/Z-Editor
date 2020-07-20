@@ -1381,6 +1381,19 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 	}
 }
 
+// Поднятие Z-значений ветки группы с фокусом и очистка списка.
+void SchematicView::PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGroupItemsBranch)
+{
+	while(!avp_GraphicsGroupItemsBranch.isEmpty()) // Заранее подмнимаем ветку группы, что в фокусе.
+	{
+		GraphicsGroupItem* p_GraphicsGroupItemHelper = avp_GraphicsGroupItemsBranch.constLast();
+		p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+		p_GraphicsGroupItemHelper->setZValue(SchematicWindow::dbObjectZPos);
+		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+		avp_GraphicsGroupItemsBranch.removeAt(avp_GraphicsGroupItemsBranch.count() - 1);
+	}
+}
+
 // Блокировка вертикалей и поднятие выбранного элемента.
 void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem,
 													 bool bSend, bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
@@ -1440,14 +1453,7 @@ void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_Grap
 	}
 	if(p_GraphicsGroupItem != nullptr)
 	{
-		while(!vp_GraphicsGroupItemsFocusedBranch.isEmpty()) // Заранее подмнимаем ветку группы, что в фокусе.
-		{
-			GraphicsGroupItem* p_GraphicsGroupItemHelper = vp_GraphicsGroupItemsFocusedBranch.constLast();
-			p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-			p_GraphicsGroupItemHelper->setZValue(SchematicWindow::dbObjectZPos);
-			SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-			vp_GraphicsGroupItemsFocusedBranch.removeAt(vp_GraphicsGroupItemsFocusedBranch.count() - 1);
-		}
+		PullUpZOfBranch(vp_GraphicsGroupItemsFocusedBranch);
 		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
 										 bAddBusyOrZPosToSending, bAddFrame, p_GraphicsElementItem, p_GraphicsGroupItem,
 										 bBlokingPatterns, bSendElements);
@@ -1492,14 +1498,7 @@ void SchematicView::BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_Graphics
 			}
 		}
 	}
-	while(!vp_GraphicsGroupItemsFocusedBranch.isEmpty()) // Заранее подмнимаем ветку группы, что в фокусе.
-	{
-		GraphicsGroupItem* p_GraphicsGroupItemHelper = vp_GraphicsGroupItemsFocusedBranch.constLast();
-		p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-		p_GraphicsGroupItemHelper->setZValue(SchematicWindow::dbObjectZPos);
-		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-		vp_GraphicsGroupItemsFocusedBranch.removeAt(vp_GraphicsGroupItemsFocusedBranch.count() - 1);
-	}
+	PullUpZOfBranch(vp_GraphicsGroupItemsFocusedBranch);
 	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
 									 bAddBusyOrZPosToSending, bAddFrame, nullptr, p_GraphicsGroupItem,
 									 bBlokingPatterns, bSendElements);

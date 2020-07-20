@@ -165,6 +165,9 @@ public:
 							///< \param[in] аvp_Groups Ссылка на вектор указателей на группы.
 							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
+	/// Поднятие Z-значений ветки группы с фокусом и очистка списка.
+	static void PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGroupItemsBranch);
+							///< \param[in] avp_GraphicsGroupItemsBranch Ссылка на вектор с веткой групп.
 	/// Блокировка вертикалей и поднятие выбранного элемента.
 	static void BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem = nullptr,
 												 bool bSend = true, bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
