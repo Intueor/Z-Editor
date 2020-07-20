@@ -2031,8 +2031,10 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame;
 				MainWindow::p_Client->AddPocketToOutputBufferC(
 							PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
-//				SortGroupContentToTopAPFS(p_GraphicsGroupItem, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_ZPOS,
-//										  nullptr, nullptr, DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS);
+				BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsGroupItem,
+												 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+												 ADD_SEND_ZPOS, ADD_SEND_FRAME,
+												 DONT_APPLY_BLOCKING_PATTERN, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 				UpdateLinksZPos();
 				TempDeselectElement(p_GraphicsElementItem);
 				delete vp_NewElementsForGroup;
