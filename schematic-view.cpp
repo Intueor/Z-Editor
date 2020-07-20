@@ -20,7 +20,6 @@ QPointF SchematicView::pntMouseMoveMapped;
 bool SchematicView::bShiftAndLMBPressed = false;
 QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDash = nullptr;
 QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDot = nullptr;
-QVector<GraphicsElementItem*>* SchematicView::vp_NewElementsForGroup = nullptr;
 GraphicsLinkItem* SchematicView::p_GraphicsLinkItemNew = nullptr;
 bool SchematicView::bPortAltPressed;
 bool SchematicView::bPortLMBPressed;
@@ -763,22 +762,15 @@ void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool 
 		}
 		if(bAddElementGroupChange)
 		{
-			if(vp_NewElementsForGroup != nullptr)
-			{
-				if(vp_NewElementsForGroup->contains(p_Element))
-				{
-					oPSchElementVars.oSchElementGraph.uchChangesBits |= SCH_ELEMENT_BIT_GROUP;
-					oPSchElementVars.ullIDGroup = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDGroup;
-					vp_NewElementsForGroup->removeOne(p_Element);
-				}
-			}
+			oPSchElementVars.oSchElementGraph.uchChangesBits |= SCH_ELEMENT_BIT_GROUP;
+			oPSchElementVars.ullIDGroup = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDGroup;
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
 													   sizeof(oPSchElementVars));
 	}
 	oEGPointersVariant.p_GraphicsElementItem = p_Element;
 	oEGPointersVariant.p_GraphicsGroupItem = nullptr;
-	v_OccupiedByClient.append(oEGPointersVariant);
+	if(bAddBusyOrZPosToSending == ADD_SEND_BUSY) v_OccupiedByClient.append(oEGPointersVariant);
 	SetElementBlockingPattern(p_Element, bAddBusyOrZPosToSending);
 	UpdateLinksZPos();
 }
@@ -1238,13 +1230,13 @@ void SchematicView::RemovePortsByID(unsigned long long ullID)
 }
 
 // Добавление свободных элементов в группу и подготовка к отправке по запросу.
-bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
+void SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 													   GraphicsElementItem* p_GraphicsElementItemInitial)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	bool bAction;
 	//
-	vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
+	if(SchematicWindow::vp_SelectedFreeElements.isEmpty()) return;
 	if(p_GraphicsElementItemInitial == nullptr)
 	{
 		p_GraphicsElementItemInitial = SchematicWindow::vp_SelectedElements.at(0);
@@ -1262,7 +1254,6 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup =
 						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-				vp_NewElementsForGroup->append(p_GraphicsElementItem);
 				bAction = true;
 			}
 		}
@@ -1276,9 +1267,11 @@ bool SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 		UpdateLinksZPos();
 	}
 	TempDeselectElement(p_GraphicsElementItemInitial);
-	delete vp_NewElementsForGroup;
-	vp_NewElementsForGroup = nullptr;
-	return bAction;
+}
+
+void SchematicView::AddFreeSelectedGroupsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
+{
+
 }
 
 // Выбор элемента.
@@ -1541,7 +1534,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 	}
 	oEGPointersVariant.p_GraphicsElementItem = nullptr;
 	oEGPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
-	v_OccupiedByClient.append(oEGPointersVariant);
+	if(bAddBusyOrZPosToSending == ADD_SEND_BUSY) v_OccupiedByClient.append(oEGPointersVariant);
 	SetGroupBlockingPattern(p_GraphicsGroupItem, bAddBusyOrZPosToSending);
 	if(bSend == false) bSendElements = false;
 	// Сортировка.
@@ -1992,7 +1985,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				unsigned char uchG = rand() % 255;
 				unsigned char uchB = rand() % 255;
 				unsigned char uchA = 200;
-				vp_NewElementsForGroup = new QVector<GraphicsElementItem*>;
 				//
 				TempSelectElement(p_GraphicsElementItem);
 				oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
@@ -2014,7 +2006,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 						p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
 						p_GraphicsElementItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 						p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
-						vp_NewElementsForGroup->append(p_GraphicsElementItemUtil);
 					}
 				}
 				UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
@@ -2027,8 +2018,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 												 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 				UpdateLinksZPos();
 				TempDeselectElement(p_GraphicsElementItem);
-				delete vp_NewElementsForGroup;
-				vp_NewElementsForGroup = nullptr;
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
@@ -2198,9 +2187,11 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			// Создать элемент в группе.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
 			// Добавить выбранные свободные объекты.
+			SchematicWindow::vp_SelectedFreeElements.clear();
+			SchematicWindow::vp_SelectedFreeGroups.clear();
 			if(!SchematicWindow::vp_SelectedElements.isEmpty())
 			{
-				SchematicWindow::vp_SelectedFreeElements.clear();
+
 				for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 				{
 					GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
@@ -2209,10 +2200,21 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 						SchematicWindow::vp_SelectedFreeElements.append(p_GraphicsElementItem);
 					}
 				}
-				if(!SchematicWindow::vp_SelectedFreeElements.isEmpty())
+			}
+			if(!SchematicWindow::vp_SelectedGroups.isEmpty() & !p_GraphicsGroupItem->bSelected)
+			{
+				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 				{
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
+					GraphicsGroupItem* p_GraphicsGroupItemHelper = SchematicWindow::vp_SelectedGroups.at(iF);
+					if(p_GraphicsGroupItemHelper->p_GraphicsGroupItemRel == nullptr)
+					{
+						SchematicWindow::vp_SelectedFreeGroups.append(p_GraphicsGroupItemHelper);
+					}
 				}
+			}
+			if(!SchematicWindow::vp_SelectedFreeElements.isEmpty() | !SchematicWindow::vp_SelectedFreeGroups.isEmpty())
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
 			}
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
@@ -2307,6 +2309,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
 				AddFreeSelectedElementsToGroupAPFS(p_GraphicsGroupItem);
+
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
 			{

@@ -74,6 +74,7 @@ public:
 	static QPen oQPenSelectionDot; ///< Карандаш прямоугольной выборки, точки.
 	static QVector<GraphicsElementItem*> vp_SelectedElements; ///< Вектор с указателями на выбранные граф. элементы.
 	static QVector<GraphicsElementItem*> vp_SelectedFreeElements; ///< Вектор с указателями на выбранные свободные граф. элементы (врем.).
+	static QVector<GraphicsGroupItem*> vp_SelectedFreeGroups; ///< Вектор с указателями на выбранные свободные граф. группы (врем.).
 	static QVector<GraphicsGroupItem*> vp_SelectedGroups; ///< Вектор с указателями на выбранные граф. группы.
 	//
 	static QVector<GraphicsElementItem*> vp_Elements; ///< Вектор с указателями на граф. элементы.

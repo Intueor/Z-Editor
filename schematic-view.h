@@ -134,11 +134,13 @@ public:
 	static void RemovePortsByID(unsigned long long ullID);
 							///< \param[in] ullID ID элемента.
 	/// Добавление свободных элементов в группу и подготовка к отправке по запросу.
-	static bool AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
+	static void AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
 												   GraphicsElementItem* p_GraphicsElementItemInitial = nullptr);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
-							///< \return true, если добавлялись пакеты в буфер.
+	///  Добавление свободных групп в группу и подготовка к отправке по запросу.
+	static void AddFreeSelectedGroupsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 	/// Выбор элемента.
 	static void SelectElement(GraphicsElementItem* p_GraphicsElementItem, bool bLastState = true);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
@@ -401,7 +403,6 @@ public:
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDash; ///< Прямоугольник выборки, линии.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDot; ///< Прямоугольник выборки, точки.
 	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
-	static QVector<GraphicsElementItem*>* vp_NewElementsForGroup; ///< Вектор для заполнения новыми элементами для группы, очищается при добавлении.
 	static GraphicsLinkItem* p_GraphicsLinkItemNew; ///< Указатель на новосозданный линк.
 	static bool bPortAltPressed; ///< Флаг нажатого модификатора Alt для порта.
 	static bool bPortLMBPressed; ///< Флаг нажатой ЛКМ для порта.
