@@ -1280,9 +1280,9 @@ void SchematicView::SelectElement(GraphicsElementItem* p_GraphicsElementItem, bo
 		p_GraphicsElementItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
 	}
 	//
-	VerticalToTopAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-					  DONT_ADD_SEND_FRAME, p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+	BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
+									 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
+									 DONT_ADD_SEND_FRAME, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
 		GraphicsElementItem* p_GraphicsElementItemHelper = SchematicWindow::vp_SelectedElements.at(iF);
@@ -1311,9 +1311,9 @@ void SchematicView::DeselectElement(GraphicsElementItem* p_GraphicsElementItem, 
 			p_GraphicsElementItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
 		}
 	}
-	VerticalToTopAPFS(p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
-					  DONT_ADD_SEND_FRAME, p_GraphicsElementItem, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
+	BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
+									 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
+									 DONT_ADD_SEND_FRAME, ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENTS);
 	ElementToTopOrBusyAPFS(p_GraphicsElementItem, DONT_SEND_ELEMENT_GROUP_CHANGE, ADD_SEND_BUSY,
 					 ELEMENTS_BLOCKING_PATTERN_ON, SEND_ELEMENT);
 	p_GraphicsElementItem->bSelected = false;
@@ -1382,6 +1382,73 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 	}
 }
 
+// Блокировка вертикалей и поднятие выбранного элемента.
+void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem,
+													 bool bSend, bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
+													 bool bAddBusyOrZPosToSending, bool bAddFrame, bool bBlokingPatterns, bool bSendElements)
+{
+	GraphicsGroupItem* p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
+	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsFocusedBranch;
+	QVector<GraphicsGroupItem*> vp_GroupsWithSelectedElements;
+	// Вниз, к корню группы в фокусе.
+	if(p_GraphicsGroupItem != nullptr)
+	{
+		while(p_GraphicsGroupItemRoot->p_GraphicsGroupItemRel != nullptr)
+		{
+			p_GraphicsGroupItemRoot = p_GraphicsGroupItemRoot->p_GraphicsGroupItemRel;
+			vp_GraphicsGroupItemsFocusedBranch.append(p_GraphicsGroupItemRoot);
+		}
+	}
+	// По остальным корням групп... !!! ВОЗМОЖНО, ПОТРЕБУЕТСЯ СОРТИРОВКА КОРНЕЙ !!!
+	vp_GroupsWithSelectedElements.clear();
+	if(p_GraphicsElementItem->bSelected)
+	{
+		for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+		{
+			GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+			//
+			if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
+			{
+				if(!vp_GroupsWithSelectedElements.contains(p_GraphicsElementItem->p_GraphicsGroupItemRel))
+				{
+					vp_GroupsWithSelectedElements.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+				}
+			}
+		}
+		for(int iF = 0; iF != vp_GroupsWithSelectedElements.count(); iF++)
+		{
+			GraphicsGroupItem* p_GraphicsGroupItemTempRoot = vp_GroupsWithSelectedElements.at(iF);
+			while(p_GraphicsGroupItemTempRoot->p_GraphicsGroupItemRel != nullptr)
+			{
+				p_GraphicsGroupItemTempRoot = p_GraphicsGroupItemTempRoot->p_GraphicsGroupItemRel;
+			}
+			if(p_GraphicsGroupItemTempRoot != p_GraphicsGroupItemRoot) // Кроме корня группы в фокусе - его в последнюю очередь.
+			{
+				GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
+												 bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+												 bAddFrame, p_GraphicsElementItem, nullptr,
+												 bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
+			}
+		}
+	}
+	if(p_GraphicsGroupItem != nullptr)
+	{
+		while(!vp_GraphicsGroupItemsFocusedBranch.isEmpty()) // Заранее подмнимаем ветку группы, что в фокусе.
+		{
+			GraphicsGroupItem* p_GraphicsGroupItemHelper = vp_GraphicsGroupItemsFocusedBranch.constLast();
+			p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+			p_GraphicsGroupItemHelper->setZValue(SchematicWindow::dbObjectZPos);
+			SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+			vp_GraphicsGroupItemsFocusedBranch.removeAt(vp_GraphicsGroupItemsFocusedBranch.count() - 1);
+		}
+		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
+										 bAddBusyOrZPosToSending, bAddFrame, p_GraphicsElementItem, p_GraphicsGroupItem,
+										 bBlokingPatterns, bSendElements);
+		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+										 bAddFrame, p_GraphicsElementItem, nullptr, bBlokingPatterns, bSendElements);
+	}
+}
+
 // Поднятие вертикали на первый план и подготовка к отсылке по запросу.
 void SchematicView::VerticalToTopAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
 									  bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
@@ -1441,10 +1508,10 @@ gN:	if(bGroupSelected | bElementSelected)
 			}
 			if(p_GraphicsGroupItemTempRoot != p_GraphicsGroupItemRoot) // Кроме корня группы в фокусе - его в последнюю очередь.
 			{
-				GroupsRootToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
-											   bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-											   bAddFrame, p_GraphicsElementItemExclude, nullptr,
-											   bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
+				GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
+												 bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+												 bAddFrame, p_GraphicsElementItemExclude, nullptr,
+												 bBlokingPatterns, bSendElements, LEAVE_IN_PLACE);
 			}
 		}
 	}
@@ -1458,20 +1525,20 @@ gN:	if(bGroupSelected | bElementSelected)
 			SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 			vp_GraphicsGroupItemsFocusedBranch.removeAt(vp_GraphicsGroupItemsFocusedBranch.count() - 1);
 		}
-		GroupsRootToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-									   bAddFrame, p_GraphicsElementItemExclude, p_GraphicsGroupItem,
-									   bBlokingPatterns, bSendElements);
-		GroupsRootToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-									   bAddFrame, p_GraphicsElementItemExclude, nullptr, bBlokingPatterns, bSendElements);
+		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
+										 bAddBusyOrZPosToSending, bAddFrame, p_GraphicsElementItemExclude, p_GraphicsGroupItem,
+										 bBlokingPatterns, bSendElements);
+		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+										 bAddFrame, p_GraphicsElementItemExclude, nullptr, bBlokingPatterns, bSendElements);
 	}
 }
 
-// Поднятие корня групп на первый план и подготовка к отсылке по запросу рекурсивно.
-void SchematicView::GroupsRootToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
-												   bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
-												   bool bAddBusyOrZPosToSending, bool bAddFrame,
-												   GraphicsElementItem* p_GraphicsElementItemExclude, GraphicsGroupItem* p_GraphicsGroupItemExclude,
-												   bool bBlokingPatterns, bool bSendElements, bool bToTop)
+// Поднятие ветки групп на первый план и подготовка к отсылке по запросу рекурсивно.
+void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
+													 bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
+													 bool bAddBusyOrZPosToSending, bool bAddFrame,
+													 GraphicsElementItem* p_GraphicsElementItemExclude, GraphicsGroupItem* p_GraphicsGroupItemExclude,
+													 bool bBlokingPatterns, bool bSendElements, bool bToTop)
 {
 	PSchGroupVars oPSchGroupVars;
 	EGPointersVariant oEGPointersVariant;
@@ -1527,7 +1594,7 @@ void SchematicView::GroupsRootToTopAPFSRecursively(GraphicsGroupItem* p_Graphics
 		}
 		else
 		{
-			GroupsRootToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
+			GroupsBranchToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
 										   bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
 										   DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude, bBlokingPatterns, SEND_ELEMENTS, bToTop);
 		}
