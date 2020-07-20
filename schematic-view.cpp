@@ -1889,10 +1889,13 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 					break;
 				}
 			}
-			// Создать группу.
+			// Создать группу из выбранного.
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 			{
-				SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+				if(!p_GraphicsElementItem->bSelected)
+				{
+					SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+				}
 			}
 			// В группу.
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
@@ -2274,9 +2277,13 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			}
 			if(!SchematicWindow::vp_SelectedFreeElements.isEmpty() | !SchematicWindow::vp_SelectedFreeGroups.isEmpty())
 			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
+				if(!p_GraphicsGroupItem->bSelected)
+				{
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
+				}
 			}
-			//
+			// Создать группу из выбранного.
+
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
 		}
