@@ -264,6 +264,8 @@ public:
 	static void GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_Event Указатель на событие.
+	/// Создание группы с выбранным.
+	static void CreateGroupFromSelected();
 	/// Обработчик события отпусканеия мыши на группе.
 	static void GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
