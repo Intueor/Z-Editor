@@ -137,14 +137,16 @@ const char m_chMenuBackground[] = "Изменить цвет фона";
 #define MENU_CHANGE_BACKGROUND	10
 const char m_chMenuDisband[] = "Расформировать выбранные группы";
 #define MENU_DISBAND			11
+const char m_chMenuDetach[] = "Отсоединить выбранные группы";
+#define MENU_DETACH				12
 const char m_chMenuAddElement[] = "Создать элемент в группе";
-#define MENU_ADD_ELEMENT		12
+#define MENU_ADD_ELEMENT		13
 const char m_chMenuSetPassword[] = "Задать пароль";
-#define MENU_SET_PASSWORD		13
+#define MENU_SET_PASSWORD		14
 const char m_chMenuSetAsDefault[] = "Установить как текущий";
-#define MENU_SET_AS_DEFAULT		14
+#define MENU_SET_AS_DEFAULT		15
 const char m_chMenuRename[] = "Переименовать";
-#define MENU_RENAME				15
+#define MENU_RENAME				16
 const char m_chMenuRenameSelection[] = "Переименовать выборку";
-#define MENU_RENAME_SELECTION	16
+#define MENU_RENAME_SELECTION	17
 #endif // ZEDITORDEFS_H
