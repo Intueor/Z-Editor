@@ -430,12 +430,14 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 	PSchGroupEraser oPSchGroupEraser;
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItemHelper;
+	GraphicsGroupItem* p_GraphicsGroupItemAbove;
 	//
 	if(bInitial)
 	{
 		oPSchGroupEraser.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 		MainWindow::p_Client->AddPocketToOutputBufferC(
 					PROTO_O_SCH_GROUP_ERASE, (char*)&oPSchGroupEraser, sizeof(PSchGroupEraser));
+		p_GraphicsGroupItemAbove = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
 	}
 	for(int iE = 0; iE < p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
 	{
@@ -457,6 +459,12 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 	}
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
 	SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
+	if(bInitial)
+	{
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemAbove);
+		BlockingVerticalsAndPopupGroup(p_GraphicsGroupItemAbove, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+									   ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+	}
 }
 
 // Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
