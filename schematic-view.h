@@ -54,8 +54,9 @@ public:
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
 								///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
 	/// Подготовка отсылки параметров и удаление группы.
-	static void DeleteGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem);
+	static void DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bInitial = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] bInitial true - при входе от пользователя в рекурсию.
 	/// Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
 	static void DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.

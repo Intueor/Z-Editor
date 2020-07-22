@@ -425,14 +425,18 @@ void SchematicView::PrepareForRemoveElementFromScene(GraphicsElementItem* p_Grap
 }
 
 // Подготовка отсылки параметров и удаление группы.
-void SchematicView::DeleteGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
+void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bInitial)
 {
 	PSchGroupEraser oPSchGroupEraser;
 	GraphicsElementItem* p_GraphicsElementItem;
+	GraphicsGroupItem* p_GraphicsGroupItemHelper;
 	//
-	oPSchGroupEraser.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-	MainWindow::p_Client->AddPocketToOutputBufferC(
-				PROTO_O_SCH_GROUP_ERASE, (char*)&oPSchGroupEraser, sizeof(PSchGroupEraser));
+	if(bInitial)
+	{
+		oPSchGroupEraser.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+		MainWindow::p_Client->AddPocketToOutputBufferC(
+					PROTO_O_SCH_GROUP_ERASE, (char*)&oPSchGroupEraser, sizeof(PSchGroupEraser));
+	}
 	for(int iE = 0; iE < p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
 	{
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
@@ -441,8 +445,18 @@ void SchematicView::DeleteGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
 		SchematicWindow::vp_SelectedElements.removeOne(p_GraphicsElementItem);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
 	}
-	SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
+	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
+	{
+		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
+		p_GraphicsGroupItemHelper->vp_ConnectedGroups.removeOne(p_GraphicsGroupItem);
+	}
+	while(!p_GraphicsGroupItem->vp_ConnectedGroups.isEmpty())
+	{
+		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(0);
+		DeleteGroupRecursiveAPFS(p_GraphicsGroupItemHelper, RECURSION_CONTINUE);
+	}
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
+	SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
 }
 
 // Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
@@ -534,7 +548,7 @@ void SchematicView::DeleteSelectedAPFS()
 {
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 	{
-		DeleteGroupAPFS(SchematicWindow::vp_SelectedGroups.at(iF));
+		DeleteGroupRecursiveAPFS(SchematicWindow::vp_SelectedGroups.at(iF));
 	}
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
@@ -2250,6 +2264,8 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
 			// Расформировать.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
+			// Отсоединить.
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetach))->setData(MENU_DETACH);
 			// Создать элемент в группе.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
 			// Добавить выбранные свободные объекты.

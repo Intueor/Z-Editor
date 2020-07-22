@@ -47,6 +47,7 @@
 #define LEAVE_IN_PLACE						false
 #define AFFECT_SELECTED						true
 #define DONT_AFFECT_SELECTED				false
+#define RECURSION_CONTINUE					false
 // Формы.
 #define PORT_SHAPE      -3, -3, 6, 6
 #define SCALER_DIM      9
