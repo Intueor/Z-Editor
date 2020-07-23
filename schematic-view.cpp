@@ -461,9 +461,12 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 	SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
 	if(bInitial)
 	{
-		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemAbove);
-		BlockingVerticalsAndPopupGroup(p_GraphicsGroupItemAbove, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-									   ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+		if(p_GraphicsGroupItemAbove != nullptr)
+		{
+			UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemAbove);
+			BlockingVerticalsAndPopupGroup(p_GraphicsGroupItemAbove, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+										   ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+		}
 	}
 }
 
