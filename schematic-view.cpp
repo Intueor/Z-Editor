@@ -430,7 +430,7 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 	PSchGroupEraser oPSchGroupEraser;
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItemHelper;
-	GraphicsGroupItem* p_GraphicsGroupItemAbove;
+	GraphicsGroupItem* p_GraphicsGroupItemAbove = nullptr;
 	//
 	if(bInitial)
 	{
