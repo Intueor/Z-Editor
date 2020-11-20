@@ -172,27 +172,29 @@ public:
 							///< \param[in] avp_GraphicsGroupItemsBranch Ссылка на вектор с веткой групп.
 	/// Блокировка вертикалей и поднятие выбранного элемента.
 	static void BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem = nullptr,
-												 bool bSend = true, bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
+												 bool bSend = true, bool bAddNewElementsToGroupSending = false,
+												 bool bAddNewGroupsToGroupSending = false,
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 												 bool bSendElements = true, bool bAffectSelected = true);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
-							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
+							///< \param[in] bAddNewElementsToGroupSending При true - передача сод. элементами параметра текущей группы.
 							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
-							///< \param[in] bAddBusyOrZPosToSending При true - установка флагов занятости, иначе - отправка z-позиций (для нового содерж.)
+							///< \param[in] bAddBusyOrZPosToSending При true - уст. флагов занятости, иначе - отпр. z-поз. (для нового содерж.)
 							///< \param[in] bAddFrame При true - передача фреймов групп.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bAffectSelected При true - обработка занятостей выбранных элементов кроме текущего.
 	/// Блокировка вертикалей и поднятие выбранной группы.
 	static void BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_GraphicsGroupItem,
-											   bool bSend = true, bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending = false,
+											   bool bSend = true, bool bAddNewElementsToGroupSending = false,
+											   bool bAddNewGroupsToGroupSending = false,
 											   bool bAddBusyOrZPosToSending = true, bool bAddFrame = false, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
 							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
-							///< \param[in] bAddBusyOrZPosToSending При true - установка флагов занятости, иначе - отправка z-позиций (для нового содерж.)
+							///< \param[in] bAddBusyOrZPosToSending При true - уст. флагов занятости, иначе - отпр. z-поз. (для нового содерж.)
 							///< \param[in] bAddFrame При true - передача фреймов групп.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 	// Поднятие ветки групп на первый план и подготовка к отсылке по запросу рекурсивно.
@@ -200,7 +202,8 @@ public:
 												 bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 												 GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
-												 GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr, bool bSendElements = true, bool bToTop = true);
+												 GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
+												 bool bSendElements = true, bool bToTop = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.

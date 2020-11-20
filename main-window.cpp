@@ -428,7 +428,8 @@ gP:				if(oPSchElementBase.oPSchElementVars.bLastInQueue)
 							oPSchElementVars.ullIDInt)
 					{
 						// Установка новых параметров.
-						LOG_P_2(LOG_CAT_I, "{In} Element vars [" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
+						LOG_P_2(LOG_CAT_I, "{In} Element vars [" <<
+								QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
 						IncomingUpdateElementParameters(p_GraphicsElementItem, oPSchElementVars);
 						goto gC;
 					}
@@ -750,11 +751,13 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 				{
 					for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // По всем группам...
 					{
-						p_GraphicsGroupItemInt = SchematicWindow::vp_Groups.at(iF); // В p_GraphicsGroupItemInt - текущая группа для сравнения с одинокой.
+						p_GraphicsGroupItemInt =
+								SchematicWindow::vp_Groups.at(iF); // В p_GraphicsGroupItemInt - текущая группа для сравнения с одинокой.
 						// По всем группам в ожидании групп (одиноким).
 						for(int iF = 0; iF < SchematicWindow::vp_LonelyGroups.count(); iF++)
 						{
-							p_GraphicsGroupItemIntHelper = SchematicWindow::vp_LonelyGroups.at(iF); // В p_GraphicsGroupItemIntHelper - текущая одинок.
+							p_GraphicsGroupItemIntHelper =
+									SchematicWindow::vp_LonelyGroups.at(iF); // В p_GraphicsGroupItemIntHelper - текущая одинок.
 							if(p_GraphicsGroupItemIntHelper->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup ==
 							   p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
 								// Если одинокая группа принадлежит текущей группе...
@@ -815,7 +818,8 @@ gG:				if(oPSchGroupBase.oPSchGroupVars.bLastInQueue)
 							oPSchGroupVars.ullIDInt)
 					{
 						// Установка новых параметров.
-						LOG_P_2(LOG_CAT_I, "{In} Group vars [" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
+						LOG_P_2(LOG_CAT_I, "{In} Group vars [" <<
+								QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
 						IncomingUpdateGroupParameters(p_GraphicsGroupItem, oPSchGroupVars);
 						goto gI;
 					}
@@ -891,7 +895,8 @@ gGN:			if(oPSchGroupName.bLastInQueue)
 					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
 							oPSchElementEraser.ullIDInt) // Найден удаляемый элемент...
 					{
-						LOG_P_2(LOG_CAT_I, "{In} Erase element [" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
+						LOG_P_2(LOG_CAT_I, "{In} Erase element [" <<
+								QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
 						// Работа с группой.
 						if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
 						{
@@ -952,7 +957,8 @@ gGN:			if(oPSchGroupName.bLastInQueue)
 					if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
 							oPSchGroupEraser.ullIDInt) // Найдена удаляемая группа...
 					{
-						LOG_P_2(LOG_CAT_I, "{In} Erase group [" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
+						LOG_P_2(LOG_CAT_I, "{In} Erase group [" <<
+								QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
 						// Удаление граф. группы.
 						for(int iE = 0; iE < p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
 						{
@@ -1621,7 +1627,8 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	{
 		if(p_SelectedMenuItem->data() == MENU_SET_PASSWORD)
 		{
-			p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword, m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
+			p_Set_Proposed_String_Dialog =
+					new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword, m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
 			if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 			{
 				LCHECK_BOOL(SaveClientConfig());
@@ -1841,7 +1848,8 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] busy.");
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy = a_SchGroupVars.oSchGroupGraph.bBusy;
-		SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
+		SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem,
+											   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy);
 	}
 	// Z-позиция.
 	if(a_SchGroupVars.oSchGroupGraph.uchChangesBits & SCH_GROUP_BIT_ZPOS)
@@ -1850,9 +1858,6 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = a_SchGroupVars.oSchGroupGraph.dbObjectZPos;
 		SchematicView::UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_ZPOS | SCH_UPDATE_MAIN);
 		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
-//		SchematicView::SortGroupContentToTopAPFS(p_GraphicsGroupItem, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_ZPOS,
-//												 nullptr, nullptr,
-//												 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.bBusy, DONT_SEND_ELEMENTS);
 	}
 	// Группа (return на выход).
 	if(a_SchGroupVars.oSchGroupGraph.uchChangesBits & SCH_GROUP_BIT_GROUP)
