@@ -164,7 +164,6 @@ MainWindow::MainWindow(QWidget* p_parent) :
 	// Из-за глюков алигмента Qt на linux.
 	p_ui->groupBox_CurrentServer->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
 	p_ui->groupBox_AvailableServers->setStyleSheet("QGroupBox::title {subcontrol-position: top left; padding: 6 5px;}");
-	//
 #endif
 	p_WidgetsThrAccess = new WidgetsThrAccess(p_ui);
 }
