@@ -150,7 +150,7 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPo
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbY = a_pntMapped.y();
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW = 275;
 	oPSchElementBase.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH = 75;
-        oPSchElementBase.oPSchElementVars.oSchElementGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
+	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 	p_GraphicsElementItem = new GraphicsElementItem(&oPSchElementBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchElementGraph.dbObjectZPos);
@@ -2023,7 +2023,7 @@ void SchematicView::CreateGroupFromSelected()
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
 	oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-	oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
+	oPSchGroupBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 	oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.bBusy = false;
 	oPSchGroupBase.oPSchGroupVars.ullIDGroup = 0;
 	p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
@@ -2187,7 +2187,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
 	p_GraphicsElementItem->p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
 	p_GraphicsElementItem->p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
-	oQColorBkg = QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uiObjectBkgColor);
+	oQColorBkg = QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
 	oQColorBkg.getRgb(&iR, &iG, &iB);
 	if(((iR + iG + iB) / 3) > 128)
 	{
@@ -2228,7 +2228,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	p_GraphicsElementItem->oQBrush.setColor(
-				QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uiObjectBkgColor));
+				QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor));
 	//
 	p_GraphicsElementItem->p_GraphicsScalerItem = new GraphicsScalerItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
@@ -2534,7 +2534,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsGroupItem->bSelected = false;
 	//
-	oQColorBkg = QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor);
+	oQColorBkg = QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor);
 	oQColorBkg.getRgb(&iR, &iG, &iB, &iA);
 	if(((iR + iG + iB) / 3) > 128)
 	{
@@ -2555,7 +2555,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	p_GraphicsGroupItem->
-			oQBrush.setColor(QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor));
+			oQBrush.setColor(QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor));
 	//
 	p_GraphicsGroupItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_GROUP, nullptr, p_GraphicsGroupItem);
 	p_GraphicsGroupItem->p_GraphicsFrameItem->hide();

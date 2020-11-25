@@ -107,7 +107,7 @@
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
 const char m_chLogWrongData[] = "Wrong data in pocket.";
-const char m_chLogSyncFault[] = "Element operations synchronization fault.";
+const char m_chLogSyncFault[] = "Schematic object operations synchronization fault.";
 const char m_chLogSource[] = "Source ";
 const char m_chLogDestination[] = "Destination ";
 const char m_chStatusConnected[] = "Соединён";

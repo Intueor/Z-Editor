@@ -486,6 +486,43 @@ gN:				if(oPSchElementName.bLastInQueue)
 			bProcessed = true;
 			break;
 		}
+		//========  Раздел PROTO_O_SCH_ELEMENT_COLOR. ========
+		case PROTO_O_SCH_ELEMENT_COLOR:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchElementColor oPSchElementColor;
+				GraphicsElementItem* p_GraphicsElementItem;
+				//
+				oPSchElementColor = *(PSchElementColor*)p_ReceivedData;
+				LOG_P_2(LOG_CAT_I, "{In} Element color");
+				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
+				{
+					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
+							oPSchElementColor.ullIDInt)
+					{
+						// Установка нового цвета.
+						p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor = oPSchElementColor.uiObjectBkgColor;
+						p_GraphicsElementItem->oQBrush.setColor(QRgb(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor));
+						goto gNC;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
+gNC:			if(oPSchElementColor.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
 		//========  Раздел PROTO_O_SCH_LINK_BASE. ========
 		case PROTO_O_SCH_LINK_BASE:
 		{
@@ -864,6 +901,43 @@ gI:				if(oPSchGroupVars.bLastInQueue)
 				// Не нашлось в имеющихся ID - ошибка.
 				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_GROUP_NAME");
 gGN:			if(oPSchGroupName.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_GROUP_COLOR. ========
+		case PROTO_O_SCH_GROUP_COLOR:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchGroupColor oPSchGroupColor;
+				GraphicsGroupItem* p_GraphicsGroupItem;
+				//
+				oPSchGroupColor = *(PSchGroupColor*)p_ReceivedData;
+				LOG_P_2(LOG_CAT_I, "{In} Group color");
+				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
+				{
+					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
+					if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
+							oPSchGroupColor.ullIDInt)
+					{
+						// Установка нового цвета.
+						p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor = oPSchGroupColor.uiObjectBkgColor;
+						p_GraphicsGroupItem->oQBrush.setColor(QRgb(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor));
+						goto gGC;
+					}
+				}
+				// Не нашлось в имеющихся ID - ошибка.
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
+gGC:			if(oPSchGroupColor.bLastInQueue)
 				{
 					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
 				}
@@ -1782,15 +1856,7 @@ gFn:if(a_SchElementVars.oSchElementGraph.uchChangesBits & SCH_ELEMENT_BIT_ZPOS)
 					SCH_NEXT_Z_SHIFT;
 		}
 	}
-	// Цвет подложки.
-	if(a_SchElementVars.oSchElementGraph.uchChangesBits & SCH_ELEMENT_BIT_BKG_COLOR)
-	{
-		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] color.");
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uiObjectBkgColor =
-				a_SchElementVars.oSchElementGraph.uiObjectBkgColor;
-		p_GraphicsElementItem->oQBrush.setColor(QRgb(p_GraphicsElementItem->
-													 oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.uiObjectBkgColor));
-	}
+
 	// Занятость.
 	if(a_SchElementVars.oSchElementGraph.uchChangesBits & SCH_ELEMENT_BIT_BUSY)
 	{
@@ -1832,15 +1898,6 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.oDbObjectFrame =
 				a_SchGroupVars.oSchGroupGraph.oDbObjectFrame;
 		SchematicView::UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_FRAME | SCH_UPDATE_MAIN);
-	}
-	// Цвет подложки.
-	if(a_SchGroupVars.oSchGroupGraph.uchChangesBits & SCH_GROUP_BIT_BKG_COLOR)
-	{
-		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] color.");
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor =
-				a_SchGroupVars.oSchGroupGraph.uiObjectBkgColor;
-		p_GraphicsGroupItem->oQBrush.setColor(
-					QRgb(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGroupGraph.uiObjectBkgColor));
 	}
 	// Занятость.
 	if(a_SchGroupVars.oSchGroupGraph.uchChangesBits & SCH_GROUP_BIT_BUSY)
