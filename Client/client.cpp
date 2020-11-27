@@ -145,14 +145,14 @@ bool Client::SendToServerImmediately(unsigned short ushCommand, char* p_chBuffer
 	bool bRes = false;
 	TryMutexInit;
 	//
-	if(bTryLock) TryMutexLock;
+	if(bTryLock) TryMutexLock(ptConnMutex);
 	if((bExitSignal == false) && (bExitAccepted == false) && (bServerAlive == true)
 	   && (oConvData.bSecured == true) && (oConvData.bFullOnServer == false))
 	{
 		if(SendToConnectionImmediately(oConvData.oConnectionData, ushCommand, false, p_chBuffer, iLength, bResetPointer))
 			bRes = true;
 	}
-	if(bTryLock) TryMutexUnlock;
+	if(bTryLock) TryMutexUnlock(ptConnMutex);
 	if(bRes == false)
 	{
 		if(oConvData.bSecured == false)
@@ -171,14 +171,14 @@ bool Client::SendBufferToServer(bool bResetPointer, bool bTryLock)
 	bool bRes = false;
 	TryMutexInit;
 	//
-	if(bTryLock) TryMutexLock;
+	if(bTryLock) TryMutexLock(ptConnMutex);
 	if((bExitSignal == false) && (bExitAccepted == false) && (bServerAlive == true)
 	   && (oConvData.bSecured == true) && (oConvData.bFullOnServer == false))
 	{
 		if(SendBufferToConnection(oConvData.oConnectionData, false, bResetPointer))
 			bRes = true;
 	}
-	if(bTryLock) TryMutexUnlock;
+	if(bTryLock) TryMutexUnlock(ptConnMutex);
 	if(bRes == false)
 	{
 		if(oConvData.bSecured == false)
@@ -216,9 +216,9 @@ void Client::SetServerCommandArrivedCB(CBServerCommandArrived pf_CBServerCommand
 {
 	TryMutexInit;
 	//
-	TryMutexLock;
+	TryMutexLock(ptConnMutex);
 	pf_CBServerCommandArrivedInt = pf_CBServerCommandArrived;
-	TryMutexUnlock;
+	TryMutexUnlock(ptConnMutex);
 }
 
 // Установка указателя кэлбэка обработки принятых пакетов от сервера.
@@ -226,9 +226,9 @@ void Client::SetServerDataArrivedCB(CBServerDataArrived pf_CBServerDataArrived)
 {
 	TryMutexInit;
 	//
-	TryMutexLock;
+	TryMutexLock(ptConnMutex);
 	pf_CBServerDataArrivedInt = pf_CBServerDataArrived;
-	TryMutexUnlock;
+	TryMutexUnlock(ptConnMutex);
 }
 
 // Установка указателя кэлбэка обработки принятых пакетов от сервера.
@@ -236,9 +236,9 @@ void Client::SetServerStatusChangedCB(CBServerStatusChanged pf_CBServerStatusCha
 {
 	TryMutexInit;
 	//
-	TryMutexLock;
+	TryMutexLock(ptConnMutex);
 	pf_CBServerStatusChangedInt = pf_CBServerStatusChanged;
-	TryMutexUnlock;
+	TryMutexUnlock(ptConnMutex);
 }
 
 /// Удаление выбранного элемента в массиве принятых пакетов.
@@ -247,14 +247,14 @@ int Client::ReleaseDataInPositionC(uint uiPos, bool bTryLock)
 	int iRes = DATA_NOT_FOUND;
 	TryMutexInit;
 	//
-	if(bTryLock) TryMutexLock;
+	if(bTryLock) TryMutexLock(ptConnMutex);
 	if(oConvData.bFullOnClient == true)
 	{
 		oConvData.bFullOnClient = false;
 		SendToConnectionImmediately(oConvData.oConnectionData, PROTO_A_BUFFER_READY);
 	}
 	iRes = oInternalNetHub.ReleaseDataInPosition(oConvData.mReceivedPockets, uiPos);
-	if(bTryLock) TryMutexUnlock;
+	if(bTryLock) TryMutexUnlock(ptConnMutex);
 	if(iRes == DATA_NOT_FOUND)
 	{
 		LOG_P_0(LOG_CAT_E, "Trying to relese empty position.");
@@ -269,9 +269,9 @@ bool Client::AddPocketToOutputBufferC(unsigned short ushCommand, char *p_chBuffe
 	bool bRes;
 	TryMutexInit;
 	//
-	if(bTryLock) TryMutexLock;
+	if(bTryLock) TryMutexLock(ptConnMutex);
 	bRes = oInternalNetHub.AddPocketToOutputBuffer(ushCommand, p_chBuffer, iLength);
-	if(bTryLock) TryMutexUnlock;
+	if(bTryLock) TryMutexUnlock(ptConnMutex);
 	return bRes;
 }
 
@@ -281,9 +281,9 @@ int Client::AccessSelectedTypeOfDataC(void** pp_vDataBuffer, unsigned short ushT
 	int iRes;
 	TryMutexInit;
 	//
-	if(bTryLock) TryMutexLock;
+	if(bTryLock) TryMutexLock(ptConnMutex);
 	iRes = oInternalNetHub.AccessSelectedTypeOfData(pp_vDataBuffer, oConvData.mReceivedPockets, ushType);
-	if(bTryLock) TryMutexUnlock;
+	if(bTryLock) TryMutexUnlock(ptConnMutex);
 	return iRes;
 }
 
@@ -620,11 +620,11 @@ ex:
 	freeaddrinfo(p_Res);
 	LOG_P_1(LOG_CAT_I, "Exiting client thread.");
 	bClientAlive = false;
-	TryMutexLock;
+	TryMutexLock(ptConnMutex);
 	for(uint uiPos = 0; uiPos < S_MAX_STORED_POCKETS; uiPos++)
 	{
 		oInternalNetHub.ReleaseDataInPosition(oConvData.mReceivedPockets, uiPos);
 	}
-	TryMutexUnlock;
+	TryMutexUnlock(ptConnMutex);
 	RETURN_THREAD;
 }
