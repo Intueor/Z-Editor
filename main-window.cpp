@@ -1455,7 +1455,7 @@ void MainWindow::RemoteUpdateSchViewAndSendRFrame()
 	oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
 	QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 	LCHECK_BOOL(p_Client->SendToServerImmediately(
-					PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame), true, false));
+					PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame), true, false));
 }
 
 // Удаление линков у элемента.
@@ -1601,7 +1601,7 @@ void MainWindow::on_action_Schematic_triggered(bool checked)
 		{
 			oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
 			LCHECK_BOOL(p_Client->SendToServerImmediately(
-							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+							PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
 		}
 		p_SchematicWindow->show();
 	}
@@ -1611,13 +1611,13 @@ void MainWindow::on_action_Schematic_triggered(bool checked)
 		{
 			oQRectF.setRect(0, 0, 0, 0);
 			LCHECK_BOOL(p_Client->SendToServerImmediately(
-							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+							PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
 		}
 		p_SchematicWindow->hide();
 	}
 	QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 	LCHECK_BOOL(p_Client->SendToServerImmediately(
-					PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+					PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
 }
 
 // При переключении кнопки 'Соединение при включении'.

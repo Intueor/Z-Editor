@@ -193,7 +193,6 @@ void SchematicWindow::ClearScene()
 	vp_SelectedFreeElements.clear();
 	vp_SelectedFreeGroups.clear();
 	vp_SelectedGroups.clear();
-
 	bCleaningSceneNow = false;
 }
 
@@ -256,7 +255,7 @@ void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFra
 		{
 			QRealToDbFrame(oQRectFVisibleFrame, oPSchReadyFrame.oDbFrame);
 			LCHECK_BOOL(MainWindow::p_Client->SendToServerImmediately(
-							PROTO_C_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
+							PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame)));
 		}
 	}
 }
