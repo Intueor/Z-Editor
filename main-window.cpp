@@ -38,6 +38,7 @@ GraphicsLinkItem* WidgetsThrAccess::p_ConnGraphicsLinkItem = nullptr;
 GraphicsGroupItem* WidgetsThrAccess::p_ConnGraphicsGroupItem = nullptr;
 WidgetsThrAccess* MainWindow::p_WidgetsThrAccess = nullptr;
 bool MainWindow::bSchemaIsOpened = false;
+bool MainWindow::bLoadingCompleted = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -296,7 +297,13 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				PSchStatusInfo oPSchStatusInfo;
 				//
 				oPSchStatusInfo = *(PSchStatusInfo*)p_ReceivedData;
-				if(oPSchStatusInfo.bReady) // Если включена - очистка сцены и отправка сообщения о готовности клиента принять фрейм.
+				if(oPSchStatusInfo.uchBits & SCH_STATUS_LOADED)
+				{
+					BlockSchematic(false);
+					LOG_P_0(LOG_CAT_I, "Loading completed.");
+					goto gLO;
+				}
+				if(oPSchStatusInfo.uchBits & SCH_STATUS_READY) // Если вкл. - очистка сцены и отправка сообщ. о готовности клиента начать загр.
 				{
 					LOG_P_1(LOG_CAT_I, "Hub is alive.");
 					p_SchematicWindow->bCleaningSceneNow = true;
@@ -307,8 +314,8 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 						MSleep(INTERFACE_RESPONSE_MS);
 					}
 					SchematicWindow::dbObjectZPos = 1;
-					BlockSchematic(false);
 					RemoteUpdateSchViewAndSendRFrame();
+					LOG_P_0(LOG_CAT_I, "Loading...");
 				}
 				else // Если отключена - блокировка схем.
 				{
@@ -316,7 +323,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					BlockSchematic(true);
 				}
 			}
-			bProcessed = true;
+gLO:		bProcessed = true;
 			break;
 		}
 		//========  Раздел PROTO_S_SERVER_NAME. ========
@@ -333,9 +340,10 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				}
 				LOG_P_1(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
-				oPSchReadyInfo.bReady = true;
+				oPSchReadyInfo.uchBits = SCH_STATUS_READY;
 				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
 				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
+				bLoadingCompleted = false; // Установка для ожидания конца последующей прогрузки.
 			}
 			else
 			{
@@ -374,6 +382,10 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				}
 				p_GraphicsElementItem = p_WidgetsThrAccess->p_ConnGraphicsElementItem;
 				p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchElementGraph.dbObjectZPos);
+				if(bBlockingGraphics)
+				{
+					SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, true);
+				}
 				SchematicWindow::vp_Elements.push_front(p_GraphicsElementItem);
 				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 				{
@@ -661,6 +673,10 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 					MSleep(INTERFACE_RESPONSE_MS);
 				}
 				p_GraphicsGroupItem = p_WidgetsThrAccess->p_ConnGraphicsGroupItem;
+				if(bBlockingGraphics)
+				{
+					SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, true);
+				}
 				p_GraphicsGroupItem->setZValue(oPSchGroupBase.oPSchGroupVars.oSchGroupGraph.dbObjectZPos);
 				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
 				// Добавение в группу привязанных элементов.
@@ -1367,7 +1383,6 @@ void MainWindow::ClientStartProcedures()
 	{
 		if(p_Client->CheckServerAlive())
 		{
-			bBlockingGraphics = false;
 			SchematicView::p_GraphicsPortItemActive = nullptr;
 			return;
 		}

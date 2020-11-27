@@ -180,6 +180,7 @@ private:
 	static bool bBlockConnectionButtons; ///< Флаг блокировки кнопок соединения от повторного нажатия при программных переключениях.
 	static PSchReadyFrame oPSchReadyFrame; ///< Объект параметров запрашиваемого окна схемы.
 	static bool bSchemaIsOpened; ///< Флаг открытого обзора схемы.
+	static bool bLoadingCompleted; ///< Флаг завершения прогрузки с сервера.
 };
 
 /// Класс добавки данных сервера к стандартному элементу лист-виджета.
