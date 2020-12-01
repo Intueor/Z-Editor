@@ -24,8 +24,8 @@ GraphicsElementItem::~GraphicsElementItem()
 QRectF GraphicsElementItem::boundingRect() const
 {
 	return QRectF(0, 0,
-				  oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbW,
-				  oPSchElementBaseInt.oPSchElementVars.oSchElementGraph.oDbObjectFrame.dbH);
+				  oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW,
+				  oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH);
 }
 
 // Переопределение функции рисования элемента.

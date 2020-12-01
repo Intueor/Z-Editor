@@ -62,7 +62,7 @@ public:
 	bool bIsSrc; ///< Признак порта-источника.
 	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
 	ushort ushiPortInt; ///< Внутренняя переменная номера порта.
-	SchElementGraph* p_SchElementGraph; ///< Указтель на граф. представление элемента.
+	SchGraph* p_SchGraph; ///< Указтель на граф. представление элемента.
 };
 
 #endif // GRAPHICSPORTITEM_H
