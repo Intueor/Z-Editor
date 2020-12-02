@@ -381,7 +381,7 @@ gLO:		bProcessed = true;
 					MSleep(INTERFACE_RESPONSE_MS);
 				}
 				p_GraphicsElementItem = p_WidgetsThrAccess->p_ConnGraphicsElementItem;
-				p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchGraph.dbObjectZPos);
+				p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos);
 				if(bBlockingGraphics)
 				{
 					SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, true);
@@ -677,7 +677,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 				{
 					SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, true);
 				}
-				p_GraphicsGroupItem->setZValue(oPSchGroupBase.oPSchGroupVars.oSchGraph.dbObjectZPos);
+				p_GraphicsGroupItem->setZValue(oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos);
 				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
 				// Добавение в группу привязанных элементов.
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++) // По всем элементам.
@@ -1517,7 +1517,7 @@ void MainWindow::BlockSchematic(bool bBlock)
 		else
 		{
 			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
-													  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy);
+													  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy);
 		}
 
 	}
@@ -1533,7 +1533,7 @@ void MainWindow::BlockSchematic(bool bBlock)
 		else
 		{
 			SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, // Если разблокируется схемой - блокировка по состоянию bBusy.
-													  p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy);
+													  p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy);
 		}
 	}
 	if(bBlock)
@@ -1814,16 +1814,16 @@ void MainWindow::on_listWidget_Servers_itemDoubleClicked(QListWidgetItem* item)
 void MainWindow::IncomingUpdateElementParameters(GraphicsElementItem* p_GraphicsElementItem, PSchElementVars& a_SchElementVars)
 {
 	// Фрейм.
-	if(a_SchElementVars.oSchGraph.uchChangesBits & SCH_ELEMENT_BIT_FRAME)
+	if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_ELEMENT_BIT_FRAME)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] frame.");
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame =
-				a_SchElementVars.oSchGraph.oDbObjectFrame;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame =
+				a_SchElementVars.oSchEGGraph.oDbFrame;
 		SchematicView::UpdateSelectedInElement(p_GraphicsElementItem,
 											  SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN, 0, 0, true);
 	}
 	// Отношение к группе.
-	if(a_SchElementVars.oSchGraph.uchChangesBits & SCH_ELEMENT_BIT_GROUP)
+	if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_ELEMENT_BIT_GROUP)
 	{
 		GraphicsGroupItem* p_GraphicsGroupItem;
 		//
@@ -1859,38 +1859,38 @@ void MainWindow::IncomingUpdateElementParameters(GraphicsElementItem* p_Graphics
 		}
 	}
 	// Z-позиция.
-gFn:if(a_SchElementVars.oSchGraph.uchChangesBits & SCH_ELEMENT_BIT_ZPOS)
+gFn:if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_ELEMENT_BIT_ZPOS)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] z-pos.");
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos =
-				a_SchElementVars.oSchGraph.dbObjectZPos;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos =
+				a_SchElementVars.oSchEGGraph.dbObjectZPos;
 		SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_ZPOS | SCH_UPDATE_MAIN);
-		if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos)
+		if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
 		{
-			SchematicWindow::dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos +
+			SchematicWindow::dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos +
 					SCH_NEXT_Z_SHIFT;
 		}
 	}
 
 	// Занятость.
-	if(a_SchElementVars.oSchGraph.uchChangesBits & SCH_ELEMENT_BIT_BUSY)
+	if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_ELEMENT_BIT_BUSY)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] busy.");
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy = a_SchElementVars.oSchGraph.bBusy;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy = a_SchElementVars.oSchEGGraph.bBusy;
 		SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->
-												  oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy);
+												  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy);
 	}
 }
 
 // Входное обновление параметров группы по структуре.
 void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupVars& a_SchGroupVars)
 {
-	if(a_SchGroupVars.oSchGraph.uchChangesBits & SCH_GROUP_BIT_ELEMENTS_SHIFT)
+	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_GROUP_BIT_ELEMENTS_SHIFT)
 	{
-		double dbXShift = a_SchGroupVars.oSchGraph.oDbObjectFrame.dbX -
-				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX;
-		double dbYShift = a_SchGroupVars.oSchGraph.oDbObjectFrame.dbY -
-				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY;
+		double dbXShift = a_SchGroupVars.oSchEGGraph.oDbFrame.dbX -
+				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
+		double dbYShift = a_SchGroupVars.oSchEGGraph.oDbFrame.dbY -
+				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
 		GraphicsElementItem* p_GraphicsElementItem;
 		//
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] elements shift.");
@@ -1898,40 +1898,40 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 		{
 			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] shifting.");
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX += dbXShift;
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY += dbYShift;
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += dbXShift;
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += dbYShift;
 			SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] free by shifting.");
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy = false;
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy = false;
 			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, false);
 		}
 	}
 	// Фрейм.
-	if(a_SchGroupVars.oSchGraph.uchChangesBits & SCH_GROUP_BIT_FRAME)
+	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_GROUP_BIT_FRAME)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] frame.");
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame =
-				a_SchGroupVars.oSchGraph.oDbObjectFrame;
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame =
+				a_SchGroupVars.oSchEGGraph.oDbFrame;
 		SchematicView::UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_FRAME | SCH_UPDATE_MAIN);
 	}
 	// Занятость.
-	if(a_SchGroupVars.oSchGraph.uchChangesBits & SCH_GROUP_BIT_BUSY)
+	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_GROUP_BIT_BUSY)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] busy.");
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy = a_SchGroupVars.oSchGraph.bBusy;
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy = a_SchGroupVars.oSchEGGraph.bBusy;
 		SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem,
-											   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy);
+											   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy);
 	}
 	// Z-позиция.
-	if(a_SchGroupVars.oSchGraph.uchChangesBits & SCH_GROUP_BIT_ZPOS)
+	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_GROUP_BIT_ZPOS)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] z-pos.");
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos = a_SchGroupVars.oSchGraph.dbObjectZPos;
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = a_SchGroupVars.oSchEGGraph.dbObjectZPos;
 		SchematicView::UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_ZPOS | SCH_UPDATE_MAIN);
-		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	// Группа (return на выход).
-	if(a_SchGroupVars.oSchGraph.uchChangesBits & SCH_GROUP_BIT_GROUP)
+	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_GROUP_BIT_GROUP)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] group.");
 		if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup != 0) // Если группа в группе...
@@ -1969,25 +1969,25 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 void MainWindow::IncomingUpdateLinkParameters(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkVars& a_SchLinkVars)
 {
 	// Позиция порта источника.
-	if(a_SchLinkVars.oSchLinkGraph.uchChangesBits & SCH_LINK_BIT_SCR_PORT_POS)
+	if(a_SchLinkVars.oSchLGraph.uchChangesBits & SCH_LINK_BIT_SCR_PORT_POS)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString()
 				<< "<>" << QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
 				<< "] scr port pos.");
-		p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
-				a_SchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
+		p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos =
+				a_SchLinkVars.oSchLGraph.oDbSrcPortGraphPos;
 		SchematicView::UpdateSelectedInElement(p_GraphicsLinkItem->p_GraphicsElementItemSrc,
 												 SCH_UPDATE_PORT_SRC_POS | SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN,
 												 p_GraphicsLinkItem->p_GraphicsPortItemSrc, p_GraphicsLinkItem);
 	}
 	// Позиция порта приёмника.
-	if(a_SchLinkVars.oSchLinkGraph.uchChangesBits & SCH_LINK_BIT_DST_PORT_POS)
+	if(a_SchLinkVars.oSchLGraph.uchChangesBits & SCH_LINK_BIT_DST_PORT_POS)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString()
 				<< "<>" << QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
 				<< "] dst port pos.");
-		p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos =
-				a_SchLinkVars.oSchLinkGraph.oDbDstPortGraphPos;
+		p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos =
+				a_SchLinkVars.oSchLGraph.oDbDstPortGraphPos;
 		SchematicView::UpdateSelectedInElement(p_GraphicsLinkItem->p_GraphicsElementItemDst,
 												 SCH_UPDATE_PORT_DST_POS | SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN,
 												 p_GraphicsLinkItem->p_GraphicsPortItemDst, p_GraphicsLinkItem);
@@ -2024,7 +2024,7 @@ void WidgetsThrAccess::RemoveGraphicsGroupItem()
 void WidgetsThrAccess::AddGraphicsLinkItem()
 {
 	p_ConnGraphicsLinkItem = new GraphicsLinkItem(p_PSchLinkBase);
-	if(p_PSchLinkBase->oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+	if(p_PSchLinkBase->oPSchLinkVars.oSchLGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
 	{
 		MainWindow::p_SchematicWindow->oScene.addItem(p_ConnGraphicsLinkItem);
 	}
@@ -2039,15 +2039,15 @@ void WidgetsThrAccess::AddGraphicsLinkItem()
 void WidgetsThrAccess::ElementGroupBoxSizeSet()
 {
 	p_ConnGraphicsElementItem->p_QGroupBox->setFixedSize(
-				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW - 6,
-				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH - 3);
+				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
+				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
 }
 
 // Установка ширины строки названия группы по указателю p_ConnGraphicsGroupItem.
 void WidgetsThrAccess::GroupLabelWidthSet()
 {
 	p_ConnGraphicsGroupItem->p_QLabel->setFixedWidth(
-				p_ConnGraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW - 6);
+				p_ConnGraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6);
 }
 
 // Добавление графического объекта группы.

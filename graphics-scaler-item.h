@@ -45,7 +45,7 @@ protected:
 
 public:
 	GraphicsElementItem* p_ParentInt; ///< Внутренний указатель на родителя.
-	SchGraph* p_SchGraph; ///< Указтель на граф. представление элемента.
+	SchEGGraph* p_SchEGGraph; ///< Указтель на граф. представление элемента.
 };
 
 #endif // GRAPHICSSCALERITEM_H

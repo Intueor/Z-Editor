@@ -145,15 +145,15 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPo
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchElementBase.m_chName,
 				 (unsigned int)strName.toStdString().size() + 1);
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-	oPSchElementBase.oPSchElementVars.oSchGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-	oPSchElementBase.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX = a_pntMapped.x();
-	oPSchElementBase.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY = a_pntMapped.y();
-	oPSchElementBase.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW = 275;
-	oPSchElementBase.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH = 75;
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = a_pntMapped.x();
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = a_pntMapped.y();
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 275;
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 75;
 	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 	p_GraphicsElementItem = new GraphicsElementItem(&oPSchElementBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsElementItem);
-	p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchGraph.dbObjectZPos);
+	p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos);
 	SchematicWindow::vp_Elements.push_front(p_GraphicsElementItem);
 	MainWindow::p_SchematicWindow->oScene.update();
 	MainWindow::p_Client->AddPocketToOutputBufferC(
@@ -300,15 +300,15 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 					oQPointBR = p_QGraphicsRectItemSelectionDot->rect().bottomRight();
 					if(p_GraphicsElementItem)
 					{
-						if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX >
+						if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX >
 							oQPointTL.x()) &
-						   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY >
+						   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY >
 							oQPointTL.y()) &
-						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX +
-							 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW) <
+						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+							 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW) <
 							oQPointBR.x()) &
-						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY +
-							 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH) <
+						   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+							 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH) <
 							oQPointBR.y()))
 						{
 							if(!p_GraphicsElementItem->bSelected)
@@ -321,12 +321,12 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 					}
 					else
 					{
-						if((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX > oQPointTL.x()) &
-						   (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY > oQPointTL.y()) &
-						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX +
-							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW) < oQPointBR.x()) &
-						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY +
-							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH) < oQPointBR.y()))
+						if((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
+						   (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
+						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX +
+							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW) < oQPointBR.x()) &
+						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY +
+							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH) < oQPointBR.y()))
 						{
 							if(!p_GraphicsGroupItem->bSelected)
 							{
@@ -401,10 +401,10 @@ void SchematicView::PrepareForRemoveElementFromScene(GraphicsElementItem* p_Grap
 		if(!GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItemRel))
 		{
 			UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemRel); // При непустой группе - коррекция её фрейма.
-			oPSchGroupVars.oSchGraph.oDbObjectFrame =
-					p_GraphicsGroupItemRel->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame;
+			oPSchGroupVars.oSchEGGraph.oDbFrame =
+					p_GraphicsGroupItemRel->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 			oPSchGroupVars.ullIDInt = p_GraphicsGroupItemRel->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchGroupVars.oSchGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
+			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
 			MainWindow::p_Client->AddPocketToOutputBufferC(
 						PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
 		}
@@ -535,10 +535,10 @@ bool SchematicView::DetachSelectedAPFS()
 		{
 			GraphicsGroupItem* p_GraphicsGroupItem = vp_AffectedGroups.at(iG);
 			//
-			oPSchGroupVars.oSchGraph.oDbObjectFrame =
-					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame;
+			oPSchGroupVars.oSchEGGraph.oDbFrame =
+					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 			oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchGroupVars.oSchGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
+			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_GROUP_BIT_FRAME;
 			MainWindow::p_Client->AddPocketToOutputBufferC(
 						PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
 		}
@@ -546,14 +546,14 @@ bool SchematicView::DetachSelectedAPFS()
 		{
 			p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
 			p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 			SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 			p_GraphicsElementItem->update();
 			oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 			oPSchElementVars.ullIDGroup = 0;
-			oPSchElementVars.oSchGraph.dbObjectZPos =
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos;
-			oPSchElementVars.oSchGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
+			oPSchElementVars.oSchEGGraph.dbObjectZPos =
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
+			oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
 			MainWindow::p_Client->AddPocketToOutputBufferC(
 						PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
 			UpdateLinksZPos();
@@ -612,12 +612,12 @@ gS:	TrySendBufferToServer;
 // Прикрепление позиции граф. порта к краям элемента.
 DbPoint SchematicView::BindToInnerEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial)
 {
-	double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX;
-	double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY;
+	double dbXMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
+	double dbYMin = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
 	double dbXMax = dbXMin +
-			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW;
+			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 	double dbYMax = dbYMin +
-			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH;
+			p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 	double dbXMinDiff = oDbPortPosInitial.dbX - dbXMin; // Расстояние до левого края.
 	double dbYMinDiff = oDbPortPosInitial.dbY - dbYMin; // Расстояние до верхнего края.
 	double dbXMaxDiff = dbXMax - oDbPortPosInitial.dbX; // Расстояние до правого края.
@@ -644,14 +644,14 @@ DbPoint SchematicView::BindToInnerEdge(GraphicsElementItem* p_GraphicsElementIte
 		if(dbXMaxDiff < dbYMaxDiff) // Если к правому ближе, чем к нижнему...
 		{
 			oDbPortPosInitial.dbX =
-					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW;// Прилипли к правому.
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;// Прилипли к правому.
 			oDbPortPosInitial.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
 		}
 		else
 		{
 			oDbPortPosInitial.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
 			oDbPortPosInitial.dbY =
-					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;// Прилипли к нижнему.
 		}
 	}
 	else if(bXToLeft & !bYToTop) // Если у левого нижнего края...
@@ -665,7 +665,7 @@ DbPoint SchematicView::BindToInnerEdge(GraphicsElementItem* p_GraphicsElementIte
 		{
 			oDbPortPosInitial.dbX -= dbXMin; // Оставляем горизонталь и переводим в координаты элемента.
 			oDbPortPosInitial.dbY =
-					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH;// Прилипли к нижнему.
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;// Прилипли к нижнему.
 		}
 	}
 	else if(!bXToLeft & bYToTop) // Если у правого верхнего края...
@@ -673,7 +673,7 @@ DbPoint SchematicView::BindToInnerEdge(GraphicsElementItem* p_GraphicsElementIte
 		if(dbXMaxDiff < dbYMinDiff) // Если к правому ближе, чем к верхнему...
 		{
 			oDbPortPosInitial.dbX =
-					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW;// Прилипли к правому.
+					p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;// Прилипли к правому.
 			oDbPortPosInitial.dbY -= dbYMin; // Оставляем вертикаль и переводим в координаты элемента.
 		}
 		else
@@ -697,24 +697,24 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
 		//
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = BindToInnerEdge(p_GraphicsElementItemNew, oDbPortPos);
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos =
-				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos;
+		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos = BindToInnerEdge(p_GraphicsElementItemNew, oDbPortPos);
+		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos =
+				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos;
 	}
 	else
 	{
 		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
 		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		//
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos =
-				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
-		oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = BindToInnerEdge(p_GraphicsElementItemNew, oDbPortPos);
+		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos =
+				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos;
+		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos = BindToInnerEdge(p_GraphicsElementItemNew, oDbPortPos);
 	}
 	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort;
 	oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort;
 	//
 	p_GraphicsLinkItemNew = new GraphicsLinkItem(&oPSchLinkBase);
-	if(oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+	if(oPSchLinkBase.oPSchLinkVars.oSchLGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
 	{
 		MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
 	}
@@ -776,7 +776,7 @@ void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool 
 	if(bToTop)
 	{
 		p_Element->setZValue(SchematicWindow::dbObjectZPos);
-		p_Element->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+		p_Element->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		p_Element->update();
 	}
@@ -785,17 +785,17 @@ void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool 
 		oPSchElementVars.ullIDInt = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		if(bAddBusyOrZPosToSending == ADD_SEND_BUSY)
 		{
-			oPSchElementVars.oSchGraph.bBusy = true;
-			oPSchElementVars.oSchGraph.uchChangesBits = SCH_ELEMENT_BIT_BUSY;
+			oPSchElementVars.oSchEGGraph.bBusy = true;
+			oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_ELEMENT_BIT_BUSY;
 		}
 		else
 		{
-			oPSchElementVars.oSchGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS;
-			oPSchElementVars.oSchGraph.dbObjectZPos = p_Element->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos;
+			oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS;
+			oPSchElementVars.oSchEGGraph.dbObjectZPos = p_Element->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
 		}
 		if(bAddElementGroupChange)
 		{
-			oPSchElementVars.oSchGraph.uchChangesBits |= SCH_ELEMENT_BIT_GROUP;
+			oPSchElementVars.oSchEGGraph.uchChangesBits |= SCH_ELEMENT_BIT_GROUP;
 			oPSchElementVars.ullIDGroup = p_Element->oPSchElementBaseInt.oPSchElementVars.ullIDGroup;
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars,
@@ -822,12 +822,12 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 		// Если есть элементы - начинаем с них.
 		p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(0);
 		// Получаем крайние точки первого элемента в группе.
-		oDbPointLeftTop.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX;
-		oDbPointLeftTop.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY;
+		oDbPointLeftTop.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
+		oDbPointLeftTop.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
 		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW;
+				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 		oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH;
+				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 		// Цикл по остальным элементам для наращивания.
 		for(int iF = 1; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
 		{
@@ -836,12 +836,12 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 			//
 			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
 			// Получаем крайние точки следующего элемента в группе.
-			oDbPointLeftTopTemp.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX;
-			oDbPointLeftTopTemp.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY;
+			oDbPointLeftTopTemp.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
+			oDbPointLeftTopTemp.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
 			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW;
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 			oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH;
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 			// Расширяем до показателей текущего элемента при зашкаливании по любой точке периметра.
 			if(oDbPointLeftTop.dbX > oDbPointLeftTopTemp.dbX) oDbPointLeftTop.dbX = oDbPointLeftTopTemp.dbX;
 			if(oDbPointLeftTop.dbY > oDbPointLeftTopTemp.dbY) oDbPointLeftTop.dbY = oDbPointLeftTopTemp.dbY;
@@ -854,12 +854,12 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 		// Если нет элементов - начинаем с групп.
 		p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(0);
 		// Получаем крайние точки первой группы в группе.
-		oDbPointLeftTop.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX;
-		oDbPointLeftTop.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY;
+		oDbPointLeftTop.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
+		oDbPointLeftTop.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
 		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW;
+				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
 		oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH;
+				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
 	}
 	// ГРУППЫ.
 	// Цикл по группам для наращивания.
@@ -870,12 +870,12 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 		//
 		p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
 		// Получаем крайние точки следующей группы в группе.
-		oDbPointLeftTopTemp.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX;
-		oDbPointLeftTopTemp.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY;
+		oDbPointLeftTopTemp.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
+		oDbPointLeftTopTemp.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
 		oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW;
+				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
 		oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH;
+				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
 		// Расширяем до показателей текущей группы при зашкаливании по любой точке периметра.
 		if(oDbPointLeftTop.dbX > oDbPointLeftTopTemp.dbX) oDbPointLeftTop.dbX = oDbPointLeftTopTemp.dbX;
 		if(oDbPointLeftTop.dbY > oDbPointLeftTopTemp.dbY) oDbPointLeftTop.dbY = oDbPointLeftTopTemp.dbY;
@@ -887,7 +887,7 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 	oDbFrameResult.dbY = oDbPointLeftTop.dbY - 20;
 	oDbFrameResult.dbW = oDbPointRightBottom.dbX - oDbPointLeftTop.dbX + 4;
 	oDbFrameResult.dbH = oDbPointRightBottom.dbY - oDbPointLeftTop.dbY + 22;
-	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame = oDbFrameResult;
+	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame = oDbFrameResult;
 	UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_FRAME | SCH_UPDATE_MAIN);
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel)
 	{
@@ -906,20 +906,20 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 	//
 	if(ushBits & SCH_UPDATE_ELEMENT_ZPOS)
 	{
-		p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos);
+		p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos);
 		UpdateLinksZPos();
 	}
 	if(ushBits & SCH_UPDATE_ELEMENT_FRAME)
 	{
 		if(!bIsIncoming)
 		{
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW +=
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW +=
 					p_GraphicsElementItem->oDbPointDimIncrements.dbX;
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH +=
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH +=
 					p_GraphicsElementItem->oDbPointDimIncrements.dbY;
 		}
-		p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX,
-									  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY);
+		p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+									  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
 		QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
 		int iCn = lp_Items.count();
 		for(int iC = 0; iC < iCn; iC++)
@@ -931,13 +931,13 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 				{
 					DbFrame* p_DbFrameEl;
 					//
-					p_DbFrameEl = &p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame;
+					p_DbFrameEl = &p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame;
 					p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
 					if(p_GraphicsPortItemInt->bIsSrc)
 					{
 						DbPoint* p_DbPointSrcPos;
 						//
-						p_DbPointSrcPos = &p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos;
+						p_DbPointSrcPos = &p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos;
 						if(p_DbPointSrcPos->dbX > p_DbFrameEl->dbW)
 						{
 							p_DbPointSrcPos->dbX = p_DbFrameEl->dbW;
@@ -996,7 +996,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 					{
 						DbPoint* p_DbPointDstPos;
 						//
-						p_DbPointDstPos = &p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos;
+						p_DbPointDstPos = &p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos;
 						if(p_DbPointDstPos->dbX > p_DbFrameEl->dbW)
 						{
 							p_DbPointDstPos->dbX = p_DbFrameEl->dbW;
@@ -1057,9 +1057,9 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 		WidgetsThrAccess::p_ConnGraphicsElementItem = p_GraphicsElementItem;
 		ThrUiAccessET(MainWindow::p_WidgetsThrAccess, ElementGroupBoxSizeSet);
 		p_GraphicsElementItem->p_GraphicsScalerItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
-															oSchGraph.oDbObjectFrame.dbW,
+															oSchEGGraph.oDbFrame.dbW,
 															p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
-															oSchGraph.oDbObjectFrame.dbH);
+															oSchEGGraph.oDbFrame.dbH);
 		p_GraphicsElementItem->p_GraphicsScalerItem->update();
 		SchematicWindow::p_QGraphicsScene->update();
 	}
@@ -1081,25 +1081,25 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 						if(p_SchLinkVars->ullIDSrc == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 						{
 							p_GraphicsPortItemInt->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
-														  oSchGraph.oDbObjectFrame.dbX +
+														  oSchEGGraph.oDbFrame.dbX +
 														  p_GraphicsPortItemInt->p_PSchLinkVarsInt->
-														  oSchLinkGraph.oDbSrcPortGraphPos.dbX,
+														  oSchLGraph.oDbSrcPortGraphPos.dbX,
 														  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
-														  oSchGraph.oDbObjectFrame.dbY +
+														  oSchEGGraph.oDbFrame.dbY +
 														  p_GraphicsPortItemInt->p_PSchLinkVarsInt->
-														  oSchLinkGraph.oDbSrcPortGraphPos.dbY);
+														  oSchLGraph.oDbSrcPortGraphPos.dbY);
 							p_GraphicsPortItemInt->update();
 						}
 						if(p_SchLinkVars->ullIDDst == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 						{
 							p_GraphicsPortItemInt->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
-														  oSchGraph.oDbObjectFrame.dbX +
+														  oSchEGGraph.oDbFrame.dbX +
 														  p_GraphicsPortItemInt->p_PSchLinkVarsInt->
-														  oSchLinkGraph.oDbDstPortGraphPos.dbX,
+														  oSchLGraph.oDbDstPortGraphPos.dbX,
 														  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
-														  oSchGraph.oDbObjectFrame.dbY +
+														  oSchEGGraph.oDbFrame.dbY +
 														  p_GraphicsPortItemInt->p_PSchLinkVarsInt->
-														  oSchLinkGraph.oDbDstPortGraphPos.dbY);
+														  oSchLGraph.oDbDstPortGraphPos.dbY);
 							p_GraphicsPortItemInt->update();
 						}
 					}
@@ -1109,18 +1109,18 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 	}
 	if(ushBits & SCH_UPDATE_PORT_SRC_POS)
 	{
-		p_GraphicsPortItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX +
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX,
-								   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY +
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY);
+		p_GraphicsPortItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX,
+								   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY);
 		p_GraphicsPortItem->update();
 	}
 	if(ushBits & SCH_UPDATE_PORT_DST_POS)
 	{
-		p_GraphicsPortItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX +
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX,
-								   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY +
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY);
+		p_GraphicsPortItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX,
+								   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY);
 		p_GraphicsPortItem->update();
 	}
 	if(ushBits & SCH_UPDATE_LINKS_POS)
@@ -1171,13 +1171,13 @@ void SchematicView::UpdateSelectedInGroup(GraphicsGroupItem* p_GraphicsGroupItem
 {
 	if(ushBits & SCH_UPDATE_GROUP_ZPOS)
 	{
-		p_GraphicsGroupItem->setZValue(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos);
+		p_GraphicsGroupItem->setZValue(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos);
 		UpdateLinksZPos();
 	}
 	if(ushBits & SCH_UPDATE_GROUP_FRAME)
 	{
-		p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX,
-									p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY);
+		p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
+									p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
 		WidgetsThrAccess::p_ConnGraphicsGroupItem = p_GraphicsGroupItem;
 		ThrUiAccessET(MainWindow::p_WidgetsThrAccess, GroupLabelWidthSet);
 		SchematicWindow::p_QGraphicsScene->update();
@@ -1230,28 +1230,28 @@ void SchematicView::ReleaseOccupiedAPFS()
 		{
 			SetElementBlockingPattern(oEGPointersVariant.p_GraphicsElementItem, false);
 			oPSchElementVars.ullIDInt = oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-			oPSchElementVars.oSchGraph.dbObjectZPos =
-					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos;
-			oPSchElementVars.oSchGraph.bBusy = false;
-			oPSchElementVars.oSchGraph.oDbObjectFrame =
-					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame;
-			oPSchElementVars.oSchGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY | SCH_ELEMENT_BIT_FRAME;
+			oPSchElementVars.oSchEGGraph.dbObjectZPos =
+					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
+			oPSchElementVars.oSchEGGraph.bBusy = false;
+			oPSchElementVars.oSchEGGraph.oDbFrame =
+					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame;
+			oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_ELEMENT_BIT_ZPOS | SCH_ELEMENT_BIT_BUSY | SCH_ELEMENT_BIT_FRAME;
 			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
 		}
 		else
 		{
 			SetGroupBlockingPattern(oEGPointersVariant.p_GraphicsGroupItem, false);
 			oPSchGroupVars.ullIDInt = oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchGroupVars.oSchGraph.dbObjectZPos =
-					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos;
-			oPSchGroupVars.oSchGraph.bBusy = false;
-			oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX =
+			oPSchGroupVars.oSchEGGraph.dbObjectZPos =
+					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos;
+			oPSchGroupVars.oSchEGGraph.bBusy = false;
+			oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX =
 					oEGPointersVariant.p_GraphicsGroupItem->x();
-			oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY =
+			oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY =
 					oEGPointersVariant.p_GraphicsGroupItem->y();
-			oPSchGroupVars.oSchGraph.oDbObjectFrame =
-					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame;
-			oPSchGroupVars.oSchGraph.uchChangesBits = SCH_GROUP_BIT_BUSY | SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_ZPOS;
+			oPSchGroupVars.oSchEGGraph.oDbFrame =
+					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
+			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_GROUP_BIT_BUSY | SCH_GROUP_BIT_FRAME | SCH_GROUP_BIT_ZPOS;
 			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
 		}
 	}
@@ -1426,17 +1426,17 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 			p_EGPointersVariant = &v_PointersVariants.at(iF);
 			if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
 			{
-				if(dbZ > p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos)
+				if(dbZ > p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
 				{
-					dbZ = p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos;
+					dbZ = p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
 					iVariant = iF;
 				}
 			}
 			else
 			{
-				if(dbZ > p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos)
+				if(dbZ > p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos)
 				{
-					dbZ = p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos;
+					dbZ = p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos;
 					iVariant = iF;
 				}
 			}
@@ -1453,7 +1453,7 @@ void SchematicView::PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGro
 	while(!avp_GraphicsGroupItemsBranch.isEmpty()) // Заранее подмнимаем ветку группы, что в фокусе.
 	{
 		GraphicsGroupItem* p_GraphicsGroupItemHelper = avp_GraphicsGroupItemsBranch.constLast();
-		p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+		p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 		p_GraphicsGroupItemHelper->setZValue(SchematicWindow::dbObjectZPos);
 		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		avp_GraphicsGroupItemsBranch.removeAt(avp_GraphicsGroupItemsBranch.count() - 1);
@@ -1584,7 +1584,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
 	if(bToTop)
 	{
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 		p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
 		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		p_GraphicsGroupItem->update();
@@ -1594,24 +1594,24 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 		if(bAddBusyOrZPosToSending)
 		{
-			oPSchGroupVars.oSchGraph.bBusy = true;
-			oPSchGroupVars.oSchGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
+			oPSchGroupVars.oSchEGGraph.bBusy = true;
+			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_GROUP_BIT_BUSY;
 		}
 		else
 		{
-			oPSchGroupVars.oSchGraph.uchChangesBits = SCH_GROUP_BIT_ZPOS;
-			oPSchGroupVars.oSchGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos;
+			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_GROUP_BIT_ZPOS;
+			oPSchGroupVars.oSchEGGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos;
 		}
 		if(bAddFrame)
 		{
-			oPSchGroupVars.oSchGraph.uchChangesBits |= SCH_GROUP_BIT_FRAME;
-			oPSchGroupVars.oSchGraph.oDbObjectFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame;
+			oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_GROUP_BIT_FRAME;
+			oPSchGroupVars.oSchEGGraph.oDbFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 		}
 		if(bAddNewGroupsToGroupSending)
 		{
 			if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup != 0)
 			{
-				oPSchGroupVars.oSchGraph.uchChangesBits |= SCH_GROUP_BIT_GROUP;
+				oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_GROUP_BIT_GROUP;
 				oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup;
 			}
 		}
@@ -1692,16 +1692,16 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 		{
 			p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->x() + a_QPointFRes.x(), p_GraphicsGroupItem->y() + a_QPointFRes.y());
 		}
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX += a_QPointFRes.x();
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY += a_QPointFRes.y();
 		UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_MAIN);
 		//
 		for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
 		{
 			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
 			p_GraphicsElementItem->setPos(p_GraphicsElementItem->x() + a_QPointFRes.x(), p_GraphicsElementItem->y() + a_QPointFRes.y());
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX += a_QPointFRes.x();
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY += a_QPointFRes.y();
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += a_QPointFRes.x();
+			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += a_QPointFRes.y();
 			UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 		}
 		v_AlreadyMovedGroups.append(p_GraphicsGroupItem);
@@ -1720,16 +1720,16 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 // Обновление Z-позиции линка по данным элементов.
 void SchematicView::UpdateLinkZPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem)
 {
-	if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos >
-	   p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos)
+	if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos >
+	   p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
 	{
 		p_GraphicsLinkItem->setZValue(p_GraphicsLinkItem->p_GraphicsElementItemSrc->
-									  oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos + SCH_LINK_Z_SHIFT);
+									  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos + SCH_LINK_Z_SHIFT);
 	}
 	else
 	{
 		p_GraphicsLinkItem->setZValue(p_GraphicsLinkItem->p_GraphicsElementItemDst->
-									  oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos + SCH_LINK_Z_SHIFT);
+									  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos + SCH_LINK_Z_SHIFT);
 	}
 }
 
@@ -1811,13 +1811,13 @@ void SchematicView::SetPortToPos(GraphicsPortItem* p_GraphicsPortItem)
 	p_GraphicsPortItem->setPos(oDbPointPortCurrent.dbX, oDbPointPortCurrent.dbY);
 	if(p_GraphicsPortItem->bIsSrc)
 	{
-		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = oDbPointPortCurrent.dbX;
-		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY = oDbPointPortCurrent.dbY;
+		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX = oDbPointPortCurrent.dbX;
+		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY = oDbPointPortCurrent.dbY;
 	}
 	else
 	{
-		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = oDbPointPortCurrent.dbX;
-		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = oDbPointPortCurrent.dbY;
+		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX = oDbPointPortCurrent.dbX;
+		p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY = oDbPointPortCurrent.dbY;
 	}
 	UpdateSelectedInElement(p_GraphicsPortItem->p_ParentInt,
 							SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN, nullptr, p_GraphicsPortItem->p_GraphicsLinkItemInt);
@@ -1828,7 +1828,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 {
 	bool bLastSt;
 	//
-	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy
+	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{ //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 		return;
@@ -1849,16 +1849,16 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			oPSchLinkBase.oPSchLinkVars.ushiSrcPort = DEFAULT_NEW_PORT;
 			oPSchLinkBase.oPSchLinkVars.ushiDstPort = DEFAULT_NEW_PORT;
 			// В координаты элемента.
-			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = oDbPointInitialClick;
-			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX -=
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX;
-			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY -=
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY;
-			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos = oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos;
-			oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos = BindToInnerEdge(p_GraphicsElementItem, oDbPointInitialClick);
+			oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos = oDbPointInitialClick;
+			oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX -=
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
+			oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY -=
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
+			oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos = oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos;
+			oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos = BindToInnerEdge(p_GraphicsElementItem, oDbPointInitialClick);
 			// Создание замкнутого линка (пока что).
 			p_GraphicsLinkItemNew = new GraphicsLinkItem(&oPSchLinkBase);
-			if(oPSchLinkBase.oPSchLinkVars.oSchLinkGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
+			if(oPSchLinkBase.oPSchLinkVars.oSchLGraph.uchChangesBits != SCH_LINK_BIT_INIT_ERROR)
 			{
 				MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
 			}
@@ -1976,7 +1976,7 @@ void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_Graphics
 		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseMoveEvent(p_Event);
 		return;
 	}
-	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy) return;
+	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy) return;
 	oQPointFInit = p_GraphicsElementItem->pos();
 	p_GraphicsElementItem->OBMouseMoveEvent(p_Event);
 	oQPointFRes = p_GraphicsElementItem->pos();
@@ -1994,14 +1994,14 @@ void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_Graphics
 			{
 				p_GraphicsElementItemUtil->setPos(p_GraphicsElementItemUtil->x() + oQPointFRes.x(),
 												  p_GraphicsElementItemUtil->y() + oQPointFRes.y());
-				p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX += oQPointFRes.x();
-				p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY += oQPointFRes.y();
+				p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += oQPointFRes.x();
+				p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += oQPointFRes.y();
 				UpdateSelectedInElement(p_GraphicsElementItemUtil, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN | SCH_UPDATE_GROUP);
 			}
 		}
 	}
-	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX = p_GraphicsElementItem->x();
-	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY = p_GraphicsElementItem->y();
+	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = p_GraphicsElementItem->x();
+	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = p_GraphicsElementItem->y();
 	UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN | SCH_UPDATE_GROUP);
 }
 
@@ -2021,10 +2021,10 @@ void SchematicView::CreateGroupFromSelected()
 	oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
 	strName += ": " + QString::number(oPSchGroupBase.oPSchGroupVars.ullIDInt);
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
-	oPSchGroupBase.oPSchGroupVars.oSchGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 	oPSchGroupBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
-	oPSchGroupBase.oPSchGroupVars.oSchGraph.bBusy = false;
+	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.bBusy = false;
 	oPSchGroupBase.oPSchGroupVars.ullIDGroup = 0;
 	p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsGroupItem);
@@ -2053,8 +2053,8 @@ void SchematicView::CreateGroupFromSelected()
 		}
 	}
 	UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
-	oPSchGroupBase.oPSchGroupVars.oSchGraph.oDbObjectFrame =
-			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame;
+	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.oDbFrame =
+			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 	MainWindow::p_Client->AddPocketToOutputBufferC(
 				PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
 	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, SEND_NEW_GROUPS_TO_GROUP,
@@ -2076,7 +2076,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 		p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
 		return;
 	}
-	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy) return;
+	else if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		ReleaseOccupiedAPFS();
@@ -2162,8 +2162,8 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		p_Painter->setPen(SchematicWindow::oQPenBlack);
 	}
 	p_Painter->drawRect(0, 0,
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW,
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH);
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
 }
 
 // Обработчик конструктора элемента.
@@ -2212,20 +2212,20 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 			addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
 	p_GraphicsElementItem->p_QGroupBox->move(3, 0);
 	p_GraphicsElementItem->p_QGroupBox->
-			setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW - 6,
-						 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH - 3);
+			setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
+						 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
 	p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 	p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
 	p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
 	//
-	p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX,
-								  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY);
-	p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos);
-	if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos)
+	p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+								  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
+	p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos);
+	if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
 	{
 		SchematicWindow::dbObjectZPos =
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	p_GraphicsElementItem->oQBrush.setColor(
 				QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor));
@@ -2233,12 +2233,12 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_GraphicsScalerItem = new GraphicsScalerItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsScalerItem->
-			setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW,
-				   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH);
+			setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+				   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 	//
-	SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.bBusy);
+	SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.bBusy);
 }
 
 // Обработчик события нажатия мыши на группу.
@@ -2246,7 +2246,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 {
 	bool bLastSt;
 	//
-	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
 		return;
@@ -2354,7 +2354,7 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 	QPointF oQPointFInit;
 	QPointF oQPointFRes;
 	//
-	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
@@ -2384,7 +2384,7 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 // Обработчик события отпусканеия мыши на группе.
 void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
@@ -2455,15 +2455,15 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 						PSchElementVars oPSchElementVars;
 						//
 						p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos =
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos =
 								SchematicWindow::dbObjectZPos;
 						SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 						p_GraphicsElementItem->update();
 						oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 						oPSchElementVars.ullIDGroup = 0;
-						oPSchElementVars.oSchGraph.dbObjectZPos =
-								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.dbObjectZPos;
-						oPSchElementVars.oSchGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
+						oPSchElementVars.oSchEGGraph.dbObjectZPos =
+								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
+						oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_ELEMENT_BIT_GROUP | SCH_ELEMENT_BIT_ZPOS;
 						p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
 						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
 						MainWindow::p_Client->AddPocketToOutputBufferC(
@@ -2514,9 +2514,9 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 	{
 		p_Painter->setPen(SchematicWindow::oQPenBlack);
 	}
-	p_Painter->drawRect(0, 0, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW,
-						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH);
-	p_Painter->drawLine(1, 18, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW - 1, 18);
+	p_Painter->drawRect(0, 0, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
+						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH);
+	p_Painter->drawLine(1, 18, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 1, 18);
 }
 
 // Обработчик конструктора группы.
@@ -2547,12 +2547,12 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 		p_GraphicsGroupItem->bIsPositivePalette = true;
 	}
 	//
-	p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX,
-								p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY);
-	p_GraphicsGroupItem->setZValue(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos);
-	if(SchematicWindow::dbObjectZPos <= p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos)
+	p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
+								p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
+	p_GraphicsGroupItem->setZValue(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos);
+	if(SchematicWindow::dbObjectZPos <= p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos)
 	{
-		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	p_GraphicsGroupItem->
 			oQBrush.setColor(QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor));
@@ -2565,13 +2565,13 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->p_QLabel->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsGroupItem->p_QLabel->move(3, 3);
 	p_GraphicsGroupItem->p_QLabel->
-			setFixedSize(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW - 6, 13);
+			setFixedSize(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6, 13);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget = MainWindow::p_SchematicWindow->oScene.addWidget(p_GraphicsGroupItem->p_QLabel);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsGroupItem);
 	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
 	//
-	SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.bBusy);
+	SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.bBusy);
 }
 
 // Рекурсивное удаление пустых групп.
@@ -2601,17 +2601,17 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 		p_Painter->drawRect(-2,
 							-2,
 							p_GraphicsFrameItem->
-							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW + 4,
+							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 4,
 							p_GraphicsFrameItem->
-							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH + 4);
+							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH + 4);
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
 		p_Painter->setPen(SchematicWindow::oQPenGroupFrameFlash);
 		p_Painter->drawRect(-2,
 							-2,
-							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW + 4,
-							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH + 4);
+							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW + 4,
+							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH + 4);
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_PORT)
 	{
@@ -2653,15 +2653,15 @@ QRectF SchematicView::FrameBoundingRectHandler(GraphicsFrameItem* p_GraphicsFram
 	{
 		return QRectF(-3,
 					  -3,
-					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW + 6,
-					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH + 6);
+					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 6,
+					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH + 6);
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
 		return QRectF(-3,
 					  -3,
-					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW + 6,
-					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH + 6);
+					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW + 6,
+					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH + 6);
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_PORT)
 	{
@@ -2767,7 +2767,7 @@ void SchematicView::LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem,
 			return;
 		}
 	}
-	p_PSchLinkBase->oPSchLinkVars.oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_INIT_ERROR; // Отметка про сбой в поиске элементов.
+	p_PSchLinkBase->oPSchLinkVars.oSchLGraph.uchChangesBits = SCH_LINK_BIT_INIT_ERROR; // Отметка про сбой в поиске элементов.
 }
 
 // Вычисление точек портов.
@@ -2775,14 +2775,14 @@ SchematicView::DbPointPair SchematicView::CalcPortsCoords(GraphicsLinkItem* p_Gr
 {
 	DbPointPair oDbPointPairResult;
 	//
-	oDbPointPairResult.dbSrc.dbX = p_GraphicsLinkItem->p_PSchElementVarsSrc->oSchGraph.oDbObjectFrame.dbX +
-			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbX;
-	oDbPointPairResult.dbSrc.dbY = p_GraphicsLinkItem->p_PSchElementVarsSrc->oSchGraph.oDbObjectFrame.dbY +
-			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbSrcPortGraphPos.dbY;
-	oDbPointPairResult.dbDst.dbX = p_GraphicsLinkItem->p_PSchElementVarsDst->oSchGraph.oDbObjectFrame.dbX +
-			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbX;
-	oDbPointPairResult.dbDst.dbY = p_GraphicsLinkItem->p_PSchElementVarsDst->oSchGraph.oDbObjectFrame.dbY +
-			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.oDbDstPortGraphPos.dbY;
+	oDbPointPairResult.dbSrc.dbX = p_GraphicsLinkItem->p_PSchElementVarsSrc->oSchEGGraph.oDbFrame.dbX +
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX;
+	oDbPointPairResult.dbSrc.dbY = p_GraphicsLinkItem->p_PSchElementVarsSrc->oSchEGGraph.oDbFrame.dbY +
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY;
+	oDbPointPairResult.dbDst.dbX = p_GraphicsLinkItem->p_PSchElementVarsDst->oSchEGGraph.oDbFrame.dbX +
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX;
+	oDbPointPairResult.dbDst.dbY = p_GraphicsLinkItem->p_PSchElementVarsDst->oSchEGGraph.oDbFrame.dbY +
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY;
 	return oDbPointPairResult;
 }
 
@@ -2822,14 +2822,14 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 		return;
 	}
 	bPortFromElement = p_GraphicsLinkItemNew != nullptr;
-	if(p_GraphicsPortItem->p_SchGraph->bBusy & (!bPortFromElement)) return;
+	if(p_GraphicsPortItem->p_SchEGGraph->bBusy & (!bPortFromElement)) return;
 	bPortLMBPressed = false;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		oDbPointPortInitialClick.dbX = p_GraphicsPortItem->pos().x(); // Исходный X.
 		oDbPointPortInitialClick.dbY = p_GraphicsPortItem->pos().y(); // Исходный Y.
-		oDbPointPortRB.dbX = p_GraphicsPortItem->p_SchGraph->oDbObjectFrame.dbW; // Крайняя правая точка.
-		oDbPointPortRB.dbY = p_GraphicsPortItem->p_SchGraph->oDbObjectFrame.dbH; // Крайняя нижняя точка.
+		oDbPointPortRB.dbX = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbW; // Крайняя правая точка.
+		oDbPointPortRB.dbY = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbH; // Крайняя нижняя точка.
 		BlockingVerticalsAndPopupElement(p_GraphicsPortItem->p_ParentInt, p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel,
 						  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
 						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
@@ -2889,7 +2889,7 @@ void SchematicView::PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortIt
 	{
 		return;
 	}
-	if(p_GraphicsPortItem->p_SchGraph->bBusy & (!bPortFromElement)) return;
+	if(p_GraphicsPortItem->p_SchEGGraph->bBusy & (!bPortFromElement)) return;
 	//
 	if(bPortLMBPressed)
 	{
@@ -2929,7 +2929,7 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 	{
 		return;
 	}
-	if(p_GraphicsPortItem->p_SchGraph->bBusy & (!bPortFromElement)) return;
+	if(p_GraphicsPortItem->p_SchEGGraph->bBusy & (!bPortFromElement)) return;
 	if(bPortLMBPressed)
 	{
 		if(bPortAltPressed) // Если жали Alt...
@@ -2950,10 +2950,10 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 					{
 						//
 						p_GraphicsElementItem = (GraphicsElementItem*) p_QGraphicsItem;
-						dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX;
-						dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY;
-						dbXR = dbX + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbW;
-						dbYD = dbY + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbH;
+						dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
+						dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
+						dbXR = dbX + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+						dbYD = dbY + p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 						if(((oDbMapped.dbX > dbX) & (oDbMapped.dbX < dbXR)) & ((oDbMapped.dbY > dbY) & (oDbMapped.dbY < dbYD)))
 						{
 							vp_QGraphicsItemsOnPosition.append(p_QGraphicsItem);
@@ -2962,10 +2962,10 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 					else if(p_QGraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_GROUP)
 					{
 						p_GraphicsGroupItem = (GraphicsGroupItem*) p_QGraphicsItem;
-						dbX = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbX;
-						dbY = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbY;
-						dbXR = dbX + p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbW;
-						dbYD = dbY + p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchGraph.oDbObjectFrame.dbH;
+						dbX = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
+						dbY = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
+						dbXR = dbX + p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
+						dbYD = dbY + p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
 						if(((oDbMapped.dbX > dbX) & (oDbMapped.dbX < dbXR)) & ((oDbMapped.dbY > dbY) & (oDbMapped.dbY < dbYD)))
 						{
 							vp_QGraphicsItemsOnPosition.append(p_QGraphicsItem);
@@ -3083,15 +3083,15 @@ gED:				p_GraphicsElementItemFounded = nullptr;
 gEr:	SetPortToPos(p_GraphicsPortItem);
 		if(p_GraphicsPortItem->bIsSrc)
 		{
-			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX = p_GraphicsPortItem->x();
-			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY =p_GraphicsPortItem->y();
-			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
+			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX = p_GraphicsPortItem->x();
+			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY =p_GraphicsPortItem->y();
+			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
 		}
 		else
 		{
-			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX = p_GraphicsPortItem->x();
-			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY = p_GraphicsPortItem->y();
-			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
+			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX = p_GraphicsPortItem->x();
+			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY = p_GraphicsPortItem->y();
+			p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
 		}
 		if(!bPortFromElement)
 		{
@@ -3124,7 +3124,7 @@ gF:		ReleaseOccupiedAPFS();
 			   (p_SelectedMenuItem->data() == MENU_DST_PORT) |
 			   (p_SelectedMenuItem->data() == MENU_SELECTED_PORT))
 			{
-				oPSchLinkBase.oPSchLinkVars.oSchLinkGraph = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph;
+				oPSchLinkBase.oPSchLinkVars.oSchLGraph = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph;
 				oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDSrc;
 				oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDDst;
 				oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
@@ -3214,18 +3214,18 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 	p_GraphicsPortItem->setAcceptHoverEvents(true);
 	p_GraphicsPortItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsPortItem->setParentItem(p_Parent);
-	p_GraphicsPortItem->p_SchGraph = &p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph;
+	p_GraphicsPortItem->p_SchEGGraph = &p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph;
 	if(p_GraphicsPortItem->bIsSrc)
 	{
-		p_GraphicsPortItem->setPos(p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbX,
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbSrcPortGraphPos.dbY);
+		p_GraphicsPortItem->setPos(p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX,
+								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY);
 		p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc = p_GraphicsPortItem;
 		p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort));
 	}
 	else
 	{
-		p_GraphicsPortItem->setPos(p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbX,
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLinkGraph.oDbDstPortGraphPos.dbY);
+		p_GraphicsPortItem->setPos(p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX,
+								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY);
 		p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst = p_GraphicsPortItem;
 		p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort));
 	}
@@ -3254,7 +3254,7 @@ void SchematicView::PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortI
 // Обработчик события нажатия мыши на скалер.
 void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_GraphicsScalerItem->p_SchGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	if(p_GraphicsScalerItem->p_SchEGGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -3274,7 +3274,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 {
 	DbPoint oDbPointPos;
 	//
-	if(p_GraphicsScalerItem->p_SchGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	if(p_GraphicsScalerItem->p_SchEGGraph->bBusy || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -3283,12 +3283,12 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event);; // Даём мышке уйти.
 	p_GraphicsScalerItem->setPos(QPointF((int)p_GraphicsScalerItem->pos().x(), (int)p_GraphicsScalerItem->pos().y()));
 	if(p_Event->scenePos().x() <
-	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbX + ELEMENT_MIN_X)
+	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX + ELEMENT_MIN_X)
 	{
 		p_GraphicsScalerItem->setX(oDbPointPos.dbX);
 	}
 	if(p_Event->scenePos().y() <
-	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph.oDbObjectFrame.dbY + ELEMENT_MIN_Y)
+	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY + ELEMENT_MIN_Y)
 	{
 		p_GraphicsScalerItem->setY(oDbPointPos.dbY);
 	}
@@ -3305,7 +3305,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 // Обработчик события отпусканеия мыши на скалере.
 void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_GraphicsScalerItem->p_SchGraph->bBusy || MainWindow::bBlockingGraphics)
+	if(p_GraphicsScalerItem->p_SchEGGraph->bBusy || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
@@ -3320,14 +3320,14 @@ void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_Graphic
 			if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc ==
 			   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 			{
-				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
+				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.uchChangesBits = SCH_LINK_BIT_SCR_PORT_POS;
 				MainWindow::p_Client->AddPocketToOutputBufferC(
 							PROTO_O_SCH_LINK_VARS, (char*)&p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars, sizeof(PSchLinkVars));
 			}
 			if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst ==
 			   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 			{
-				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLinkGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
+				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.uchChangesBits = SCH_LINK_BIT_DST_PORT_POS;
 				MainWindow::p_Client->AddPocketToOutputBufferC(
 							PROTO_O_SCH_LINK_VARS, (char*)&p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars, sizeof(PSchLinkVars));
 			}
@@ -3363,5 +3363,5 @@ void SchematicView::ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScale
 	p_GraphicsScalerItem->setAcceptHoverEvents(true);
 	p_GraphicsScalerItem->setCursor(Qt::CursorShape::SizeFDiagCursor);
 	p_GraphicsScalerItem->setParentItem(p_Parent);
-	p_GraphicsScalerItem->p_SchGraph = &p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchGraph;
+	p_GraphicsScalerItem->p_SchEGGraph = &p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph;
 }
