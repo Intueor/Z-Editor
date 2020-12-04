@@ -299,11 +299,6 @@ public:
 							///< \param[in] p_ElementParent Указатель на родитель-элемент.
 							///< \param[in] p_GroupParent Указатель на родитель-группу.
 							///< \param[in] p_PortParent Указатель на родитель-порт.
-	/// Обработчик вместилища фрейма.
-	static QRectF FrameBoundingRectHandler(GraphicsFrameItem* p_GraphicsFrameItem);
-							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
-							///< \return Вмещающий прямоугольник.
-
 	/// Обработчик функции рисования линка.
 	static void LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
@@ -403,9 +398,6 @@ private:
 	qreal rFactor; ///<
 	static QVector<GraphicsGroupItem*> v_AlreadyMovedGroups; ///< Список указателей на уже перемещённые за цикл группы.
 	static QVector<EGPointersVariant> v_OccupiedByClient; ///< Список занятого клиентом.
-	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
-	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
-	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
@@ -421,6 +413,9 @@ public:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
+	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
+	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
+	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
 };
 
 #endif // SCHEMATICVIEW_H

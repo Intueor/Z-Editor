@@ -2198,16 +2198,20 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			double dbX;
 			double dbY;
 			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
 			//
-			dbX = dbHalfW + (pntTrR.x() * dbHalfW);
+			dbX = dbHalfW + (pntTrR.x() * dbHalfW) - dbDecr;
 			dbY = dbHalfW + (pntTrR.y() * dbHalfW);
 			oQPolygonTriangle.append(QPointF(dbX, dbY));
-			dbX = dbHalfW + (pntTrT.x() * dbHalfW);
+			dbX = dbHalfW + (pntTrT.x() * dbHalfW) - dbDecr;
 			dbY = dbHalfW + (pntTrT.y() * dbHalfW);
 			oQPolygonTriangle.append(QPointF(dbX, dbY));
-			dbX = dbHalfW + (pntTrL.x() * dbHalfW);
+			dbX = dbHalfW + (pntTrL.x() * dbHalfW) - dbDecr;
 			dbY = dbHalfW + (pntTrL.y() * dbHalfW);
 			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			p_Painter->drawRect(0, 0,
+								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - (dbDecr * 2),
+								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
 			p_Painter->drawConvexPolygon(oQPolygonTriangle);
 		}
 	}
@@ -2300,8 +2304,9 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			double dbX = dbHalfW + (pntTrR.x() * dbHalfW);
 			double dbY = dbHalfW + (pntTrR.y() * dbHalfW);
+			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
 			//
-			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX - 5.1961522478610438f, dbY - 3.0f);
+			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX - 5.1961522478610438f - dbDecr, dbY - 3.0f);
 		}
 	}
 	else
@@ -2755,37 +2760,6 @@ void SchematicView::FrameConstructorHandler(GraphicsFrameItem* p_GraphicsFrameIt
 	}
 	p_GraphicsFrameItem->setZValue(OVERMIN_NUMBER);
 	p_GraphicsFrameItem->setAcceptedMouseButtons(0);
-}
-
-// Обработчик вместилища фрейма.
-QRectF SchematicView::FrameBoundingRectHandler(GraphicsFrameItem* p_GraphicsFrameItem)
-{
-	if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
-	{
-		double dbW = p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 6;
-		//
-		if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-		   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
-		{
-			return QRectF(-3, -3,
-						  dbW, dbW + 6);
-		}
-		return QRectF(-3, -3,
-					  dbW,
-					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH + 6);
-	}
-	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
-	{
-		return QRectF(-3, -3,
-					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW + 6,
-					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH + 6);
-	}
-	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_PORT)
-	{
-		return QRectF(-5, -5,
-					  10, 10);
-	}
-	return QRectF(0, 0, 0, 0);
 }
 
 // Обработчик функции рисования линка.
@@ -3398,7 +3372,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	oDbPointPos.dbX = p_GraphicsScalerItem->pos().x();
 	oDbPointPos.dbY = p_GraphicsScalerItem->pos().y();
 	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event);; // Даём мышке уйти.
-	p_GraphicsScalerItem->setPos(QPointF((int)p_GraphicsScalerItem->pos().x(), (int)p_GraphicsScalerItem->pos().y()));
+	//p_GraphicsScalerItem->setPos(QPointF((int)p_GraphicsScalerItem->pos().x(), (int)p_GraphicsScalerItem->pos().y()));
 	if(p_Event->scenePos().x() <
 	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX + ELEMENT_MIN_X)
 	{
@@ -3477,19 +3451,10 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 		else
 		{
 			QPolygonF oQPolygonTriangle;
-			double dbX;
-			double dbY;
-			double dbHalfW = 6;
 			//
-			dbX = (pntTrR.x() * dbHalfW);
-			dbY = (pntTrR.y() * dbHalfW);
-			oQPolygonTriangle.append(QPointF(dbX, dbY));
-			dbX = (pntTrT.x() * dbHalfW);
-			dbY = (pntTrT.y() * dbHalfW);
-			oQPolygonTriangle.append(QPointF(dbX, dbY));
-			dbX = (pntTrL.x() * dbHalfW);
-			dbY = (pntTrL.y() * dbHalfW);
-			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			oQPolygonTriangle.append(QPointF(pntTrR.x() * 6, pntTrR.y() * 6));
+			oQPolygonTriangle.append(QPointF(pntTrT.x() * 6, pntTrT.y() * 6));
+			oQPolygonTriangle.append(QPointF(pntTrL.x() * 6, pntTrL.y() * 6));
 			p_Painter->drawConvexPolygon(oQPolygonTriangle);
 		}
 	}

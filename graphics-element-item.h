@@ -38,6 +38,9 @@ public:
 	/// Переопределение функции обработки отпускания мыши.
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
 							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции определения формы.
+	QPainterPath shape() const override;
+							///< \return Фигура.
 	/// Для внешнего вызова базового метода.
 	void OBMousePressEvent(QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
