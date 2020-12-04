@@ -2289,9 +2289,27 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	//
 	p_GraphicsElementItem->p_GraphicsScalerItem = new GraphicsScalerItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
-	p_GraphicsElementItem->p_GraphicsScalerItem->
-			setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-				   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+
+		}
+		else
+		{
+			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+			double dbX = dbHalfW + (pntTrR.x() * dbHalfW);
+			double dbY = dbHalfW + (pntTrR.y() * dbHalfW);
+			//
+			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX - 5.1961522478610438f, dbY - 3.0f);
+		}
+	}
+	else
+	{
+		p_GraphicsElementItem->p_GraphicsScalerItem->
+				setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+					   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+	}
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 	//
@@ -3449,7 +3467,36 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 		p_Painter->setPen(SchematicWindow::oQPenBlack);
 	}
 	p_Painter->setBrush(p_GraphicsScalerItem->p_ParentInt->oQBrush);
-	p_Painter->drawPolygon(SchematicWindow::oPolygonForScaler);
+	if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+
+		}
+		else
+		{
+			QPolygonF oQPolygonTriangle;
+			double dbX;
+			double dbY;
+			double dbHalfW = 6;
+			//
+			dbX = (pntTrR.x() * dbHalfW);
+			dbY = (pntTrR.y() * dbHalfW);
+			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			dbX = (pntTrT.x() * dbHalfW);
+			dbY = (pntTrT.y() * dbHalfW);
+			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			dbX = (pntTrL.x() * dbHalfW);
+			dbY = (pntTrL.y() * dbHalfW);
+			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			p_Painter->drawConvexPolygon(oQPolygonTriangle);
+		}
+	}
+	else
+	{
+		p_Painter->drawPolygon(SchematicWindow::oPolygonForScaler);
+	}
 }
 
 // Обработчик конструктора скалера.
