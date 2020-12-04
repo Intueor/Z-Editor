@@ -2044,9 +2044,18 @@ void WidgetsThrAccess::AddGraphicsLinkItem()
 // Установка размеров групбокса элемента по указателю p_ConnGraphicsElementItem и размеру из oDbPointFrameSize.
 void WidgetsThrAccess::ElementGroupBoxSizeSet()
 {
-	p_ConnGraphicsElementItem->p_QGroupBox->setFixedSize(
-				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
-				p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
+	double dbW = p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6;
+	//
+	if(p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+
+		p_ConnGraphicsElementItem->p_QGroupBox->setFixedSize(dbW, dbW);
+	}
+	else
+	{
+		p_ConnGraphicsElementItem->p_QGroupBox->setFixedSize(dbW,
+					p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
+	}
 }
 
 // Установка ширины строки названия группы по указателю p_ConnGraphicsGroupItem.

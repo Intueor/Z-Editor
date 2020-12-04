@@ -23,6 +23,12 @@ GraphicsElementItem::~GraphicsElementItem()
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsElementItem::boundingRect() const
 {
+	if(oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		return QRectF(0, 0,
+					  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+					  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
+	}
 	return QRectF(0, 0,
 				  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
 				  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);

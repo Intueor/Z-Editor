@@ -826,8 +826,16 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 		oDbPointLeftTop.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
 		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
-		oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
+		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		{
+			oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+		}
+		else
+		{
+			oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
+		}
 		// Цикл по остальным элементам для наращивания.
 		for(int iF = 1; iF < p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
 		{
@@ -840,8 +848,16 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 			oDbPointLeftTopTemp.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
 			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
 					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
-			oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+			{
+				oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+			}
+			else
+			{
+				oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
+			}
 			// Расширяем до показателей текущего элемента при зашкаливании по любой точке периметра.
 			if(oDbPointLeftTop.dbX > oDbPointLeftTopTemp.dbX) oDbPointLeftTop.dbX = oDbPointLeftTopTemp.dbX;
 			if(oDbPointLeftTop.dbY > oDbPointLeftTopTemp.dbY) oDbPointLeftTop.dbY = oDbPointLeftTopTemp.dbY;
@@ -2163,9 +2179,34 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 	{
 		p_Painter->setPen(SchematicWindow::oQPenBlack);
 	}
-	p_Painter->drawRect(0, 0,
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+			p_Painter->drawEllipse(0, 0, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+								   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
+		}
+		else
+		{
+			QPolygonF oQPolygonF;
+			QPointF pntHelper;
+			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+			//
+			for(double dbS = 0; dbS < dbTwoPi; dbS += dbTwoPiDivThree)
+			{
+				pntHelper.setX(dbHalfW + sin(dbS + dbTwoPiDivSix) * dbHalfW);
+				pntHelper.setY(dbHalfW + cos(dbS + dbTwoPiDivSix) * dbHalfW);
+				oQPolygonF.append(pntHelper);
+			}
+			p_Painter->drawConvexPolygon(oQPolygonF);
+		}
+	}
+	else
+	{
+		p_Painter->drawRect(0, 0,
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+	}
 }
 
 // Обработчик конструктора элемента.
@@ -2656,24 +2697,28 @@ QRectF SchematicView::FrameBoundingRectHandler(GraphicsFrameItem* p_GraphicsFram
 {
 	if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 	{
-		return QRectF(-3,
-					  -3,
-					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 6,
+		double dbW = p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 6;
+		//
+		if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		{
+			return QRectF(-3, -3,
+						  dbW, dbW);
+		}
+		return QRectF(-3, -3,
+					  dbW,
 					  p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH + 6);
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
-		return QRectF(-3,
-					  -3,
+		return QRectF(-3, -3,
 					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW + 6,
 					  p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH + 6);
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_PORT)
 	{
-		return QRectF(-5,
-					  -5,
-					  10,
-					  10);
+		return QRectF(-5, -5,
+					  10, 10);
 	}
 	return QRectF(0, 0, 0, 0);
 }
