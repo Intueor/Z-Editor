@@ -827,15 +827,29 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 		// Получаем крайние точки первого элемента в группе.
 		oDbPointLeftTop.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
 		oDbPointLeftTop.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
-		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 		{
-			oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			{
+
+				oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+				oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+			}
+			else
+			{
+				oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
+						(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 7.5925f);
+				oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f;
+			}
 		}
 		else
 		{
+			oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 			oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
 					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 		}
@@ -2195,20 +2209,12 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		else
 		{
 			QPolygonF oQPolygonTriangle;
-			double dbX;
-			double dbY;
 			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
 			//
-			dbX = dbHalfW + (pntTrR.x() * dbHalfW) - dbDecr;
-			dbY = dbHalfW + (pntTrR.y() * dbHalfW);
-			oQPolygonTriangle.append(QPointF(dbX, dbY));
-			dbX = dbHalfW + (pntTrT.x() * dbHalfW) - dbDecr;
-			dbY = dbHalfW + (pntTrT.y() * dbHalfW);
-			oQPolygonTriangle.append(QPointF(dbX, dbY));
-			dbX = dbHalfW + (pntTrL.x() * dbHalfW) - dbDecr;
-			dbY = dbHalfW + (pntTrL.y() * dbHalfW);
-			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			oQPolygonTriangle.append(QPointF(dbHalfW + (pntTrR.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrR.y() * dbHalfW)));
+			oQPolygonTriangle.append(QPointF(dbHalfW + (pntTrT.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrT.y() * dbHalfW)));
+			oQPolygonTriangle.append(QPointF(dbHalfW + (pntTrL.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrL.y() * dbHalfW)));
 			p_Painter->drawRect(0, 0,
 								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - (dbDecr * 2),
 								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
@@ -2302,11 +2308,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		else
 		{
 			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-			double dbX = dbHalfW + (pntTrR.x() * dbHalfW);
-			double dbY = dbHalfW + (pntTrR.y() * dbHalfW);
-			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
 			//
-			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX - 5.1961522478610438f - dbDecr, dbY - 3.0f);
+			p_GraphicsElementItem->
+					p_GraphicsScalerItem->setPos((dbHalfW + (pntTrR.x() * dbHalfW)) - 5.1961522478610438f -
+						(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f),
+						(dbHalfW + (pntTrR.y() * dbHalfW)) - 3.0f);
 		}
 	}
 	else

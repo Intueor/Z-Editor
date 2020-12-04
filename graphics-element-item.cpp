@@ -33,9 +33,9 @@ QRectF GraphicsElementItem::boundingRect() const
 		}
 		else
 		{
-			double dbDecr = oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
 			return QRectF(0, 0,
-						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - (dbDecr * 2),
+						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
+						  (oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 7.5925f),
 						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
 		}
 	}
