@@ -15,7 +15,7 @@ GraphicsElementItem::GraphicsElementItem(PSchElementBase* p_PSchElementBase)
 // Деструктор.
 GraphicsElementItem::~GraphicsElementItem()
 {
-	delete p_QGroupBox;
+	if(p_QGroupBox != nullptr) delete p_QGroupBox;
 	delete p_GraphicsFrameItem;
 	delete p_GraphicsScalerItem;
 }

@@ -1073,8 +1073,11 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 				}
 			}
 		}
-		WidgetsThrAccess::p_ConnGraphicsElementItem = p_GraphicsElementItem;
-		ThrUiAccessET(MainWindow::p_WidgetsThrAccess, ElementGroupBoxSizeSet);
+		if(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED))
+		{
+			WidgetsThrAccess::p_ConnGraphicsElementItem = p_GraphicsElementItem;
+			ThrUiAccessET(MainWindow::p_WidgetsThrAccess, ElementGroupBoxSizeSet);
+		}
 		p_GraphicsElementItem->p_GraphicsScalerItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
 															oSchEGGraph.oDbFrame.dbW,
 															p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.
@@ -2231,43 +2234,47 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsElementItem->bSelected = false;
 	//
-	p_GraphicsElementItem->p_QGroupBox = new QGroupBox();
-	QVBoxLayout* p_QVBoxLayout = new QVBoxLayout;
-	p_GraphicsElementItem->p_QGroupBox->setLayout(p_QVBoxLayout);
-	p_GraphicsElementItem->p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
-	p_GraphicsElementItem->p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
-	p_GraphicsElementItem->p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
-	oQColorBkg = QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
-	oQColorBkg.getRgb(&iR, &iG, &iB);
-	if(((iR + iG + iB) / 3) > 128)
+	if(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED))
 	{
+		p_GraphicsElementItem->p_QGroupBox = new QGroupBox();
+		QVBoxLayout* p_QVBoxLayout = new QVBoxLayout;
+		p_GraphicsElementItem->p_QGroupBox->setLayout(p_QVBoxLayout);
+		p_GraphicsElementItem->p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
+		p_GraphicsElementItem->p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
+		p_GraphicsElementItem->p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
+		oQColorBkg = QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
+		oQColorBkg.getRgb(&iR, &iG, &iB);
+		if(((iR + iG + iB) / 3) > 128)
+		{
+			p_GraphicsElementItem->p_QGroupBox->
+					setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
+								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
+								  "left: 4px; padding-top: 0px; }");
+			p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+			p_GraphicsElementItem->bIsPositivePalette = false;
+		}
+		else
+		{
+			p_GraphicsElementItem->p_QGroupBox->
+					setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
+								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
+								  "left: 4px; padding-top: 0px; }");
+			p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+			p_GraphicsElementItem->bIsPositivePalette = true;
+		}
+		p_GraphicsElementItem->p_QGraphicsProxyWidget =
+				MainWindow::p_SchematicWindow->GetSchematicView()->scene()->
+				addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
+		p_GraphicsElementItem->p_QGroupBox->move(3, 0);
 		p_GraphicsElementItem->p_QGroupBox->
-				setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
-							  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
-							  "left: 4px; padding-top: 0px; }");
-		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
-		p_GraphicsElementItem->bIsPositivePalette = false;
+				setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
+							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
+		p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
+		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
+		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
+		p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
 	}
-	else
-	{
-		p_GraphicsElementItem->p_QGroupBox->
-				setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
-							  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
-							  "left: 4px; padding-top: 0px; }");
-		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
-		p_GraphicsElementItem->bIsPositivePalette = true;
-	}
-	p_GraphicsElementItem->p_QGraphicsProxyWidget =
-			MainWindow::p_SchematicWindow->GetSchematicView()->scene()->
-			addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
-	p_GraphicsElementItem->p_QGroupBox->move(3, 0);
-	p_GraphicsElementItem->p_QGroupBox->
-			setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
-						 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
-	p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
-	p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
-	p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
-	p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
+	else p_GraphicsElementItem->p_QGroupBox = nullptr;
 	//
 	p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
 								  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
@@ -2651,18 +2658,51 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 	if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 	{
 		p_Painter->setPen(SchematicWindow::oQPenElementFrameFlash);
-		p_Painter->drawRect(-2,
-							-2,
-							p_GraphicsFrameItem->
-							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 4,
-							p_GraphicsFrameItem->
-							p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH + 4);
+		if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		{
+			if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+			   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			{
+				p_Painter->drawEllipse(-2, -2,
+									   p_GraphicsFrameItem->
+									   p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 4,
+									   p_GraphicsFrameItem->
+									   p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 4);
+			}
+			else
+			{
+				QPolygonF oQPolygonTriangle;
+				double dbX;
+				double dbY;
+				double dbHalfW = (p_GraphicsFrameItem->
+								 p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 4) / 2.0f;
+				//
+				dbX = dbHalfW + (pntTrR.x() * dbHalfW) - 2;
+				dbY = dbHalfW + (pntTrR.y() * dbHalfW) - 2;
+				oQPolygonTriangle.append(QPointF(dbX, dbY));
+				dbX = dbHalfW + (pntTrT.x() * dbHalfW) - 2;
+				dbY = dbHalfW + (pntTrT.y() * dbHalfW) - 2;
+				oQPolygonTriangle.append(QPointF(dbX, dbY));
+				dbX = dbHalfW + (pntTrL.x() * dbHalfW) - 2;
+				dbY = dbHalfW + (pntTrL.y() * dbHalfW) - 2;
+				oQPolygonTriangle.append(QPointF(dbX, dbY));
+				p_Painter->drawConvexPolygon(oQPolygonTriangle);
+			}
+		}
+		else
+		{
+			p_Painter->drawRect(-2, -2,
+								p_GraphicsFrameItem->
+								p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 4,
+								p_GraphicsFrameItem->
+								p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH + 4);
+		}
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
 		p_Painter->setPen(SchematicWindow::oQPenGroupFrameFlash);
-		p_Painter->drawRect(-2,
-							-2,
+		p_Painter->drawRect(-2, -2,
 							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW + 4,
 							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH + 4);
 	}
@@ -2710,7 +2750,7 @@ QRectF SchematicView::FrameBoundingRectHandler(GraphicsFrameItem* p_GraphicsFram
 		   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 		{
 			return QRectF(-3, -3,
-						  dbW, dbW);
+						  dbW, dbW + 6);
 		}
 		return QRectF(-3, -3,
 					  dbW,
