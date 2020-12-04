@@ -403,9 +403,9 @@ private:
 	qreal rFactor; ///<
 	static QVector<GraphicsGroupItem*> v_AlreadyMovedGroups; ///< Список указателей на уже перемещённые за цикл группы.
 	static QVector<EGPointersVariant> v_OccupiedByClient; ///< Список занятого клиентом.
-	static constexpr double dbTwoPi = 6.28318530717958647692f; ///< Два ПИ.
-	static constexpr double dbTwoPiDivThree = 2.09439510239319549231f; ///< Два ПИ делённое на 3.
-	static constexpr double dbTwoPiDivSix = 1.04719755119659774615f; ///< Два ПИ делённое на 6.
+	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
+	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
+	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

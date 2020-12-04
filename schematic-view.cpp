@@ -31,6 +31,9 @@ bool SchematicView::bPortFromElement;
 bool SchematicView::bPortMenuExecuted = false;
 QVector<GraphicsGroupItem*> SchematicView::v_AlreadyMovedGroups;
 QVector<SchematicView::EGPointersVariant> SchematicView::v_OccupiedByClient;
+constexpr QPointF SchematicView::pntTrR;
+constexpr QPointF SchematicView::pntTrT;
+constexpr QPointF SchematicView::pntTrL;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
@@ -2188,17 +2191,21 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		}
 		else
 		{
-			QPolygonF oQPolygonF;
-			QPointF pntHelper;
+			QPolygonF oQPolygonTriangle;
+			double dbX;
+			double dbY;
 			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			//
-			for(double dbS = 0; dbS < dbTwoPi; dbS += dbTwoPiDivThree)
-			{
-				pntHelper.setX(dbHalfW + sin(dbS + dbTwoPiDivSix) * dbHalfW);
-				pntHelper.setY(dbHalfW + cos(dbS + dbTwoPiDivSix) * dbHalfW);
-				oQPolygonF.append(pntHelper);
-			}
-			p_Painter->drawConvexPolygon(oQPolygonF);
+			dbX = dbHalfW + (pntTrR.x() * dbHalfW);
+			dbY = dbHalfW + (pntTrR.y() * dbHalfW);
+			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			dbX = dbHalfW + (pntTrT.x() * dbHalfW);
+			dbY = dbHalfW + (pntTrT.y() * dbHalfW);
+			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			dbX = dbHalfW + (pntTrL.x() * dbHalfW);
+			dbY = dbHalfW + (pntTrL.y() * dbHalfW);
+			oQPolygonTriangle.append(QPointF(dbX, dbY));
+			p_Painter->drawConvexPolygon(oQPolygonTriangle);
 		}
 	}
 	else
