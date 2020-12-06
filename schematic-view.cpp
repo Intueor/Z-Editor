@@ -2215,9 +2215,9 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			oQPolygonTriangle.append(QPointF(dbHalfW + (pntTrR.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrR.y() * dbHalfW)));
 			oQPolygonTriangle.append(QPointF(dbHalfW + (pntTrT.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrT.y() * dbHalfW)));
 			oQPolygonTriangle.append(QPointF(dbHalfW + (pntTrL.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrL.y() * dbHalfW)));
-			p_Painter->drawRect(0, 0,
-								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - (dbDecr * 2),
-								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
+//			p_Painter->drawRect(0, 0,
+//								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - (dbDecr * 2),
+//								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
 			p_Painter->drawConvexPolygon(oQPolygonTriangle);
 		}
 	}
@@ -2301,14 +2301,15 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
 	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
+		double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+		//
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-
+			double dbSphW = dbHalfW + (dbHalfW * dbSqrtFromTwoDivByTwo);
+			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbSphW, dbSphW);
 		}
 		else
 		{
-			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-			//
 			p_GraphicsElementItem->
 					p_GraphicsScalerItem->setPos((dbHalfW + (pntTrR.x() * dbHalfW)) - 5.1961522478610438f -
 						(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f),
@@ -3452,7 +3453,18 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-
+			QPainterPath oQPainterPathScaller;
+			QPainterPath oQPainterPathParent;
+			double dbHalfW = p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+			double dbSphW = dbHalfW + (dbHalfW * dbSqrtFromTwoDivByTwo);
+			double dbPosCorrection = 0 - dbSphW - 0.5f;
+			double dbRadCorrection = p_GraphicsScalerItem->
+									 p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+			//
+			oQPainterPathScaller.addEllipse(-6, -6, 12, 12);
+			oQPainterPathParent.addEllipse(dbPosCorrection, dbPosCorrection, dbRadCorrection, dbRadCorrection);
+			oQPainterPathScaller = oQPainterPathScaller.intersected(oQPainterPathParent);
+			p_Painter->drawPath(oQPainterPathScaller);
 		}
 		else
 		{
