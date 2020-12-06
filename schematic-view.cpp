@@ -117,7 +117,7 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 {
 	rScaleFactor = pow((double)2, -p_Event->delta() / 240.0);
 	rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-	if (rFactor < 0.1 || rFactor > 5)
+	if((rFactor < 0.1f) || (rFactor > 5.0f))
 		return;
 	scale(rScaleFactor, rScaleFactor);
 	if(pf_CBSchematicViewFrameChangedInt != nullptr)
