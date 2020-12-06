@@ -15,7 +15,7 @@ GraphicsFrameItem::GraphicsFrameItem(unsigned short ushKindOfItem,
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsFrameItem::boundingRect() const
 {
-	return QRectF(0, 0, 0, 0);
+	return SchematicView::FrameBoundingHandler(this);
 }
 
 // Переопределение функции рисования фрейма.

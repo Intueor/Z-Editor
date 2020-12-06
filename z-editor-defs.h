@@ -48,11 +48,20 @@
 #define AFFECT_SELECTED						true
 #define DONT_AFFECT_SELECTED				false
 #define RECURSION_CONTINUE					false
-// Формы.
-#define PORT_SHAPE      -3, -3, 6, 6
-#define SCALER_DIM      9
-#define ELEMENT_MIN_X   40
-#define ELEMENT_MIN_Y   30
+// Размеры.
+#define SCALER_RECT_DIM					9.0f
+#define SCALER_TR_DIM					6.0f
+#define SCALER_CIR_DIM					6.0f
+#define PORT_DIM						3.0f
+#define FRAME_DIM_INC					2.0f
+// Корректировки размеров.
+#define SCALER_RECT_DIM_CORR			0.2f
+#define SCALER_TR_DIM_CORR				0.25f
+#define SCALER_CIR_DIM_CORR				0.15f
+#define FRAME_DIM_INC_CORR				0.275f
+//
+#define ELEMENT_MIN_X					40
+#define ELEMENT_MIN_Y					30
 //
 #define C_CONF_PATH							"../Z-Editor/settings/client.xml"
 #define CLIENT_REQUEST_UNDEFINED			2
@@ -96,11 +105,6 @@
 #define SCH_UPDATE_GROUP_FRAME			0b00100000000
 #define SCH_UPDATE_GROUP_ZPOS			0b01000000000
 #define SCH_UPDATE_GROUP				0b10000000000
-//
-#define PORT_SHAPE						-3, -3, 6, 6
-#define SCALER_DIM						9
-#define ELEMENT_MIN_X					40
-#define ELEMENT_MIN_Y					30
 //
 #define DEFAULT_NEW_PORT				0
 

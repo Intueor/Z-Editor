@@ -23,7 +23,7 @@ GraphicsPortItem::~GraphicsPortItem()
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsPortItem::boundingRect() const
 {
-	return QRectF(PORT_SHAPE);
+	return SchematicView::PortBoundingHandler();
 }
 
 // Переопределение функции рисования порта.

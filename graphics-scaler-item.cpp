@@ -14,7 +14,7 @@ GraphicsScalerItem::GraphicsScalerItem(GraphicsElementItem* p_Parent)
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsScalerItem::boundingRect() const
 {
-	return QRectF(-SCALER_DIM, -SCALER_DIM, SCALER_DIM, SCALER_DIM);
+	return SchematicView::ScalerBoundingHandler(this);
 }
 
 // Переопределение функции рисования скалера.

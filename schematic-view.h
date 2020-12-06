@@ -251,6 +251,14 @@ public:
 	static void ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища элемента и его видов.
+	static QRectF ElementBoundingHandler(const GraphicsElementItem* pc_GraphicsElementItem);
+							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+							///< \return Прямоугольник по размеру элемента.
+	/// Обработчик функции возврата формы элемента и его видов.
+	static QPainterPath ElementShapeHandler(const GraphicsElementItem* pc_GraphicsElementItem);
+							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+							///< \return Форма элемента.
 	/// Обработчик функции рисования элемента.
 	static void ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
@@ -274,6 +282,10 @@ public:
 	static void GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища группы.
+	static QRectF GroupBoundingHandler(const GraphicsGroupItem* pc_GraphicsGroupItem);
+							///< \param[in] pc_GraphicsGroupItem Указатель на группу.
+							///< \return Прямоугольник по размеру группы.
 	/// Обработчик функции рисования группы.
 	static void GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
@@ -287,6 +299,10 @@ public:
 	static bool GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \return true, если было удаление.
+	/// Обработчик функции возврата вместилища рамки.
+	static QRectF FrameBoundingHandler(const GraphicsFrameItem* pc_GraphicsFrameItem);
+							///< \param[in] GraphicsFrameItem Указатель на фрейм.
+							///< \return Прямоугольник по размеру рамки.
 	/// Обработчик функции рисования фрейма.
 	static void FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QPainter* p_Painter);
 							///< \param[in] GraphicsFrameItem Указатель на фрейм.
@@ -328,6 +344,9 @@ public:
 	static void PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsPortItem Указатель на порт.
 							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища порта.
+	static QRectF PortBoundingHandler();
+							///< \return Прямоугольник по размеру порта.
 	/// Обработчик функции рисования порта.
 	static void PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsPortItem Указатель на порт.
@@ -358,6 +377,10 @@ public:
 	static void ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища скалера и его видов.
+	static QRectF ScalerBoundingHandler(const GraphicsScalerItem* pc_GraphicsScalerItem);
+							///< \param[in] pc_GraphicsElementItem Указатель на скалер.
+							///< \return Прямоугольник по размеру элемента.
 	/// Обработчик функции рисования скалера.
 	static void ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
@@ -398,6 +421,15 @@ private:
 	qreal rFactor; ///<
 	static QVector<GraphicsGroupItem*> v_AlreadyMovedGroups; ///< Список указателей на уже перемещённые за цикл группы.
 	static QVector<EGPointersVariant> v_OccupiedByClient; ///< Список занятого клиентом.
+	static QPolygonF oQPolygonFForRectScaler; ///< Объект полигона для отрисовки скалера прямоугольника.
+	static QPolygonF oQPolygonFForTriangleScaler; ///< Объект полигона для отрисовки скалера треугольника.
+	static double dbFrameDimIncSubCorr; ///< Служебная переменная размераотступа рамки минус коррекция.
+	static double dbFrameDimIncTwiceSubCorr; ///< Служебная переменная двойного размера отступа рамки минус коррекция.
+	static double dbFrameDimIncTwiceSubDoubleCorr; ///< Служебная переменная двойного размера отступа рамки минус двойная коррекция.
+	static double dbFrameDimIncNegPlusCorr; ///< Служебная переменная отрицательного размера отступа рамки плюс коррекция.
+	static double dbFrameDimIncNegPlusHalfCorr; ///< Служебная переменная отрицательного размера отступа рамки плюс пол коррекции.
+	static double dbPortDimNeg; ///< Служебная переменная отрицательного размера порта.
+	static double dbPortDimD; ///< Служебная переменная диаметра порта.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

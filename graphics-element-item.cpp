@@ -23,62 +23,13 @@ GraphicsElementItem::~GraphicsElementItem()
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsElementItem::boundingRect() const
 {
-	if(oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
-	{
-		if(oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
-		{
-			return QRectF(0, 0,
-						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
-		}
-		else
-		{
-			return QRectF(0, 0,
-						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
-						  (oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 7.5925f),
-						  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
-		}
-	}
-	return QRectF(0, 0,
-				  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-				  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+	return SchematicView::ElementBoundingHandler(this);
 }
 
 /// Переопределение функции определения формы.
 QPainterPath GraphicsElementItem::shape() const
 {
-	QPainterPath oQPainterPath;
-	//
-	if(oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
-	{
-		if(oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
-		{
-			oQPainterPath.addEllipse(0, 0,
-								  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-								  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
-		}
-		else
-		{
-			QPolygonF oQPolygon;
-			double dbHalfW = oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-			double dbDecr = oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
-			//
-			oQPolygon.append(QPointF(dbHalfW + (SchematicView::pntTrR.x() * dbHalfW) - dbDecr,
-									 dbHalfW + (SchematicView::pntTrR.y() * dbHalfW)));
-			oQPolygon.append(QPointF(dbHalfW + (SchematicView::pntTrT.x() * dbHalfW) - dbDecr,
-									 dbHalfW + (SchematicView::pntTrT.y() * dbHalfW)));
-			oQPolygon.append(QPointF(dbHalfW + (SchematicView::pntTrL.x() * dbHalfW) - dbDecr,
-									 dbHalfW + (SchematicView::pntTrL.y() * dbHalfW)));
-			oQPainterPath.addPolygon(oQPolygon);
-		}
-	}
-	else
-	{
-		oQPainterPath.addRect(0, 0,
-							  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-							  oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
-	}
-	return oQPainterPath;
+	return SchematicView::ElementShapeHandler(this);
 }
 
 // Переопределение функции рисования элемента.

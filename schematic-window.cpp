@@ -16,7 +16,6 @@ Ui::SchematicWindow* SchematicWindow::p_ui = new Ui::SchematicWindow;
 const char* SchematicWindow::cp_chUISettingsName = E_SCHEMATICWINDOW_UI_CONF_PATH;
 QSettings* SchematicWindow::p_UISettings = nullptr;
 MainWindow* SchematicWindow::p_MainWindow = nullptr;
-QPolygon SchematicWindow::oPolygonForScaler;
 QTimer SchematicWindow::oQTimerSelectionFlashing;
 bool SchematicWindow::bRefClose = false;
 QBrush SchematicWindow::oQBrushDark;
@@ -59,24 +58,19 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 {
 	LOG_CTRL_INIT;
 	//
-	oQBrushLight.setColor(QColor(170, 170, 170, 255));
-	oQBrushLight.setStyle(Qt::SolidPattern);
-	oQBrushDark.setColor(QColor(64, 64, 64, 255));
-	oQBrushDark.setStyle(Qt::SolidPattern);
-	oQPenWhite.setColor(Qt::white);
-	oQPenBlack.setColor(Qt::black);
-	oQPenWhiteTransparent.setColor(QColor(255, 255, 255, 96));
-	oQPenBlackTransparent.setColor(QColor(0, 0, 0, 96));
-	oQPenElementFrameFlash.setColor(Qt::white);
-	oQPenElementFrameFlash.setWidth(3);
-	oQPenGroupFrameFlash.setColor(Qt::white);
-	oQPenGroupFrameFlash.setWidth(3);
-	oQPenPortFrameFlash.setColor(Qt::white);
-	oQPenPortFrameFlash.setWidth(3);
-	oQPenSelectionDash.setColor(QColor(255, 255, 255, 255));
-	oQPenSelectionDash.setStyle(Qt::PenStyle::DashLine);
-	oQPenSelectionDot.setColor(QColor(0, 5, 10, 255));
-	oQPenSelectionDot.setStyle(Qt::PenStyle::SolidLine);
+	oQBrushLight.setColor(QColor(170, 170, 170, 255)); oQBrushLight.setStyle(Qt::SolidPattern);
+	oQBrushDark.setColor(QColor(64, 64, 64, 255)); oQBrushDark.setStyle(Qt::SolidPattern);
+	oQPenWhite.setColor(Qt::white); oQPenWhite.setJoinStyle(Qt::MiterJoin);
+	oQPenBlack.setColor(Qt::black); oQPenBlack.setJoinStyle(Qt::MiterJoin);
+	oQPenWhiteTransparent.setColor(QColor(255, 255, 255, 96)); oQPenWhiteTransparent.setJoinStyle(Qt::MiterJoin);
+	oQPenBlackTransparent.setColor(QColor(0, 0, 0, 96)); oQPenBlackTransparent.setJoinStyle(Qt::MiterJoin);
+	oQPenElementFrameFlash.setColor(Qt::white); oQPenElementFrameFlash.setWidth(3.1f); oQPenElementFrameFlash.setJoinStyle(Qt::MiterJoin);
+	oQPenGroupFrameFlash.setColor(Qt::white); oQPenGroupFrameFlash.setWidth(3.1f); oQPenGroupFrameFlash.setJoinStyle(Qt::MiterJoin);
+	oQPenPortFrameFlash.setColor(Qt::white); oQPenPortFrameFlash.setWidth(3.1f); oQPenPortFrameFlash.setJoinStyle(Qt::MiterJoin);
+	oQPenSelectionDash.setColor(QColor(255, 255, 255, 255)); oQPenSelectionDash.setStyle(Qt::PenStyle::DashLine);
+	oQPenSelectionDash.setJoinStyle(Qt::MiterJoin);
+	oQPenSelectionDot.setColor(QColor(0, 5, 10, 255)); oQPenSelectionDot.setStyle(Qt::PenStyle::SolidLine);
+	oQPenSelectionDot.setJoinStyle(Qt::MiterJoin);
 	//
 	p_QGraphicsScene = &this->oScene;
 	MainWindow::p_SchematicWindow = this;
@@ -110,11 +104,6 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	//
 	connect(&oQTimerSelectionFlashing, SIGNAL(timeout()), this, SLOT(UpdateSelectionFlash()));
 	oQTimerSelectionFlashing.start(6);
-	//
-	oPolygonForScaler.push_front(QPoint(-SCALER_DIM, 0));
-	oPolygonForScaler.push_front(QPoint(0, -SCALER_DIM));
-	oPolygonForScaler.push_front(QPoint(0, 0));
-	oPolygonForScaler.push_front(QPoint(-SCALER_DIM, 0));
 }
 
 // Деструктор.

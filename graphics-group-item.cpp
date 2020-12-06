@@ -22,8 +22,7 @@ GraphicsGroupItem::~GraphicsGroupItem()
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsGroupItem::boundingRect() const
 {
-	return QRectF(0, 0, oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
-				  oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH);
+	return SchematicView::GroupBoundingHandler(this);
 }
 
 // Переопределение функции рисования группы.
