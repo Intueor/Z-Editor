@@ -2305,8 +2305,8 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		//
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			double dbSphW = dbHalfW + (dbHalfW * dbSqrtFromTwoDivByTwo);
-			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbSphW, dbSphW);
+			double dbX = dbHalfW + (dbSqrtFromTwoDivByTwo * dbHalfW);
+			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX, dbX);
 		}
 		else
 		{
@@ -3456,13 +3456,15 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 			QPainterPath oQPainterPathScaller;
 			QPainterPath oQPainterPathParent;
 			double dbHalfW = p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-			double dbSphW = dbHalfW + (dbHalfW * dbSqrtFromTwoDivByTwo);
-			double dbPosCorrection = 0 - dbSphW - 0.5f;
-			double dbRadCorrection = p_GraphicsScalerItem->
-									 p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+			double dbX = -0.635f - (dbHalfW + (dbSqrtFromTwoDivByTwo * dbHalfW));
 			//
 			oQPainterPathScaller.addEllipse(-6, -6, 12, 12);
-			oQPainterPathParent.addEllipse(dbPosCorrection, dbPosCorrection, dbRadCorrection, dbRadCorrection);
+			oQPainterPathParent.addEllipse(dbX,
+										   dbX,
+										   p_GraphicsScalerItem->
+										   p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
+										   p_GraphicsScalerItem->
+										   p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
 			oQPainterPathScaller = oQPainterPathScaller.intersected(oQPainterPathParent);
 			p_Painter->drawPath(oQPainterPathScaller);
 		}
