@@ -56,6 +56,7 @@ constexpr QPointF SchematicView::pntTrL;
 										{\
 											SchematicWindow::vp_SelectedElements.removeOne(element);\
 										}
+#define GetDiagPointOnCircle(radius)	(radius + (dbSqrtFromTwoDivByTwo * radius))
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -2203,8 +2204,9 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 	{
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			p_Painter->drawEllipse(0, 0, p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-								   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
+			double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2;
+			//
+			p_Painter->drawEllipse(QPointF(dbR, dbR), dbR, dbR);
 		}
 		else
 		{
@@ -2223,9 +2225,9 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 	}
 	else
 	{
-		p_Painter->drawRect(0, 0,
+		p_Painter->drawRect(QRectF(0, 0,
 							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH));
 	}
 }
 
@@ -2301,19 +2303,19 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
 	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
-		double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+		double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 		//
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			double dbX = dbHalfW + (dbSqrtFromTwoDivByTwo * dbHalfW);
+			double dbX = GetDiagPointOnCircle(dbR);
 			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX, dbX);
 		}
 		else
 		{
 			p_GraphicsElementItem->
-					p_GraphicsScalerItem->setPos((dbHalfW + (pntTrR.x() * dbHalfW)) - 5.1961522478610438f -
+					p_GraphicsScalerItem->setPos((dbR + (pntTrR.x() * dbR)) - 5.1961522478610438f -
 						(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f),
-						(dbHalfW + (pntTrR.y() * dbHalfW)) - 3.0f);
+						(dbR + (pntTrR.y() * dbR)) - 3.0f);
 		}
 	}
 	else
@@ -3379,7 +3381,6 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	oDbPointPos.dbX = p_GraphicsScalerItem->pos().x();
 	oDbPointPos.dbY = p_GraphicsScalerItem->pos().y();
 	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event);; // Даём мышке уйти.
-	//p_GraphicsScalerItem->setPos(QPointF((int)p_GraphicsScalerItem->pos().x(), (int)p_GraphicsScalerItem->pos().y()));
 	if(p_Event->scenePos().x() <
 	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX + ELEMENT_MIN_X)
 	{
@@ -3392,11 +3393,34 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	}
 	oDbPointPos.dbX = p_GraphicsScalerItem->pos().x() - oDbPointPos.dbX;
 	oDbPointPos.dbY = p_GraphicsScalerItem->pos().y() - oDbPointPos.dbY;
+	if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(oDbPointPos.dbX < oDbPointPos.dbY)
+			oDbPointPos.dbY = oDbPointPos.dbX;
+		else if (oDbPointPos.dbY < oDbPointPos.dbX)
+			oDbPointPos.dbX = oDbPointPos.dbY;
+	}
 	p_GraphicsScalerItem->p_ParentInt->oDbPointDimIncrements = oDbPointPos;
 	UpdateSelectedInElement(p_GraphicsScalerItem->p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
+
 	if(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr) // По группе элемента без выборки, если она есть.
 	{
 		UpdateGroupFrameByContentRecursively(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel);
+	}
+	if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+			double dbPR =
+					GetDiagPointOnCircle(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2);
+			p_GraphicsScalerItem->setX(dbPR);
+			p_GraphicsScalerItem->setY(dbPR);
+		}
+		else
+		{
+
+		}
 	}
 }
 
@@ -3455,8 +3479,8 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 		{
 			QPainterPath oQPainterPathScaller;
 			QPainterPath oQPainterPathParent;
-			double dbHalfW = p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-			double dbX = -0.635f - (dbHalfW + (dbSqrtFromTwoDivByTwo * dbHalfW));
+			double dbR = p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+			double dbX = -GetDiagPointOnCircle(dbR);
 			//
 			oQPainterPathScaller.addEllipse(-6, -6, 12, 12);
 			oQPainterPathParent.addEllipse(dbX,
