@@ -385,6 +385,14 @@ public:
 	static void ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Вычисление формы скалера окружности.
+	static QPainterPath CalcCicrleScalerPath(const GraphicsScalerItem* pc_GraphicsScalerItem);
+							///< \param[in] pc_GraphicsScalerItem Указатель на скалер.
+							///< \return Форма скалера.
+	/// Обработчик функции возврата формы скалера и его видов.
+	static QPainterPath ScalerShapeHandler(const GraphicsScalerItem* pc_GraphicsScalerItem);
+							///< \param[in] pc_GraphicsScalerItem Указатель на скалер.
+							///< \return Форма скалера.
 	/// Обработчик конструктора скалера.
 	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.

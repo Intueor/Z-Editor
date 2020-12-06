@@ -3623,6 +3623,47 @@ QRectF SchematicView::ScalerBoundingHandler(const GraphicsScalerItem* pc_Graphic
 	return oQRectF;
 }
 
+// Вычисление формы скалера окружности.
+QPainterPath SchematicView::CalcCicrleScalerPath(const GraphicsScalerItem* pc_GraphicsScalerItem)
+{
+	QPainterPath oQPainterPathScaller;
+	QPainterPath oQPainterPathParent;
+	double dbR = pc_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+	double dbX = -GetDiagPointOnCircle(dbR);
+	double dbDCorr = pc_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
+					 SCALER_CIR_DIM_CORR;
+	//
+	oQPainterPathScaller.addEllipse(QPointF(0, 0), SCALER_CIR_DIM, SCALER_CIR_DIM);
+	oQPainterPathParent.addEllipse(dbX, dbX, dbDCorr, dbDCorr);
+	oQPainterPathScaller = oQPainterPathScaller.intersected(oQPainterPathParent);
+	return oQPainterPathScaller;
+}
+
+// Обработчик функции возврата формы элемента и его видов.
+QPainterPath SchematicView::ScalerShapeHandler(const GraphicsScalerItem* pc_GraphicsScalerItem)
+{
+	QPainterPath oQPainterPath;
+	//
+	if(pc_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+	   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(pc_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+			SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+			return CalcCicrleScalerPath(pc_GraphicsScalerItem);
+		}
+		else
+		{
+			oQPainterPath.addPolygon(oQPolygonFForTriangleScaler);
+		}
+	}
+	else
+	{
+		oQPainterPath.addPolygon(oQPolygonFForRectScaler);
+	}
+	return oQPainterPath;
+}
+
 // Обработчик функции рисования скалера.
 void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter)
 {
@@ -3640,17 +3681,7 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			QPainterPath oQPainterPathScaller;
-			QPainterPath oQPainterPathParent;
-			double dbR = p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-			double dbX = -GetDiagPointOnCircle(dbR);
-			double dbDCorr = p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
-							 SCALER_CIR_DIM_CORR;
-			//
-			oQPainterPathScaller.addEllipse(QPointF(0, 0), SCALER_CIR_DIM, SCALER_CIR_DIM);
-			oQPainterPathParent.addEllipse(dbX, dbX, dbDCorr, dbDCorr);
-			oQPainterPathScaller = oQPainterPathScaller.intersected(oQPainterPathParent);
-			p_Painter->drawPath(oQPainterPathScaller);
+			p_Painter->drawPath(CalcCicrleScalerPath(p_GraphicsScalerItem));
 		}
 		else
 		{

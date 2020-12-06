@@ -17,6 +17,12 @@ QRectF GraphicsScalerItem::boundingRect() const
 	return SchematicView::ScalerBoundingHandler(this);
 }
 
+/// Переопределение функции определения формы.
+QPainterPath GraphicsScalerItem::shape() const
+{
+	return SchematicView::ScalerShapeHandler(this);
+}
+
 // Переопределение функции рисования скалера.
 void GraphicsScalerItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
 {
