@@ -1830,46 +1830,68 @@ void SchematicView::UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLin
 }
 
 // Помощник коррекции точки порта по краю элемента.
-void SchematicView::BindPortToOuterEdgeHelper()
+void SchematicView::BindPortToOuterEdgeHelper(GraphicsPortItem* p_GraphicsPortItem)
 {
 	bool bXInside = false;
 	bool bYInside = false;
-	if(oDbPointPortCurrent.dbX <= 0) // Если текущий X меньше левого края элемента...
+	//
+	if(p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
-		oDbPointPortCurrent.dbX = 0; // Установка на левый край.
-		goto gY;
-	}
-	if(oDbPointPortCurrent.dbX >= oDbPointPortRB.dbX) // Если текущий X больше правого края элемента...
-	{
-		oDbPointPortCurrent.dbX = oDbPointPortRB.dbX; // Установка на правый край.
-	}
-	else
-	{
-		bXInside = true; // Признак нахождения в диапазоне элемента по X.
-	}
-gY: if(oDbPointPortCurrent.dbY <= 0)
-	{
-		oDbPointPortCurrent.dbY = 0;
-		goto gI;
-	}
-	if(oDbPointPortCurrent.dbY >= oDbPointPortRB.dbY)
-	{
-		oDbPointPortCurrent.dbY = oDbPointPortRB.dbY;
-	}
-	else
-	{
-		bYInside = true; // Признак нахождения в диапазоне элемента по Y.
-	}
-gI: if(bXInside && bYInside)
-	{
-		// Если прошлый X был на краю...
-		if((oDbPointPortOld.dbX == 0) || (oDbPointPortOld.dbX == oDbPointPortRB.dbX))
+		if(p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			oDbPointPortCurrent.dbX = oDbPointPortOld.dbX;
+			double dbR, dbL;
+			DbPoint oDbPointVector;
+			//
+			dbR = p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f; // Радиус.
+			oDbPointVector.dbX = oDbPointPortCurrent.dbX - dbR; // Положение порта в системе коорд. круга элемента.
+			oDbPointVector.dbY = oDbPointPortCurrent.dbY - dbR;
+			dbL = sqrt((oDbPointVector.dbX * oDbPointVector.dbX) + (oDbPointVector.dbY * oDbPointVector.dbY)); // Длина ветора порта от центра.
+			oDbPointVector.dbX /= dbL; // Нормализуем вектор.
+			oDbPointVector.dbY /= dbL;
+			oDbPointPortCurrent.dbX = (oDbPointVector.dbX * dbR) + dbR; // Доводим до радиуса и на центр элемента.
+			oDbPointPortCurrent.dbY = (oDbPointVector.dbY * dbR) + dbR;
 		}
-		if((oDbPointPortOld.dbY == 0) || (oDbPointPortOld.dbY == oDbPointPortRB.dbY))
+	}
+	else
+	{
+		if(oDbPointPortCurrent.dbX <= 0) // Если текущий X меньше левого края элемента...
 		{
-			oDbPointPortCurrent.dbY = oDbPointPortOld.dbY;
+			oDbPointPortCurrent.dbX = 0; // Установка на левый край.
+			goto gY;
+		}
+		if(oDbPointPortCurrent.dbX >= oDbPointPortRB.dbX) // Если текущий X больше правого края элемента...
+		{
+			oDbPointPortCurrent.dbX = oDbPointPortRB.dbX; // Установка на правый край.
+		}
+		else
+		{
+			bXInside = true; // Признак нахождения в диапазоне элемента по X.
+		}
+	gY: if(oDbPointPortCurrent.dbY <= 0)
+		{
+			oDbPointPortCurrent.dbY = 0;
+			goto gI;
+		}
+		if(oDbPointPortCurrent.dbY >= oDbPointPortRB.dbY)
+		{
+			oDbPointPortCurrent.dbY = oDbPointPortRB.dbY;
+		}
+		else
+		{
+			bYInside = true; // Признак нахождения в диапазоне элемента по Y.
+		}
+	gI: if(bXInside && bYInside)
+		{
+			// Если прошлый X был на краю...
+			if((oDbPointPortOld.dbX == 0) || (oDbPointPortOld.dbX == oDbPointPortRB.dbX))
+			{
+				oDbPointPortCurrent.dbX = oDbPointPortOld.dbX;
+			}
+			if((oDbPointPortOld.dbY == 0) || (oDbPointPortOld.dbY == oDbPointPortRB.dbY))
+			{
+				oDbPointPortCurrent.dbY = oDbPointPortOld.dbY;
+			}
 		}
 	}
 }
@@ -3130,7 +3152,7 @@ void SchematicView::PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortIt
 		oDbPointPortCurrent.dbY = p_GraphicsPortItem->pos().y(); // Текущий Y.
 		if(!bPortAltPressed)
 		{
-			BindPortToOuterEdgeHelper();
+			BindPortToOuterEdgeHelper(p_GraphicsPortItem);
 		}
 		SetPortToPos(p_GraphicsPortItem);
 	}
@@ -3303,7 +3325,7 @@ gED:				p_GraphicsElementItemFounded = nullptr;
 			// Не нашли, но пришло с элемента - в отказ.
 			else if(bPortFromElement) goto gEl;
 		}
-		BindPortToOuterEdgeHelper();
+		BindPortToOuterEdgeHelper(p_GraphicsPortItem);
 gEr:	SetPortToPos(p_GraphicsPortItem);
 		if(p_GraphicsPortItem->bIsSrc)
 		{

@@ -234,10 +234,11 @@ public:
 	static void UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
 	/// Помощник коррекции точки порта по краю элемента.
-	static void BindPortToOuterEdgeHelper();
+	static void BindPortToOuterEdgeHelper(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.
 	/// Установка порта в позицию.
 	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem);
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. порт.
+							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.
 
 	/// Обработчик события нажатия мыши на элемент.
 	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
