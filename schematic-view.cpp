@@ -967,6 +967,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 	GraphicsPortItem* p_GraphicsPortItemInt;
 	PSchLinkVars* p_SchLinkVars;
 	QGraphicsItem* p_GraphicsItem;
+	double dbDiameterLast;
 	//
 	if(ushBits & SCH_UPDATE_ELEMENT_ZPOS)
 	{
@@ -975,6 +976,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 	}
 	if(ushBits & SCH_UPDATE_ELEMENT_FRAME)
 	{
+		dbDiameterLast = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 		if(!bIsIncoming)
 		{
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW +=
@@ -992,97 +994,99 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 			if((p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI) && (p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT))
 			{
 				DbFrame* p_DbFrameEl;
-				DbPoint oDbPointPos;
 				//
 				p_DbFrameEl = &p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame;
 				p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
 				if(p_GraphicsPortItemInt->bIsSrc)
 				{
-					oDbPointPos = p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos;
+					oDbPointPortCurrent = p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos;
 				}
 				else
 				{
-					oDbPointPos = p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos;
+					oDbPointPortCurrent = p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos;
 				}
 				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 				{
-
-					//
-					// Расстояние прохода скалера.
-					double dbScaleOffset = sqrt(
-										 (p_GraphicsElementItem->oDbPointDimIncrements.dbX * p_GraphicsElementItem->oDbPointDimIncrements.dbX) +
-										 (p_GraphicsElementItem->oDbPointDimIncrements.dbY * p_GraphicsElementItem->oDbPointDimIncrements.dbY));
-					// Скалер раньше (скалер теперь на dbW).
-					double dbScalePrev = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + dbScaleOffset;
-					// Пропорция изменения скалера.
-					double dbScaleMul = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / dbScalePrev;
-					//
-					oDbPointPos.dbX *= dbScaleMul;
-					oDbPointPos.dbY *= dbScaleMul;
+					double dbRadiusLast = dbDiameterLast / 2.0f;
+					double dbDiameterNow = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+					double dbRadiusNow = dbDiameterNow / 2.0f;
+					double dbProp = dbDiameterNow / dbDiameterLast; // Пропорция изменений диаметра.
+					// Перевод в коорд. центра объекта.
+					oDbPointPortCurrent.dbX -= dbRadiusLast;
+					oDbPointPortCurrent.dbY -= dbRadiusLast;
+					// Изменение расст. от центра в пропорциях изменений пропорций скалера.
+					oDbPointPortCurrent.dbX *= dbProp;
+					oDbPointPortCurrent.dbY *= dbProp;
+					// Возврат в коорд. верхнего левого угла объекта.
+					oDbPointPortCurrent.dbX += dbRadiusNow;
+					oDbPointPortCurrent.dbY += dbRadiusNow;
+					// Точная коррекция.
+					BindPortToOuterEdgeHelper(p_GraphicsPortItemInt);
+					SetPortToPos(p_GraphicsPortItemInt);
 				}
 				else
 				{
-					if(oDbPointPos.dbX > p_DbFrameEl->dbW)
+					if(oDbPointPortCurrent.dbX > p_DbFrameEl->dbW)
 					{
-						oDbPointPos.dbX = p_DbFrameEl->dbW;
+						oDbPointPortCurrent.dbX = p_DbFrameEl->dbW;
 					}
 					else
 					{
 						if(!bIsIncoming)
 						{
-							if((oDbPointPos.dbX > 0) && (oDbPointPos.dbY > 0))
+							if((oDbPointPortCurrent.dbX > 0) && (oDbPointPortCurrent.dbY > 0))
 							{
-								oDbPointPos.dbX += p_GraphicsElementItem->oDbPointDimIncrements.dbX;
+								oDbPointPortCurrent.dbX += p_GraphicsElementItem->oDbPointDimIncrements.dbX;
 							}
 						}
 						else
 						{
-							if(oDbPointPos.dbX > 0)
+							if(oDbPointPortCurrent.dbX > 0)
 							{
-								oDbPointPos.dbY = 0;
+								oDbPointPortCurrent.dbY = 0;
 							}
-							if(oDbPointPos.dbY > 0)
+							if(oDbPointPortCurrent.dbY > 0)
 							{
-								oDbPointPos.dbX = 0;
+								oDbPointPortCurrent.dbX = 0;
 							}
 						}
 					}
-					if(oDbPointPos.dbY > p_DbFrameEl->dbH)
+					if(oDbPointPortCurrent.dbY > p_DbFrameEl->dbH)
 					{
-						oDbPointPos.dbY = p_DbFrameEl->dbH;
+						oDbPointPortCurrent.dbY = p_DbFrameEl->dbH;
 					}
 					else
 					{
 						if(!bIsIncoming)
 						{
-							if((oDbPointPos.dbX > 0) && (oDbPointPos.dbY > 0))
+							if((oDbPointPortCurrent.dbX > 0) && (oDbPointPortCurrent.dbY > 0))
 							{
-								oDbPointPos.dbY += p_GraphicsElementItem->oDbPointDimIncrements.dbY;
+								oDbPointPortCurrent.dbY += p_GraphicsElementItem->oDbPointDimIncrements.dbY;
 							}
 						}
 						else
 						{
-							if(oDbPointPos.dbX > 0)
+							if(oDbPointPortCurrent.dbX > 0)
 							{
-								oDbPointPos.dbY = 0;
+								oDbPointPortCurrent.dbY = 0;
 							}
-							if(oDbPointPos.dbY > 0)
+							if(oDbPointPortCurrent.dbY > 0)
 							{
-								oDbPointPos.dbX = 0;
+								oDbPointPortCurrent.dbX = 0;
 							}
 						}
 					}
-					if(oDbPointPos.dbX < 0) oDbPointPos.dbX = 0;
-					if(oDbPointPos.dbY < 0) oDbPointPos.dbY = 0;
+					if(oDbPointPortCurrent.dbX < 0) oDbPointPortCurrent.dbX = 0;
+					if(oDbPointPortCurrent.dbY < 0) oDbPointPortCurrent.dbY = 0;
+					p_GraphicsPortItemInt->setPos(oDbPointPortCurrent.dbX, oDbPointPortCurrent.dbY);
 				}
-				p_GraphicsPortItemInt->setPos(oDbPointPos.dbX, oDbPointPos.dbY);
 				if(p_GraphicsPortItemInt->bIsSrc)
 				{
-					p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos = oDbPointPos;
+					p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos = oDbPointPortCurrent;
 				}
 				else
 				{
-					p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos = oDbPointPos;
+					p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos = oDbPointPortCurrent;
 				}
 			}
 		}
