@@ -84,14 +84,14 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на старый линк.
 							///< \param[in] p_GraphicsElementItemNew Указатель на элемент, на который будет создан новый линк.
 							///< \param[in] bIsSrc При true - новый элемент будет источником.
-							///< \param[in] oDbPortPos Координаты порта в сцене на момент обращения.
+							///< \param[in] oDbPortPos Координаты порта в коорд. элемента на момент обращения.
 							///< \param[in] bFromElement Флаг запроса работы с портом от элемента (при создании нового линка).
 							///< \return true при удаче.
-	/// Прикрепление позиции граф. порта к краям элемента.
-	static DbPoint BindToInnerEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPosInitial);
+	/// Пересчёт позиции граф. порта к краям элемента.
+	static DbPoint BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPos);
 							///< \param[in] p_GraphicsElementItemNew Указатель на элемент.
-							///< \param[in] oDbPortPosIn Изначальная позиция порта.
-							///< \return Позиция порта на крае элемента.
+							///< \param[in] oDbPortPos Позиция порта в коорд. элемента.
+							///< \return Позиция порта на крае элемента в координатах элемента.
 	/// Получение длины строки выбранным шрифтом в пикселях.
 	static int GetStringWidthInPixels(const QFont& a_Font, QString& a_strText);
 							///< \param[in] a_Font Ссылка на шрифт.
@@ -233,12 +233,10 @@ public:
 	/// Обновление позиции линка по данным элементов.
 	static void UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
-	/// Помощник коррекции точки порта по краю элемента.
-	static void BindPortToOuterEdgeHelper(GraphicsPortItem* p_GraphicsPortItem);
-							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.
 	/// Установка порта в позицию.
-	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem);
+	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem, DbPoint dbPortPos);
 							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.
+							///< \param[in] dbPortPos Позиция порта в коорд. элемента.
 
 	/// Обработчик события нажатия мыши на элемент.
 	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
@@ -450,7 +448,6 @@ public:
 	static bool bPortLMBPressed; ///< Флаг нажатой ЛКМ для порта.
 	static DbPoint oDbPointPortRB; ///< Точка правого нижнего края элемента для порта.
 	static DbPoint oDbPointPortCurrent; ///< Текщая точка для порта.
-	static DbPoint oDbPointPortOld; ///< Старая точка для порта.
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
