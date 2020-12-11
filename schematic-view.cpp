@@ -1001,15 +1001,29 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 			// Получаем крайние точки следующего элемента в группе.
 			oDbPointLeftTopTemp.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
 			oDbPointLeftTopTemp.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
-			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 			{
-				oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+				{
+					oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+					oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+				}
+				else
+				{
+					oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
+												  (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW
+												   / 7.5925f);
+					oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f;
+				}
 			}
 			else
 			{
+				oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 				oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
 						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 			}
