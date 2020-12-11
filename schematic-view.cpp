@@ -680,11 +680,11 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 			QPainterPath oQPainterPathFromCenterToEdge;
 			QPolygonF oQPolygonF;
 			// Коррекция для расп. на треугольнике.
-			oDbPortPos.dbX -= dbDecr;
+
 			// Выносим точку порта за пределы треугольника без существенной потери точности.
 			while(p_GraphicsElementItemNew->shape().contains(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY)))
 			{
-				oDbPointForOutside.dbX = ((oDbPointForOutside.dbX - dbR) * 2.0f) + dbR;
+				oDbPointForOutside.dbX = ((oDbPointForOutside.dbX - (dbR - dbDecr)) * 2.0f) + (dbR - dbDecr);
 				oDbPointForOutside.dbY = ((oDbPointForOutside.dbY - dbR) * 2.0f) + dbR;
 			}
 			// Строим гадкий треугольник в коорд. элемента.
