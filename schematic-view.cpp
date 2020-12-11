@@ -2281,11 +2281,23 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 	}
 	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
+		QTextOption oQTextOption;
+		QString strU;
+		QChar qchF = 0x00AF;
+		// Подготовка имени.
+		oQTextOption.setAlignment(Qt::AlignCenter);
+		QString strName = QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "\n";
+		strU.fill(qchF, strName.length() + 2);
+		strName += strU;
+		//
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2;
-			//
+			double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			p_Painter->drawEllipse(QPointF(dbR, dbR), dbR, dbR);
+			p_Painter->drawText(QRectF(5.0f, 0,
+									   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 10.0f,
+									   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 10.0f),
+								strName, oQTextOption);
 		}
 		else
 		{
@@ -2297,6 +2309,12 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrT.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrT.y() * dbHalfW)));
 			oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrL.x() * dbHalfW) - dbDecr, dbHalfW + (pntTrL.y() * dbHalfW)));
 			p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
+			p_Painter->drawText(QRectF((dbHalfW / 3.0f) + 5.0f, 0,
+									   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
+									   (dbHalfW / 1.5f) -
+									   (dbDecr * 2.0f) - 10.f,
+									   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 10.0f),
+								strName, oQTextOption);
 		}
 	}
 	else
