@@ -648,69 +648,69 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 	DbPoint oDbFromRB;
 	DbPoint oDbCenter;
 	//
-	oDbFromRB.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - oDbPortPos.dbX;
-	oDbFromRB.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - oDbPortPos.dbY;
 	oDbCenter.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-	oDbCenter.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
 	//
 	if(p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
-		double dbR = oDbCenter.dbX;// Радиус.
-		DbPoint oDbPointForOutside = oDbPortPos;
+		double dbR = oDbCenter.dbX;// Радиус.z
 		//
-		oDbPortPos.dbX -= dbR; // Положение порта в системе коорд. центра элемента.
-		oDbPortPos.dbY -= dbR;
 		if(p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
 			// ==== Круг ====
 			double dbL;
 			//
+			oDbPortPos.dbX -= dbR; // Положение порта в системе коорд. центра элемента.
+			oDbPortPos.dbY -= dbR;
 			dbL = sqrt((oDbPortPos.dbX * oDbPortPos.dbX) + (oDbPortPos.dbY * oDbPortPos.dbY)); // Длина ветора порта от центра.
 			oDbPortPos.dbX /= dbL; // Нормализуем вектор.
 			oDbPortPos.dbY /= dbL;
 			oDbPortPos.dbX *= dbR; // Доводим до радиуса.
 			oDbPortPos.dbY *= dbR;
+			oDbPortPos.dbX += dbR; // Положение порта в системе коорд. круга границ элемента.
+			oDbPortPos.dbY += dbR;
 		}
 		else
 		{
 			// ==== Треугольник ====
+			// Вычисление возможными средствами, нужна консультация математика для корректного решения.
 			double dbDecr = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
 			QPainterPath oQPainterPathLineToCenter;
 			QPainterPath oQPainterPathFromCenterToEdge;
-			QPolygonF oQPolygonF;
-			// Коррекция для расп. на треугольнике.
-
+			double bdRShift = dbR - dbDecr; // Центр фигуры для треугольника.
+			//
+			oQPainterPathFromCenterToEdge = p_GraphicsElementItemNew->shape();
 			// Выносим точку порта за пределы треугольника без существенной потери точности.
-			while(p_GraphicsElementItemNew->shape().contains(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY)))
+			while(oQPainterPathFromCenterToEdge.contains(QPointF(oDbPortPos.dbX, oDbPortPos.dbY)))
 			{
-				oDbPointForOutside.dbX = ((oDbPointForOutside.dbX - (dbR - dbDecr)) * 2.0f) + (dbR - dbDecr);
-				oDbPointForOutside.dbY = ((oDbPointForOutside.dbY - dbR) * 2.0f) + dbR;
+				oDbPortPos.dbX = ((oDbPortPos.dbX - bdRShift) * 2.0f) + bdRShift;
+				oDbPortPos.dbY = ((oDbPortPos.dbY - dbR) * 2.0f) + dbR;
 			}
 			// Строим гадкий треугольник в коорд. элемента.
-			oQPolygonF.append(QPointF(dbR, dbR));
-			oQPolygonF.append(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY));
-			oQPolygonF.append(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY + 0.001f));
-			oQPainterPathLineToCenter.addPolygon(oQPolygonF);
+			oQPainterPathLineToCenter.moveTo(bdRShift, dbR);
+			oQPainterPathLineToCenter.lineTo(oDbPortPos.dbX, oDbPortPos.dbY);
+			oQPainterPathLineToCenter.lineTo(oDbPortPos.dbX, oDbPortPos.dbY + 0.00001f);
 			// Остаток гадкого треугольника от пересечения с основным.
-			oQPainterPathFromCenterToEdge = p_GraphicsElementItemNew->shape().intersected(oQPainterPathLineToCenter);
+			oQPainterPathFromCenterToEdge = oQPainterPathFromCenterToEdge.intersected(oQPainterPathLineToCenter);
+			// Поиск точки.
 			if(!oQPainterPathFromCenterToEdge.isEmpty())
 			{
 				QVector<DbPoint> v_DbPoint;
 				DbPoint oDbPoint;
+				QPolygonF oQPolygonF;
 				// Вычленяем точки на ребре.
 				oQPolygonF = oQPainterPathFromCenterToEdge.toFillPolygon();
 				for(int iF = 0; iF != oQPolygonF.count(); iF++)
 				{
 					//
-					oDbPoint.dbX = oQPolygonF.at(iF).x() - dbR;
+					oDbPoint.dbX = oQPolygonF.at(iF).x() - bdRShift;
 					oDbPoint.dbY = oQPolygonF.at(iF).y() - dbR;
 					if(!((oDbPoint.dbX == 0) && (oDbPoint.dbY == 0)))
 					{
 						v_DbPoint.append(oDbPoint);
 					}
 				}
-				// Среднее из точек на ребре.
+				// Среднее из точек на ребре (по причине небольшого разброса на пересечении гадкого треугольника).
 				if(!v_DbPoint.isEmpty())
 				{
 					int iC = v_DbPoint.count();
@@ -725,13 +725,16 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 					oDbPortPos.dbY = oDbPoint.dbY / iC;
 				}
 			}
+			oDbPortPos.dbX += bdRShift;
+			oDbPortPos.dbY += dbR;
 		}
-		oDbPortPos.dbX += dbR; // Положение порта в системе коорд. круга границ элемента.
-		oDbPortPos.dbY += dbR;
 	}
 	else
 	{
 		// ==== Прямоугольник ====
+		oDbFromRB.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - oDbPortPos.dbX;
+		oDbFromRB.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - oDbPortPos.dbY;
+		oDbCenter.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
 		// -= Снаружи к краям =-.
 		bool bXInside = false;
 		bool bYInside = false;
