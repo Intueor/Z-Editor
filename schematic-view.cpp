@@ -655,22 +655,79 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 	//
 	if(p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
+		double dbR = oDbCenter.dbX;// Радиус.
+		DbPoint oDbPointForOutside = oDbPortPos;
+		//
+		oDbPortPos.dbX -= dbR; // Положение порта в системе коорд. центра элемента.
+		oDbPortPos.dbY -= dbR;
 		if(p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
 			// ==== Круг ====
-			double dbR, dbL;
-			DbPoint oDbPointVector;
+			double dbL;
 			//
-			dbR = oDbCenter.dbX; // Радиус.
-			oDbPointVector.dbX = oDbPortPos.dbX - dbR; // Положение порта в системе коорд. круга элемента.
-			oDbPointVector.dbY = oDbPortPos.dbY - dbR;
-			dbL = sqrt((oDbPointVector.dbX * oDbPointVector.dbX) + (oDbPointVector.dbY * oDbPointVector.dbY)); // Длина ветора порта от центра.
-			oDbPointVector.dbX /= dbL; // Нормализуем вектор.
-			oDbPointVector.dbY /= dbL;
-			oDbPortPos.dbX = (oDbPointVector.dbX * dbR) + dbR; // Доводим до радиуса и на центр элемента.
-			oDbPortPos.dbY = (oDbPointVector.dbY * dbR) + dbR;
+			dbL = sqrt((oDbPortPos.dbX * oDbPortPos.dbX) + (oDbPortPos.dbY * oDbPortPos.dbY)); // Длина ветора порта от центра.
+			oDbPortPos.dbX /= dbL; // Нормализуем вектор.
+			oDbPortPos.dbY /= dbL;
+			oDbPortPos.dbX *= dbR; // Доводим до радиуса.
+			oDbPortPos.dbY *= dbR;
 		}
+		else
+		{
+			// ==== Треугольник ====
+			double dbDecr = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 15.185f;
+			QPainterPath oQPainterPathLineToCenter;
+			QPainterPath oQPainterPathFromCenterToEdge;
+			QPolygonF oQPolygonF;
+			// Коррекция для расп. на треугольнике.
+			oDbPortPos.dbX -= dbDecr;
+			// Выносим точку порта за пределы треугольника без существенной потери точности.
+			while(p_GraphicsElementItemNew->shape().contains(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY)))
+			{
+				oDbPointForOutside.dbX = ((oDbPointForOutside.dbX - dbR) * 2.0f) + dbR;
+				oDbPointForOutside.dbY = ((oDbPointForOutside.dbY - dbR) * 2.0f) + dbR;
+			}
+			// Строим гадкий треугольник в коорд. элемента.
+			oQPolygonF.append(QPointF(dbR, dbR));
+			oQPolygonF.append(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY));
+			oQPolygonF.append(QPointF(oDbPointForOutside.dbX, oDbPointForOutside.dbY + 0.001f));
+			oQPainterPathLineToCenter.addPolygon(oQPolygonF);
+			// Остаток гадкого треугольника от пересечения с основным.
+			oQPainterPathFromCenterToEdge = p_GraphicsElementItemNew->shape().intersected(oQPainterPathLineToCenter);
+			if(!oQPainterPathFromCenterToEdge.isEmpty())
+			{
+				QVector<DbPoint> v_DbPoint;
+				DbPoint oDbPoint;
+				// Вычленяем точки на ребре.
+				oQPolygonF = oQPainterPathFromCenterToEdge.toFillPolygon();
+				for(int iF = 0; iF != oQPolygonF.count(); iF++)
+				{
+					//
+					oDbPoint.dbX = oQPolygonF.at(iF).x() - dbR;
+					oDbPoint.dbY = oQPolygonF.at(iF).y() - dbR;
+					if(!((oDbPoint.dbX == 0) && (oDbPoint.dbY == 0)))
+					{
+						v_DbPoint.append(oDbPoint);
+					}
+				}
+				// Среднее из точек на ребре.
+				if(!v_DbPoint.isEmpty())
+				{
+					int iC = v_DbPoint.count();
+					oDbPoint.dbX = 0;
+					oDbPoint.dbY = 0;
+					for(int iF = 0; iF != iC; iF++)
+					{
+						oDbPoint.dbX += v_DbPoint.at(iF).dbX;
+						oDbPoint.dbY += v_DbPoint.at(iF).dbY;
+					}
+					oDbPortPos.dbX = oDbPoint.dbX / iC;
+					oDbPortPos.dbY = oDbPoint.dbY / iC;
+				}
+			}
+		}
+		oDbPortPos.dbX += dbR; // Положение порта в системе коорд. круга границ элемента.
+		oDbPortPos.dbY += dbR;
 	}
 	else
 	{
@@ -2742,7 +2799,7 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* pc_Gr
 	{
 		if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 		{
-			oQPainterPath.addEllipse(0, 0,
+			oQPainterPath.addEllipse(0.0f, 0.0f,
 								  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
 								  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
 		}

@@ -10,6 +10,8 @@
 #define PORT_NUMBER_STR_LEN					6
 #define OVERMAX_NUMBER						999999999
 #define OVERMIN_NUMBER						-999999999
+#define SCENE_DIM_X							6000
+#define SCENE_DIM_Y							6000
 //
 #define SEND_ELEMENTS						true
 #define DONT_SEND_ELEMENTS					false

@@ -96,7 +96,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 		LOG_P_0(LOG_CAT_W, "SchematicWindow_ui.ini is missing and will be created by default at the exit from program.");
 	}
 	//
-	oScene.setSceneRect(-3000, -3000, 6000, 6000);
+	oScene.setSceneRect(0 - (SCENE_DIM_X / 2), 0 - (SCENE_DIM_Y / 2), SCENE_DIM_X, SCENE_DIM_Y);
 	oScene.setItemIndexMethod(QGraphicsScene::NoIndex);
 	p_ui->oSchematicView->setScene(&oScene);
 	p_ui->oSchematicView->SetSchematicViewFrameChangedCB(SchematicViewFrameChangedCallback);
