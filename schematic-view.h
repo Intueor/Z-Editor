@@ -445,7 +445,8 @@ public:
 	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
 	static GraphicsLinkItem* p_GraphicsLinkItemNew; ///< Указатель на новосозданный линк.
 	static bool bPortAltPressed; ///< Флаг нажатого модификатора Alt для порта.
-	static bool bPortLMBPressed; ///< Флаг нажатой ЛКМ для порта.
+	static bool bLMBPressed; ///< Флаг нажатой ЛКМ.
+	static bool bRMBPressed; ///< Флаг нажатой ПКМ.
 	static DbPoint oDbPointPortRB; ///< Точка правого нижнего края элемента для порта.
 	static DbPoint oDbPointPortCurrent; ///< Текщая точка для порта.
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
