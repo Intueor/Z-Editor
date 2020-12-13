@@ -44,6 +44,8 @@ public:
 	/// Конструктор.
 	explicit SchematicView(QWidget* parent = nullptr);
 							///< \param[in] parent Указатель на родительский виджет.
+	/// Деструктор.
+	~SchematicView();
 	/// Переопределение функции обработки перемещения мыши.
 	void mouseMoveEvent(QMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
@@ -417,8 +419,14 @@ private:
 	/// Подготовка удаления графического элемента из сцены и группы, возврат флага на удаление группы элемента.
 	static void PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+	/// Действия при совместном нажатии кнопок мыши.
+	static bool DoubleButtonsPressControl(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+							///< \return true при совместном нажатии.
+	/// Действия при отпускании кнопок мыши после совместного нажатия.
+	static bool DoubleButtonsReleaseControl();
+							///< \return true при снятии совместного нажатия.
 private:
-	static bool bLMousePressed; ///< Признак нажатия на ЛКМ.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.
@@ -446,6 +454,11 @@ public:
 	static GraphicsLinkItem* p_GraphicsLinkItemNew; ///< Указатель на новосозданный линк.
 	static bool bPortAltPressed; ///< Флаг нажатого модификатора Alt для порта.
 	static bool bLMBPressed; ///< Флаг нажатой ЛКМ.
+	static bool bViewLMBPressed; ///< Флаг нажатой ЛКМ на подложке.
+	static bool bFieldMenuReady; ///< Флаг готового меню на подложке.
+	static bool bElementMenuReady; ///< Флаг готового меню для элемента.
+	static bool bGroupMenuReady; ///< Флаг готового меню для группы.
+	static bool bPortMenuReady; ///< Флаг готового меню для порта.
 	static bool bRMBPressed; ///< Флаг нажатой ПКМ.
 	static DbPoint oDbPointPortRB; ///< Точка правого нижнего края элемента для порта.
 	static DbPoint oDbPointPortCurrent; ///< Текщая точка для порта.

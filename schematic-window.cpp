@@ -252,11 +252,14 @@ void SchematicWindow::SchematicViewFrameChangedCallback(QRectF oQRectFVisibleFra
 // Закрытие и сброс меню.
 void SchematicWindow::ResetMenu()
 {
-	p_SafeMenu->close();
-	p_SafeMenu->deleteLater();
-	p_SafeMenu = nullptr;
-#ifndef WIN32
-	QMouseEvent oMEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-	p_SchematicView->mouseMoveEvent(&oMEvent);
-#endif
+	if(p_SafeMenu != nullptr)
+	{
+		p_SafeMenu->close();
+		p_SafeMenu->deleteLater();
+		p_SafeMenu = nullptr;
+	#ifndef WIN32
+		QMouseEvent oMEvent(QEvent::Type::MouseMove, p_SchematicView->mapFromGlobal(QCursor::pos()), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+		p_SchematicView->mouseMoveEvent(&oMEvent);
+	#endif
+	}
 }

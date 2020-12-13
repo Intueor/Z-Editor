@@ -10,7 +10,6 @@
 #include "../Z-Hub/z-hub-defs.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
-bool SchematicView::bLMousePressed = false;
 int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
 int SchematicView::iYInt = SCH_INTERNAL_POS_UNCHANGED;
 CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
@@ -23,7 +22,12 @@ QGraphicsRectItem* SchematicView::p_QGraphicsRectItemSelectionDot = nullptr;
 GraphicsLinkItem* SchematicView::p_GraphicsLinkItemNew = nullptr;
 bool SchematicView::bPortAltPressed = false;
 bool SchematicView::bLMBPressed = false;
+bool SchematicView::bViewLMBPressed = false;
 bool SchematicView::bRMBPressed = false;
+bool SchematicView::bFieldMenuReady = false;
+bool SchematicView::bElementMenuReady = false;
+bool SchematicView::bGroupMenuReady = false;
+bool SchematicView::bPortMenuReady = false;
 DbPoint SchematicView::oDbPointPortRB;
 DbPoint SchematicView::oDbPointPortCurrent;
 DbPoint SchematicView::oDbPointPortInitialClick;
@@ -97,6 +101,12 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
 }
 
+// Деструктор.
+SchematicView::~SchematicView()
+{
+	SchematicWindow::ResetMenu();
+}
+
 // Установка указателя кэлбэка изменения окна обзора.
 void SchematicView::SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged)
 {
@@ -129,7 +139,7 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 /// Переопределение функции обработки перемещения мыши.
 void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 {
-	if(bShiftAndLMBPressed & bLMousePressed)
+	if(bShiftAndLMBPressed)
 	{
 		QRectF oQRectF;
 		//
@@ -204,6 +214,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 	QList<QGraphicsItem*> lp_QGraphicsItems = this->items();
 	QList<QGraphicsItem*> lp_QGraphicsItemsHided;
 	//
+	SchematicWindow::ResetMenu();
 	if(!bShiftAndLMBPressed)
 	{
 		pntMouseClickMapped = mapToScene(p_Event->x(), p_Event->y());
@@ -227,7 +238,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 			MainWindow::p_SchematicWindow->oScene.itemAt(pntMouseClickMapped.x(), pntMouseClickMapped.y(), transform()); // Новый тест.
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		bLMousePressed = true;
+		bViewLMBPressed = true;
 		iXInt = iYInt = SCH_INTERNAL_POS_UNCHANGED;
 		if(p_QGraphicsItem) goto gEx;
 		if(p_Event->modifiers() == Qt::ControlModifier)
@@ -254,6 +265,7 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 		if(p_QGraphicsItem) goto gEx;
 		SchematicWindow::p_SafeMenu = new SafeMenu;
 		SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
+		bFieldMenuReady = true;
 	}
 gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 	{
@@ -287,7 +299,7 @@ void SchematicView::mouseReleaseEvent(QMouseEvent* p_Event)
 	//
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		bLMousePressed = false;
+		bViewLMBPressed = false;
 		if((iXInt == SCH_INTERNAL_POS_UNCHANGED) & (iYInt == SCH_INTERNAL_POS_UNCHANGED))
 		{
 			goto gNE;
@@ -400,8 +412,9 @@ gTS:							if(!p_GraphicsElementItem->bSelected)
 #endif
 		}
 	}
-	if(SchematicWindow::p_SafeMenu)
+	if((SchematicWindow::p_SafeMenu != nullptr) && bFieldMenuReady)
 	{
+		bFieldMenuReady = false;
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(p_Event->globalPos());
 		if(p_SelectedMenuItem != 0)
 		{
@@ -411,14 +424,13 @@ gTS:							if(!p_GraphicsElementItem->bSelected)
 				MainWindow::p_Client->SendBufferToServer();
 			}
 		}
-		SchematicWindow::ResetMenu();
 	}
 }
 
 // Переопределение функции обработки перетаскивания вида.
 void SchematicView::scrollContentsBy(int iX, int iY)
 {
-	if(bLMousePressed)
+	if(bViewLMBPressed)
 	{
 		iXInt = iX;
 		iYInt = iY;
@@ -1958,20 +1970,47 @@ void SchematicView::SetPortToPos(GraphicsPortItem* p_GraphicsPortItem, DbPoint d
 							SCH_UPDATE_LINK_POS | SCH_UPDATE_MAIN, nullptr, p_GraphicsPortItem->p_GraphicsLinkItemInt);
 }
 
+// Действия при совместном нажатии кнопок мыши.
+bool SchematicView::DoubleButtonsPressControl(QGraphicsSceneMouseEvent* p_Event)
+{
+	if(p_Event->button() == Qt::MouseButton::LeftButton)
+	{
+		bLMBPressed = true;
+		if(bRMBPressed) return true;
+	} else if(p_Event->button() == Qt::MouseButton::RightButton)
+	{
+		bRMBPressed = true;
+		if(bLMBPressed) return true;
+	}
+	return false;
+}
+
+// Действия при отпускании кнопок мыши после совместного нажатия.
+bool SchematicView::DoubleButtonsReleaseControl()
+{
+	if(bRMBPressed)
+	{
+		bRMBPressed = false;
+		if(bLMBPressed) return true;
+	}
+	bLMBPressed = false;
+	return false;
+}
+
 // Обработчик события нажатия мыши на элемент.
 void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
 	bool bLastSt;
 	//
+	SchematicWindow::ResetMenu();
 	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{ //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
-		return;
+	{
+		return; //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 	}
+	if(DoubleButtonsPressControl(p_Event)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		if(bRMBPressed) return;
-		bLMBPressed = true;
 		// Создание нового порта.
 		if(p_Event->modifiers() == Qt::AltModifier)
 		{
@@ -2006,6 +2045,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 				p_GraphicsLinkItemNew = nullptr;
 				goto gNL;
 			}
+
 			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 			UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 			MainWindow::p_This->RemoteUpdateSchView();
@@ -2028,11 +2068,6 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		bRMBPressed = true;
-		if(bLMBPressed) // Сворачивание\разворачивание.
-		{
-			return;
-		}
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
@@ -2097,6 +2132,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			}
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
+			bElementMenuReady = true;
 		}
 	}
 	TrySendBufferToServer;
@@ -2212,11 +2248,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	{
 		return;
 	}
-	if(bRMBPressed)
-	{
-		bRMBPressed = false;
-		if(bLMBPressed) return;
-	}
+	if(DoubleButtonsReleaseControl()) return;
 	if(p_GraphicsLinkItemNew != nullptr)
 	{
 		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseReleaseEvent(p_Event);
@@ -2231,12 +2263,14 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 		TrySendBufferToServer;
 	}
 	p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
-	if(SchematicWindow::p_SafeMenu != nullptr)
+	if((SchematicWindow::p_SafeMenu != nullptr) && bElementMenuReady)
 	{
 		QAction* p_SelectedMenuItem;
 		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 		PSchElementName oPSchElementName;
 		char m_chName[SCH_OBJ_NAME_STR_LEN];
+		//
+		bElementMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
@@ -2292,9 +2326,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			TrySendBufferToServer;
 		}
-		SchematicWindow::ResetMenu();
 	}
-	bLMBPressed = false;
 }
 
 // Обработчик функции рисования элемента.
@@ -2462,15 +2494,15 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 {
 	bool bLastSt;
 	//
+	SchematicWindow::ResetMenu();
 	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
 		return;
 	}
+	if(DoubleButtonsPressControl(p_Event)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		if(bRMBPressed) return;
-		bLMBPressed = true;
 		//==== РАБОТА С ВЫБОРКОЙ. ====
 		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем предыдущее значение выбраности.
 		if(p_Event->modifiers() == Qt::ControlModifier)
@@ -2484,11 +2516,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		bRMBPressed = true;
-		if(bLMBPressed) // Сворачивание\разворачивание.
-		{
-			return;
-		}
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
@@ -2565,6 +2592,7 @@ gC:				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuCreateGroup))->set
 			TempDeselectGroup(p_GraphicsGroupItem);
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
+			bGroupMenuReady = true;
 		}
 	}
 	TrySendBufferToServer;
@@ -2612,23 +2640,21 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 	{
 		return;
 	}
-	if(bRMBPressed)
-	{
-		bRMBPressed = false;
-		if(bLMBPressed) return;
-	}
+	if(DoubleButtonsReleaseControl()) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		ReleaseOccupiedAPFS();
 		TrySendBufferToServer;
 	}
 	p_GraphicsGroupItem->OBMouseReleaseEvent(p_Event);
-	if(SchematicWindow::p_SafeMenu != nullptr)
+	if((SchematicWindow::p_SafeMenu != nullptr) && bGroupMenuReady)
 	{
 		QAction* p_SelectedMenuItem;
 		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 		PSchGroupName oPSchGroupName;
 		char m_chName[SCH_OBJ_NAME_STR_LEN];
+		//
+		bGroupMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
@@ -2725,9 +2751,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 		}
 		TrySendBufferToServer;
-		SchematicWindow::ResetMenu();
 	}
-	bLMBPressed = false;
 }
 
 // Обработчик функции рисования группы.
@@ -3152,7 +3176,12 @@ SchematicView::CalcPortHelper SchematicView::CalcLinkLineWidthHeight(GraphicsLin
 // Обработчик события нажатия мыши на порт.
 void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event)
 {
+	SchematicWindow::ResetMenu();
 	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		return;
+	}
+	if(DoubleButtonsPressControl(p_Event))
 	{
 		return;
 	}
@@ -3160,8 +3189,6 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 	if((p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) & (!bPortFromElement)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
-		if(bRMBPressed) return;
-		bLMBPressed = true;
 		oDbPointPortInitialClick.dbX = p_GraphicsPortItem->pos().x(); // Исходный X.
 		oDbPointPortInitialClick.dbY = p_GraphicsPortItem->pos().y(); // Исходный Y.
 		oDbPointPortRB.dbX = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbW; // Крайняя правая точка.
@@ -3184,8 +3211,6 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
-		bRMBPressed = true;
-		if(bLMBPressed) return;
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
@@ -3212,6 +3237,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 			}
 			// Удалить.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			bPortMenuReady = true;
 		}
 	}
 	p_GraphicsPortItem->OBMousePressEvent(p_Event);
@@ -3252,18 +3278,17 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 	DbPoint oDbMapped;
 	DbPoint oDbMappedToElement;
 	char m_chPortNumber[PORT_NUMBER_STR_LEN];
+	bool bLMBPressedOverride;
 	//
 	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
-	if(bRMBPressed)
-	{
-		bRMBPressed = false;
-		if(bLMBPressed) return;
-	}
+	if(bPortFromElement) bLMBPressed = true;
+	bLMBPressedOverride = bLMBPressed;
+	if(DoubleButtonsReleaseControl()) return;
 	if((p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) & (!bPortFromElement)) return;
-	if(bLMBPressed)
+	if(bLMBPressedOverride)
 	{
 		if(bPortAltPressed) // Если жали Alt...
 		{
@@ -3454,7 +3479,7 @@ gEr:	SetPortToPos(p_GraphicsPortItem, oDbPointPortCurrent);
 gF:		ReleaseOccupiedAPFS();
 	}
 	p_GraphicsPortItem->OBMouseReleaseEvent(p_Event);
-	if(bLMBPressed)
+	if(bLMBPressedOverride)
 	{
 		if(p_GraphicsElementItemFounded)
 		{
@@ -3467,9 +3492,11 @@ gF:		ReleaseOccupiedAPFS();
 		}
 		p_GraphicsPortItemActive = nullptr;
 	}
-	else if(SchematicWindow::p_SafeMenu != nullptr)
+	else if((SchematicWindow::p_SafeMenu != nullptr) && bPortMenuReady)
 	{
 		QAction* p_SelectedMenuItem;
+		//
+		bPortMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
@@ -3486,7 +3513,6 @@ gF:		ReleaseOccupiedAPFS();
 				oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDDst;
 				oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 				oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
-				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
 gSrc:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(),
@@ -3495,6 +3521,7 @@ gSrc:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsI
 																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
+						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 						p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort = QString(m_chPortNumber).toUShort();
 						p_GraphicsPortItem->p_GraphicsLinkItemInt->
 								p_GraphicsPortItemSrc->setToolTip(m_chPortTooltip +
@@ -3513,6 +3540,7 @@ gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsI
 																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
+						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 						p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort = QString(m_chPortNumber).toUShort();
 						p_GraphicsPortItem->p_GraphicsLinkItemInt->
 								p_GraphicsPortItemDst->setToolTip(m_chPortTooltip +
@@ -3533,11 +3561,9 @@ gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
 			}
 			if(p_Set_Proposed_String_Dialog) p_Set_Proposed_String_Dialog->deleteLater();
 		}
-		SchematicWindow::ResetMenu();
 		bPortMenuExecuted = true;
 	}
 	TrySendBufferToServer;
-	bLMBPressed = false;
 }
 
 // Обработчик функции рисования порта.
