@@ -1970,6 +1970,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
+		if(bRMBPressed) return;
 		bLMBPressed = true;
 		// Создание нового порта.
 		if(p_Event->modifiers() == Qt::AltModifier)
@@ -2465,6 +2466,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
+		if(bRMBPressed) return;
 		bLMBPressed = true;
 		//==== РАБОТА С ВЫБОРКОЙ. ====
 		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем предыдущее значение выбраности.
@@ -3152,6 +3154,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 	if((p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) & (!bPortFromElement)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
+		if(bRMBPressed) return;
 		oDbPointPortInitialClick.dbX = p_GraphicsPortItem->pos().x(); // Исходный X.
 		oDbPointPortInitialClick.dbY = p_GraphicsPortItem->pos().y(); // Исходный Y.
 		oDbPointPortRB.dbX = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbW; // Крайняя правая точка.
