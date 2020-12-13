@@ -2029,7 +2029,10 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
 		bRMBPressed = true;
-		if(bLMBPressed) return;
+		if(bLMBPressed) // Сворачивание\разворачивание.
+		{
+			return;
+		}
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
@@ -2482,7 +2485,10 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
 	{
 		bRMBPressed = true;
-		if(bLMBPressed) return;
+		if(bLMBPressed) // Сворачивание\разворачивание.
+		{
+			return;
+		}
 		if(SchematicWindow::p_SafeMenu == nullptr)
 		{
 			SchematicWindow::p_SafeMenu = new SafeMenu;
@@ -3155,6 +3161,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		if(bRMBPressed) return;
+		bLMBPressed = true;
 		oDbPointPortInitialClick.dbX = p_GraphicsPortItem->pos().x(); // Исходный X.
 		oDbPointPortInitialClick.dbY = p_GraphicsPortItem->pos().y(); // Исходный Y.
 		oDbPointPortRB.dbX = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbW; // Крайняя правая точка.
@@ -3173,7 +3180,6 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 			oDbPointPortCurrent.dbX = p_GraphicsPortItem->pos().x(); // Текущий X.
 			oDbPointPortCurrent.dbY = p_GraphicsPortItem->pos().y(); // Текущий Y.
 		}
-		bLMBPressed = true;
 		p_GraphicsPortItemActive = p_GraphicsPortItem;
 	}
 	else if(p_Event->button() == Qt::MouseButton::RightButton)
