@@ -450,6 +450,10 @@ private:
 	static double dbMinElementD; ///< Служебная переменная диаметра минимизированного элемента.
 	static double dbMinCircleR; ///< Служебная переменная радиуса минимизированного приёмника.
 	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.
+	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
+	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
+	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
+	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
@@ -470,10 +474,6 @@ public:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
-	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
-	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
-	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
-	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
 };
 
 #endif // SCHEMATICVIEW_H

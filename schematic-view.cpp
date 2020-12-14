@@ -2386,7 +2386,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		else
 		{
 			QPolygonF oQPolygonFForTriangle;
-			double dbDecr = dbR / TRIANGLE_DECR_PROPORTION;
+			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION;
 			//
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 			   SCH_SETTINGS_EG_BIT_MIN)
