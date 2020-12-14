@@ -97,7 +97,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinElementR = dbMinTriangleR * MIN_ELEMENT_PROPORTION;
 	dbMinElementD = MINIMIZED_DIM * MIN_ELEMENT_PROPORTION;
 	dbMinCircleR = dbMinTriangleR * MIN_CIRCLE_PROPORTION;
-	dbMinTriangleDerc = dbMinTriangleR / TRIANGLE_DECR_PROPORTION;
+	dbMinTriangleDerc = (dbMinTriangleR / TRIANGLE_DECR_PROPORTION) * 2.0f;
 	//
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM, -SCALER_RECT_DIM_CORR));
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM_CORR, -SCALER_RECT_DIM));
@@ -2342,6 +2342,22 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 // Обработчик функции рисования элемента.
 void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter)
 {
+	QGraphicsItem* p_GraphicsItem;
+	QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
+	bool bPortsPresent = false;
+	int iCn = lp_Items.count();
+	//
+	for(int iC = 0; iC < iCn; iC++)
+	{
+		p_GraphicsItem = lp_Items.at(iC);
+		if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
+		{
+			if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
+			{
+				bPortsPresent = true;
+			}
+		}
+	}
 	p_Painter->setRenderHints(QPainter::SmoothPixmapTransform);
 	p_Painter->setBrush(p_GraphicsElementItem->oQBrush);
 	if(p_GraphicsElementItem->bIsPositivePalette)
@@ -2370,9 +2386,12 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			   SCH_SETTINGS_EG_BIT_MIN)
 			{
 				p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), dbMinCircleR, dbMinCircleR);
-				p_Painter->setBrush(SchematicWindow::oQBrushGray);
-				p_Painter->setPen(SchematicWindow::oQPenWhite);
-				p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), PORT_DIM, PORT_DIM);
+				if(bPortsPresent)
+				{
+					p_Painter->setBrush(SchematicWindow::oQBrushGray);
+					p_Painter->setPen(SchematicWindow::oQPenWhite);
+					p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), PORT_DIM, PORT_DIM);
+				}
 			}
 			else
 			{
@@ -2391,16 +2410,19 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 			   SCH_SETTINGS_EG_BIT_MIN)
 			{
-				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrR.x() * dbMinTriangleR) - (dbMinTriangleDerc * 2.0f),
+				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrR.x() * dbMinTriangleR) - dbMinTriangleDerc,
 													 dbMinTriangleR + (pntTrR.y() * dbMinTriangleR)));
-				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrT.x() * dbMinTriangleR) - (dbMinTriangleDerc * 2.0f),
+				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrT.x() * dbMinTriangleR) - dbMinTriangleDerc,
 													 dbMinTriangleR + (pntTrT.y() * dbMinTriangleR)));
-				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrL.x() * dbMinTriangleR) - (dbMinTriangleDerc * 2.0f),
+				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrL.x() * dbMinTriangleR) - dbMinTriangleDerc,
 													 dbMinTriangleR + (pntTrL.y() * dbMinTriangleR)));
 				p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
-				p_Painter->setBrush(SchematicWindow::oQBrushGray);
-				p_Painter->setPen(SchematicWindow::oQPenWhite);
-				p_Painter->drawEllipse(QPointF(dbMinTriangleR - (dbMinTriangleDerc * 2.0f), dbMinTriangleR), PORT_DIM, PORT_DIM);
+				if(bPortsPresent)
+				{
+					p_Painter->setBrush(SchematicWindow::oQBrushGray);
+					p_Painter->setPen(SchematicWindow::oQPenWhite);
+					p_Painter->drawEllipse(QPointF(dbMinTriangleR - dbMinTriangleDerc, dbMinTriangleR), PORT_DIM, PORT_DIM);
+				}
 			}
 			else
 			{
@@ -2422,9 +2444,12 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 		{
 			p_Painter->drawRect(QRectF(0, 0, dbMinElementD, dbMinElementD));
-			p_Painter->setBrush(SchematicWindow::oQBrushGray);
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
-			p_Painter->drawEllipse(QPointF(dbMinElementR, dbMinElementR), PORT_DIM, PORT_DIM);
+			if(bPortsPresent)
+			{
+				p_Painter->setBrush(SchematicWindow::oQBrushGray);
+				p_Painter->setPen(SchematicWindow::oQPenWhite);
+				p_Painter->drawEllipse(QPointF(dbMinElementR, dbMinElementR), PORT_DIM, PORT_DIM);
+			}
 		}
 		else
 		{
