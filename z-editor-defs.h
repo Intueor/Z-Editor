@@ -56,11 +56,16 @@
 #define SCALER_CIR_DIM					6.0f
 #define PORT_DIM						3.0f
 #define FRAME_DIM_INC					2.0f
+//
+#define MINIMIZED_DIM					20
 // Корректировки размеров.
 #define SCALER_RECT_DIM_CORR			0.2f
 #define SCALER_TR_DIM_CORR				0.25f
 #define SCALER_CIR_DIM_CORR				0.15f
 #define FRAME_DIM_INC_CORR				0.275f
+#define TRIANGLE_DECR_PROPORTION		15.185f
+#define MIN_ELEMENT_PROPORTION			0.715f
+#define MIN_CIRCLE_PROPORTION			0.785f
 //
 #define ELEMENT_MIN_X					40
 #define ELEMENT_MIN_Y					30

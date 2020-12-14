@@ -445,6 +445,11 @@ private:
 	static double dbFrameDimIncNegPlusHalfCorr; ///< Служебная переменная отрицательного размера отступа рамки плюс пол коррекции.
 	static double dbPortDimNeg; ///< Служебная переменная отрицательного размера порта.
 	static double dbPortDimD; ///< Служебная переменная диаметра порта.
+	static double dbMinTriangleR; ///< Служебная переменная радиуса минимизированного транслятора.
+	static double dbMinElementR; ///< Служебная переменная радиуса минимизированного элемента.
+	static double dbMinElementD; ///< Служебная переменная диаметра минимизированного элемента.
+	static double dbMinCircleR; ///< Служебная переменная радиуса минимизированного приёмника.
+	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

@@ -20,6 +20,7 @@ QTimer SchematicWindow::oQTimerSelectionFlashing;
 bool SchematicWindow::bRefClose = false;
 QBrush SchematicWindow::oQBrushDark;
 QBrush SchematicWindow::oQBrushLight;
+QBrush SchematicWindow::oQBrushGray;
 QPen SchematicWindow::oQPenWhite;
 QPen SchematicWindow::oQPenBlack;
 QPen SchematicWindow::oQPenWhiteTransparent;
@@ -45,7 +46,7 @@ unsigned char SchematicWindow::uchPortSelectionFlashCounter = 1;
 QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
 qreal SchematicWindow::dbObjectZPos;
 SafeMenu* SchematicWindow::p_SafeMenu = nullptr;
-Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle;
+Qt::BrushStyle SchematicWindow::iLStyle, SchematicWindow::iDStyle, SchematicWindow::iGStyle;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
 bool SchematicWindow::bCleaningSceneNow = true;
 SchematicView* SchematicWindow::p_SchematicView = nullptr;
@@ -60,6 +61,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	//
 	oQBrushLight.setColor(QColor(170, 170, 170, 255)); oQBrushLight.setStyle(Qt::SolidPattern);
 	oQBrushDark.setColor(QColor(64, 64, 64, 255)); oQBrushDark.setStyle(Qt::SolidPattern);
+	oQBrushGray.setColor(QColor(100, 100, 100, 255)); oQBrushGray.setStyle(Qt::SolidPattern);
 	oQPenWhite.setColor(Qt::white); oQPenWhite.setJoinStyle(Qt::MiterJoin);
 	oQPenBlack.setColor(Qt::black); oQPenBlack.setJoinStyle(Qt::MiterJoin);
 	oQPenWhiteTransparent.setColor(QColor(255, 255, 255, 96)); oQPenWhiteTransparent.setJoinStyle(Qt::MiterJoin);
@@ -221,8 +223,10 @@ SchematicView* SchematicWindow::GetSchematicView()
 void SchematicWindow::SetTempBrushesStyle(Qt::BrushStyle iStyle)
 {
 	iLStyle = SchematicWindow::oQBrushLight.style();
+	iGStyle = SchematicWindow::oQBrushGray.style();
 	iDStyle = SchematicWindow::oQBrushDark.style();
 	SchematicWindow::oQBrushLight.setStyle(iStyle);
+	SchematicWindow::oQBrushGray.setStyle(iStyle);
 	SchematicWindow::oQBrushDark.setStyle(iStyle);
 }
 
@@ -230,6 +234,7 @@ void SchematicWindow::SetTempBrushesStyle(Qt::BrushStyle iStyle)
 void SchematicWindow::RestoreBrushesStyles()
 {
 	SchematicWindow::oQBrushLight.setStyle(iLStyle);
+	SchematicWindow::oQBrushGray.setStyle(iLStyle);
 	SchematicWindow::oQBrushDark.setStyle(iDStyle);
 }
 
