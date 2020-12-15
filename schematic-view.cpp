@@ -2483,7 +2483,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setAcceptHoverEvents(true);
 	p_GraphicsElementItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsElementItem->bSelected = false;
-	//
+	// Группировщик для стандартного элемента.
 	if(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED))
 	{
 		p_GraphicsElementItem->p_QGroupBox = new QGroupBox();
@@ -2525,11 +2525,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 		{
-			p_GraphicsElementItem->p_QGroupBox->hide();
+			p_GraphicsElementItem->p_QGroupBox->hide(); // Если минимизировано - скрываем.
 		}
 	}
-	else p_GraphicsElementItem->p_QGroupBox = nullptr;
-	//
+	else p_GraphicsElementItem->p_QGroupBox = nullptr; // Или его отсутствие.
+	// Позиционирование.
 	p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
 								  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
 	p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos);
@@ -2540,7 +2540,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	}
 	p_GraphicsElementItem->oQBrush.setColor(
 				QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor));
-	//
+	// Добавление скалера.
 	p_GraphicsElementItem->p_GraphicsScalerItem = new GraphicsScalerItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
 	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
@@ -2568,11 +2568,12 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	}
 	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 	{
-		p_GraphicsElementItem->p_GraphicsScalerItem->hide();
+		p_GraphicsElementItem->p_GraphicsScalerItem->hide();  // Если минимизировано - скрываем.
 	}
+	// Фрейм для обводки.
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
-	//
+	// Статус блокирования.
 	SetElementBlockingPattern(p_GraphicsElementItem,
 							  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 							  SCH_SETTINGS_EG_BIT_BUSY);
@@ -3279,10 +3280,21 @@ void SchematicView::LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem,
 		}
 		if((p_GraphicsLinkItem->p_GraphicsElementItemSrc != nullptr) && (p_GraphicsLinkItem->p_GraphicsElementItemDst != nullptr))
 		{
-			SchematicWindow::vp_Ports.append(new GraphicsPortItem(p_GraphicsLinkItem, true, p_GraphicsLinkItem->p_GraphicsElementItemSrc));
-			SchematicWindow::vp_Ports.append(new GraphicsPortItem(p_GraphicsLinkItem, false, p_GraphicsLinkItem->p_GraphicsElementItemDst));
+			GraphicsPortItem* p_GraphicsPortItemSrc;
+			GraphicsPortItem* p_GraphicsPortItemDst;
+			//
+			p_GraphicsPortItemSrc = new GraphicsPortItem(p_GraphicsLinkItem, true, p_GraphicsLinkItem->p_GraphicsElementItemSrc);
+			p_GraphicsPortItemDst = new GraphicsPortItem(p_GraphicsLinkItem, false, p_GraphicsLinkItem->p_GraphicsElementItemDst);
 			p_GraphicsLinkItem->p_PSchElementVarsSrc = &p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars;
 			p_GraphicsLinkItem->p_PSchElementVarsDst = &p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars;
+			SchematicWindow::vp_Ports.append(p_GraphicsPortItemSrc);
+			SchematicWindow::vp_Ports.append(p_GraphicsPortItemDst);
+			// После создания портов по статусу свёрнутости - коррекция в переменных линка.
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX = p_GraphicsPortItemSrc->pos().x();
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY = p_GraphicsPortItemSrc->pos().y();
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX = p_GraphicsPortItemDst->pos().x();
+			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY = p_GraphicsPortItemDst->pos().y();
+			//
 			UpdateLinkPositionByElements(p_GraphicsLinkItem);
 			p_GraphicsLinkItem->setAcceptedMouseButtons(0);
 			return;
@@ -3749,6 +3761,7 @@ void SchematicView::PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPain
 void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem, GraphicsLinkItem* p_GraphicsLinkItem,
 										   bool bSrc, GraphicsElementItem* p_Parent)
 {
+	double dbX, dbY;
 	p_GraphicsPortItem->p_ParentInt = p_Parent;
 	p_GraphicsPortItem->bIsSrc = bSrc;
 	bPortAltPressed = false;
@@ -3763,20 +3776,64 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 	p_GraphicsPortItem->p_SchEGGraph = &p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph;
 	if(p_GraphicsPortItem->bIsSrc)
 	{
-		p_GraphicsPortItem->setPos(p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX,
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY);
+		dbX = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX;
+		dbY = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY;
 		p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc = p_GraphicsPortItem;
 		p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort));
 	}
 	else
 	{
-		p_GraphicsPortItem->setPos(p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX,
-								   p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY);
+		dbX = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX;
+		dbY = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY;
 		p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst = p_GraphicsPortItem;
 		p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort));
 	}
 	p_GraphicsPortItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, p_GraphicsPortItem);
 	p_GraphicsPortItem->p_GraphicsFrameItem->hide();
+	// Установка текущего и запасного положения порта в зависимости от статуса свёрнутости.
+	if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	{
+		p_GraphicsPortItem->oDbPAlterPos.dbX = dbX;
+		p_GraphicsPortItem->oDbPAlterPos.dbY = dbY;
+		if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		{
+			if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			{
+				p_GraphicsPortItem->setPos(dbMinCircleR, dbMinCircleR);
+			}
+			else
+			{
+				p_GraphicsPortItem->setPos(dbMinTriangleRSubMinTriangleDerc, dbMinTriangleR);
+			}
+		}
+		else
+		{
+			p_GraphicsPortItem->setPos(dbMinElementR, dbMinElementR);
+		}
+		p_GraphicsPortItem->hide();
+	}
+	else
+	{
+		if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		{
+			if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			{
+				p_GraphicsPortItem->oDbPAlterPos.dbX = dbMinCircleR;
+				p_GraphicsPortItem->oDbPAlterPos.dbY = dbMinCircleR;
+			}
+			else
+			{
+				p_GraphicsPortItem->oDbPAlterPos.dbX = dbMinTriangleRSubMinTriangleDerc;
+				p_GraphicsPortItem->oDbPAlterPos.dbY = dbMinTriangleR;
+			}
+		}
+		else
+		{
+			p_GraphicsPortItem->oDbPAlterPos.dbX = dbMinElementR;
+			p_GraphicsPortItem->oDbPAlterPos.dbY = dbMinElementR;
+		}
+		p_GraphicsPortItem->setPos(dbX, dbY);
+	}
 }
 
 // Обработчик нахождения курсора над портом.
