@@ -57,6 +57,7 @@ double SchematicView::dbMinCircleR;
 double SchematicView::dbMinCircleD;
 double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
+double SchematicView::dbMinCircleRPlusFrameDimIncSubCorr;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
@@ -105,6 +106,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinCircleD = dbMinCircleR * 2.0f;
 	dbMinTriangleDerc = (dbMinTriangleR / TRIANGLE_DECR_PROPORTION) * 2.0f;
 	dbMinTriangleRSubMinTriangleDerc = dbMinTriangleR - dbMinTriangleDerc;
+	dbMinCircleRPlusFrameDimIncSubCorr = dbMinCircleR + dbFrameDimIncSubCorr;
 	//
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM, -SCALER_RECT_DIM_CORR));
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM_CORR, -SCALER_RECT_DIM));
@@ -1991,7 +1993,8 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		// Создание нового порта.
-		if(p_Event->modifiers() == Qt::AltModifier)
+		if((p_Event->modifiers() == Qt::AltModifier) &&
+		   !(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN))
 		{
 			PSchLinkBase oPSchLinkBase;
 			DbPoint oDbPointInitialClick;
@@ -3054,7 +3057,8 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 				if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 				   SCH_SETTINGS_EG_BIT_MIN)
 				{
-
+					p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR),
+										   dbMinCircleRPlusFrameDimIncSubCorr, dbMinCircleRPlusFrameDimIncSubCorr);
 				}
 				else
 				{
@@ -3495,6 +3499,10 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 			if(p_GraphicsElementItemFounded) // Если есть найденный верхний рабочий...
 			{
 				// Поиск ошибки пользователя.
+				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+				{ // Если была попытка добавить к свёрнутому...
+					goto gEld;
+				}
 				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
 				   p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
 				{ // Если на исходный элемент...

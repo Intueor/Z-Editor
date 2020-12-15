@@ -438,7 +438,7 @@ private:
 	static QVector<EGPointersVariant> v_OccupiedByClient; ///< Список занятого клиентом.
 	static QPolygonF oQPolygonFForRectScaler; ///< Объект полигона для отрисовки скалера прямоугольника.
 	static QPolygonF oQPolygonFForTriangleScaler; ///< Объект полигона для отрисовки скалера треугольника.
-	static double dbFrameDimIncSubCorr; ///< Служебная переменная размераотступа рамки минус коррекция.
+	static double dbFrameDimIncSubCorr; ///< Служебная переменная размера отступа рамки минус коррекция.
 	static double dbFrameDimIncTwiceSubCorr; ///< Служебная переменная двойного размера отступа рамки минус коррекция.
 	static double dbFrameDimIncTwiceSubDoubleCorr; ///< Служебная переменная двойного размера отступа рамки минус двойная коррекция.
 	static double dbFrameDimIncNegPlusCorr; ///< Служебная переменная отрицательного размера отступа рамки плюс коррекция.
@@ -452,6 +452,7 @@ private:
 	static double dbMinCircleD; ///< Служебная переменная диаметра минимизированного приёмника.
 	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.
 	static double dbMinTriangleRSubMinTriangleDerc; ///< Служебная переменная положения порта на минимизированном трансляторе.
+	static double dbMinCircleRPlusFrameDimIncSubCorr; ///< Служебная радиуса миним. эл. плюс переменная размера отступа рамки минус коррекция.
 	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
 	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
 	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
