@@ -54,6 +54,7 @@ double SchematicView::dbMinTriangleR;
 double SchematicView::dbMinElementR;
 double SchematicView::dbMinElementD;
 double SchematicView::dbMinCircleR;
+double SchematicView::dbMinCircleD;
 double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 
@@ -101,6 +102,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinElementR = dbMinTriangleR * MIN_ELEMENT_PROPORTION;
 	dbMinElementD = MINIMIZED_DIM * MIN_ELEMENT_PROPORTION;
 	dbMinCircleR = dbMinTriangleR * MIN_CIRCLE_PROPORTION;
+	dbMinCircleD = dbMinCircleR * 2.0f;
 	dbMinTriangleDerc = (dbMinTriangleR / TRIANGLE_DECR_PROPORTION) * 2.0f;
 	dbMinTriangleRSubMinTriangleDerc = dbMinTriangleR - dbMinTriangleDerc;
 	//
@@ -2968,9 +2970,7 @@ QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* pc_Graph
 		{
 			if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 			{
-				return QRectF(0, 0,
-							  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-							  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW);
+				return QRectF(0, 0, dbMinCircleD, dbMinCircleD);
 			}
 			else
 			{
@@ -2983,10 +2983,7 @@ QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* pc_Graph
 		{
 			if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 			{
-				return QRectF(0, 0,
-							  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
-							  (pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 7.5925f),
-							  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
+				return QRectF(pntMinTrL.x(), pntMinTrT.y(), pntMinTrR.x(), pntMinTrR.y());
 			}
 			else
 			{
@@ -2999,9 +2996,7 @@ QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* pc_Graph
 	}
 	if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 	{
-		return QRectF(0, 0,
-					  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
-					  pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
+		return QRectF(0, 0, dbMinElementD, dbMinElementD);
 	}
 	else
 	{
@@ -3022,7 +3017,7 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* pc_Gr
 		{
 			if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 			{
-
+				oQPainterPath.addEllipse(0.0f, 0.0f, dbMinCircleD, dbMinCircleD);
 			}
 			else
 			{
@@ -3039,7 +3034,10 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* pc_Gr
 			//
 			if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 			{
-
+				oQPolygon.append(pntMinTrR);
+				oQPolygon.append(pntMinTrT);
+				oQPolygon.append(pntMinTrL);
+				oQPainterPath.addPolygon(oQPolygon);
 			}
 			else
 			{
@@ -3057,7 +3055,7 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* pc_Gr
 	{
 		if(pc_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 		{
-
+			oQPainterPath.addRect(0, 0, dbMinElementD, dbMinElementD);
 		}
 		else
 		{

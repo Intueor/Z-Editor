@@ -449,6 +449,7 @@ private:
 	static double dbMinElementR; ///< Служебная переменная радиуса минимизированного элемента.
 	static double dbMinElementD; ///< Служебная переменная диаметра минимизированного элемента.
 	static double dbMinCircleR; ///< Служебная переменная радиуса минимизированного приёмника.
+	static double dbMinCircleD; ///< Служебная переменная диаметра минимизированного приёмника.
 	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.
 	static double dbMinTriangleRSubMinTriangleDerc; ///< Служебная переменная положения порта на минимизированном трансляторе.
 	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
