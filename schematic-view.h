@@ -450,9 +450,13 @@ private:
 	static double dbMinElementD; ///< Служебная переменная диаметра минимизированного элемента.
 	static double dbMinCircleR; ///< Служебная переменная радиуса минимизированного приёмника.
 	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.
+	static double dbMinTriangleRSubMinTriangleDerc; ///< Служебная переменная положения порта на минимизированном трансляторе.
 	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
 	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
 	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
+	static QPointF pntMinTrR; ///< Правая вершина минимизированного треугольника.
+	static QPointF pntMinTrT; ///< Центральная вершина минимизированного треугольника.
+	static QPointF pntMinTrL; ///< Левая вершина минимизированного треугольника.
 	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
 
 public:

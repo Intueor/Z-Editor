@@ -38,6 +38,9 @@ QVector<SchematicView::EGPointersVariant> SchematicView::v_OccupiedByClient;
 constexpr QPointF SchematicView::pntTrR;
 constexpr QPointF SchematicView::pntTrT;
 constexpr QPointF SchematicView::pntTrL;
+QPointF SchematicView::pntMinTrR;
+QPointF SchematicView::pntMinTrT;
+QPointF SchematicView::pntMinTrL;
 QPolygonF SchematicView::oQPolygonFForRectScaler;
 QPolygonF SchematicView::oQPolygonFForTriangleScaler;
 double SchematicView::dbFrameDimIncSubCorr;
@@ -52,6 +55,7 @@ double SchematicView::dbMinElementR;
 double SchematicView::dbMinElementD;
 double SchematicView::dbMinCircleR;
 double SchematicView::dbMinTriangleDerc;
+double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
@@ -98,6 +102,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinElementD = MINIMIZED_DIM * MIN_ELEMENT_PROPORTION;
 	dbMinCircleR = dbMinTriangleR * MIN_CIRCLE_PROPORTION;
 	dbMinTriangleDerc = (dbMinTriangleR / TRIANGLE_DECR_PROPORTION) * 2.0f;
+	dbMinTriangleRSubMinTriangleDerc = dbMinTriangleR - dbMinTriangleDerc;
 	//
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM, -SCALER_RECT_DIM_CORR));
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM_CORR, -SCALER_RECT_DIM));
@@ -106,6 +111,13 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	oQPolygonFForTriangleScaler.append(QPointF(pntTrR.x() * dbTSDimSubCorr, pntTrR.y() * dbTSDimSubCorr));
 	oQPolygonFForTriangleScaler.append(QPointF(pntTrT.x() * dbTSDimSubCorr, pntTrT.y() * dbTSDimSubCorr));
 	oQPolygonFForTriangleScaler.append(QPointF(pntTrL.x() * dbTSDimSubCorr, pntTrL.y() * dbTSDimSubCorr));
+	//
+	pntMinTrR = QPointF(dbMinTriangleR + (pntTrR.x() * dbMinTriangleR) - dbMinTriangleDerc,
+												 dbMinTriangleR + (pntTrR.y() * dbMinTriangleR));
+	pntMinTrT = QPointF(dbMinTriangleR + (pntTrT.x() * dbMinTriangleR) - dbMinTriangleDerc,
+												 dbMinTriangleR + (pntTrT.y() * dbMinTriangleR));
+	pntMinTrL = QPointF(dbMinTriangleR + (pntTrL.x() * dbMinTriangleR) - dbMinTriangleDerc,
+												 dbMinTriangleR + (pntTrL.y() * dbMinTriangleR));
 	//
 	srand(time(NULL));
 	setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
@@ -2410,18 +2422,15 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 			   SCH_SETTINGS_EG_BIT_MIN)
 			{
-				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrR.x() * dbMinTriangleR) - dbMinTriangleDerc,
-													 dbMinTriangleR + (pntTrR.y() * dbMinTriangleR)));
-				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrT.x() * dbMinTriangleR) - dbMinTriangleDerc,
-													 dbMinTriangleR + (pntTrT.y() * dbMinTriangleR)));
-				oQPolygonFForTriangle.append(QPointF(dbMinTriangleR + (pntTrL.x() * dbMinTriangleR) - dbMinTriangleDerc,
-													 dbMinTriangleR + (pntTrL.y() * dbMinTriangleR)));
+				oQPolygonFForTriangle.append(pntMinTrR);
+				oQPolygonFForTriangle.append(pntMinTrT);
+				oQPolygonFForTriangle.append(pntMinTrL);
 				p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
 				if(bPortsPresent)
 				{
 					p_Painter->setBrush(SchematicWindow::oQBrushGray);
 					p_Painter->setPen(SchematicWindow::oQPenWhite);
-					p_Painter->drawEllipse(QPointF(dbMinTriangleR - dbMinTriangleDerc, dbMinTriangleR), PORT_DIM, PORT_DIM);
+					p_Painter->drawEllipse(QPointF(dbMinTriangleRSubMinTriangleDerc, dbMinTriangleR), PORT_DIM, PORT_DIM);
 				}
 			}
 			else

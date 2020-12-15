@@ -57,7 +57,7 @@
 #define PORT_DIM						3.0f
 #define FRAME_DIM_INC					2.0f
 //
-#define MINIMIZED_DIM					20
+#define MINIMIZED_DIM					30
 // Корректировки размеров.
 #define SCALER_RECT_DIM_CORR			0.2f
 #define SCALER_TR_DIM_CORR				0.25f
