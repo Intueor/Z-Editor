@@ -3532,7 +3532,14 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 				// Поиск ошибки пользователя.
 				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 				{ // Если была попытка добавить к свёрнутому...
-					goto gEld;
+					if(bPortFromElement)
+					{ // Если идёт с нового...
+						goto gEld;
+					}
+					else
+					{
+						goto gED;
+					}
 				}
 				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
 				   p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt)
@@ -3649,12 +3656,15 @@ gF:		ReleaseOccupiedAPFS();
 	{
 		if(p_GraphicsElementItemFounded)
 		{
-			oDbMappedToElement.dbX = oDbMapped.dbX -
-									 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
-			oDbMappedToElement.dbY = oDbMapped.dbY -
-									 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
-			ReplaceLink(p_GraphicsPortItem->p_GraphicsLinkItemInt, p_GraphicsElementItemFounded,
-						p_GraphicsPortItem->bIsSrc, oDbMappedToElement, bPortFromElement);
+			if(!(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN))
+			{
+				oDbMappedToElement.dbX = oDbMapped.dbX -
+										 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
+				oDbMappedToElement.dbY = oDbMapped.dbY -
+										 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY;
+				ReplaceLink(p_GraphicsPortItem->p_GraphicsLinkItemInt, p_GraphicsElementItemFounded,
+							p_GraphicsPortItem->bIsSrc, oDbMappedToElement, bPortFromElement);
+			}
 		}
 		p_GraphicsPortItemActive = nullptr;
 	}
