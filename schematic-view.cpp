@@ -41,6 +41,9 @@ constexpr QPointF SchematicView::pntTrL;
 QPointF SchematicView::pntMinTrR;
 QPointF SchematicView::pntMinTrT;
 QPointF SchematicView::pntMinTrL;
+QPointF SchematicView::pntMinFrameTrR;
+QPointF SchematicView::pntMinFrameTrT;
+QPointF SchematicView::pntMinFrameTrL;
 QPolygonF SchematicView::oQPolygonFForRectScaler;
 QPolygonF SchematicView::oQPolygonFForTriangleScaler;
 double SchematicView::dbFrameDimIncSubCorr;
@@ -58,6 +61,7 @@ double SchematicView::dbMinCircleD;
 double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 double SchematicView::dbMinCircleRPlusFrameDimIncSubCorr;
+double SchematicView::dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
@@ -107,6 +111,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinTriangleDerc = (dbMinTriangleR / TRIANGLE_DECR_PROPORTION) * 2.0f;
 	dbMinTriangleRSubMinTriangleDerc = dbMinTriangleR - dbMinTriangleDerc;
 	dbMinCircleRPlusFrameDimIncSubCorr = dbMinCircleR + dbFrameDimIncSubCorr;
+	dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr = dbMinElementD + dbFrameDimIncTwiceSubDoubleCorr;
 	//
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM, -SCALER_RECT_DIM_CORR));
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM_CORR, -SCALER_RECT_DIM));
@@ -122,6 +127,12 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 												 dbMinTriangleR + (pntTrT.y() * dbMinTriangleR));
 	pntMinTrL = QPointF(dbMinTriangleR + (pntTrL.x() * dbMinTriangleR) - dbMinTriangleDerc,
 												 dbMinTriangleR + (pntTrL.y() * dbMinTriangleR));
+	pntMinFrameTrR = QPointF(dbMinTriangleR + (pntTrR.x() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)) - dbMinTriangleDerc,
+												 dbMinTriangleR + (pntTrR.y() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)));
+	pntMinFrameTrT = QPointF(dbMinTriangleR + (pntTrT.x() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)) - dbMinTriangleDerc,
+												 dbMinTriangleR + (pntTrT.y() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)));
+	pntMinFrameTrL = QPointF(dbMinTriangleR + (pntTrL.x() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)) - dbMinTriangleDerc,
+												 dbMinTriangleR + (pntTrL.y() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)));
 	//
 	srand(time(NULL));
 	setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
@@ -388,22 +399,38 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 						}
 						else
 						{
-							if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX >
-								oQPointTL.x()) &
-							   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY >
-								oQPointTL.y()) &
-							   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
-								 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW) <
-								oQPointBR.x()) &
-							   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
-								 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH) <
-								oQPointBR.y()))
+							if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+							   SCH_SETTINGS_EG_BIT_MIN)
 							{
-gTS:							if(!p_GraphicsElementItem->bSelected)
+								if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
+								   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
+								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+									 dbMinElementD) < oQPointBR.x()) &
+								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+									 dbMinElementD) < oQPointBR.y()))
 								{
-									SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
-									p_GraphicsElementItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
-									p_GraphicsElementItem->bSelected = true;
+									goto gTS;
+								}
+							}
+							else
+							{
+								if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX >
+									oQPointTL.x()) &
+								   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY >
+									oQPointTL.y()) &
+								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+									 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW) <
+									oQPointBR.x()) &
+								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+									 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH) <
+									oQPointBR.y()))
+								{
+gTS:								if(!p_GraphicsElementItem->bSelected)
+									{
+										SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
+										p_GraphicsElementItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+										p_GraphicsElementItem->bSelected = true;
+									}
 								}
 							}
 						}
@@ -3072,21 +3099,24 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 								 p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 				double dbDecr = p_GraphicsFrameItem->
 								p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION;
-				double dbdbHalfWOutside = dbHalfW + (dbFrameDimIncTwiceSubCorr);
+				double dbHalfWOutside = dbHalfW + dbFrameDimIncTwiceSubCorr;
 				//
 				if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 				   SCH_SETTINGS_EG_BIT_MIN)
 				{
-
+					oQPolygonFForTriangle.append(pntMinFrameTrR);
+					oQPolygonFForTriangle.append(pntMinFrameTrT);
+					oQPolygonFForTriangle.append(pntMinFrameTrL);
+					p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
 				}
 				else
 				{
-					oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrR.x() * dbdbHalfWOutside) - dbDecr,
-													 dbHalfW + (pntTrR.y() * dbdbHalfWOutside)));
-					oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrT.x() * dbdbHalfWOutside) - dbDecr,
-													 dbHalfW + (pntTrT.y() * dbdbHalfWOutside)));
-					oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrL.x() * dbdbHalfWOutside) - dbDecr,
-													 dbHalfW + (pntTrL.y() * dbdbHalfWOutside)));
+					oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrR.x() * dbHalfWOutside) - dbDecr,
+													 dbHalfW + (pntTrR.y() * dbHalfWOutside)));
+					oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrT.x() * dbHalfWOutside) - dbDecr,
+													 dbHalfW + (pntTrT.y() * dbHalfWOutside)));
+					oQPolygonFForTriangle.append(QPointF(dbHalfW + (pntTrL.x() * dbHalfWOutside) - dbDecr,
+													 dbHalfW + (pntTrL.y() * dbHalfWOutside)));
 					p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
 				}
 			}
@@ -3096,7 +3126,8 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 			if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 			   SCH_SETTINGS_EG_BIT_MIN)
 			{
-
+				p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusHalfCorr, dbFrameDimIncNegPlusHalfCorr,
+										   dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr, dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr));
 			}
 			else
 			{

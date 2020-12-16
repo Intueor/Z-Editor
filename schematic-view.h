@@ -453,12 +453,16 @@ private:
 	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.
 	static double dbMinTriangleRSubMinTriangleDerc; ///< Служебная переменная положения порта на минимизированном трансляторе.
 	static double dbMinCircleRPlusFrameDimIncSubCorr; ///< Служебная радиуса миним. эл. плюс переменная размера отступа рамки минус коррекция.
+	static double dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr; ///< Сл. миним. диам. эл. плюс разм. отступа рамки минус двойная коррекция.
 	static constexpr QPointF pntTrR = QPointF(0.8660253746435073f, 0.5f); ///< Правая вершина треугольника.
 	static constexpr QPointF pntTrT = QPointF(0.0, -1.0f); ///< Центральная вершина треугольника.
 	static constexpr QPointF pntTrL = QPointF(-0.8660253746435073f, 0.5f); ///< Левая вершина треугольника.
 	static QPointF pntMinTrR; ///< Правая вершина минимизированного треугольника.
 	static QPointF pntMinTrT; ///< Центральная вершина минимизированного треугольника.
 	static QPointF pntMinTrL; ///< Левая вершина минимизированного треугольника.
+	static QPointF pntMinFrameTrR; ///< Правая вершина минимизированного треугольника рамки.
+	static QPointF pntMinFrameTrT; ///< Центральная вершина минимизированного треугольника рамки.
+	static QPointF pntMinFrameTrL; ///< Левая вершина минимизированного треугольника рамки.
 	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
 
 public:
