@@ -2033,6 +2033,49 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
 														   (char*)&p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars,
 														   sizeof(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars));
+			QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
+			int iCn = lp_Items.count();
+			for(int iC = 0; iC < iCn; iC++)
+			{
+				GraphicsPortItem* p_GraphicsPortItemInt;
+				DbPoint oDbPoint;
+				QGraphicsItem* p_GraphicsItem;
+				//
+				p_GraphicsItem = lp_Items.at(iC);
+				if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
+				{
+					if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
+					{
+						p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
+						oDbPoint = p_GraphicsPortItemInt->oDbPAlterPos;
+						p_GraphicsPortItemInt->oDbPAlterPos.dbX = p_GraphicsPortItemInt->pos().x();
+						p_GraphicsPortItemInt->oDbPAlterPos.dbY = p_GraphicsPortItemInt->pos().y();
+						SetPortToPos(p_GraphicsPortItemInt, oDbPoint);
+						if(p_GraphicsPortItemInt->isVisible())
+						{
+							p_GraphicsPortItemInt->hide();
+						}
+						else
+						{
+							p_GraphicsPortItemInt->show();
+						}
+					}
+				}
+			}
+			if(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+			{
+				p_GraphicsElementItemCurrent->p_GraphicsScalerItem->hide();
+				if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->hide();
+			}
+			else
+			{
+				p_GraphicsElementItemCurrent->p_GraphicsScalerItem->show();
+				if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->show();
+			}
+			if(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel)
+			{
+				UpdateGroupFrameByContentRecursively(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel);
+			}
 		}
 		//
 		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
