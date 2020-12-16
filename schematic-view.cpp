@@ -2016,7 +2016,27 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	{
 		return; //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 	}
-	if(DoubleButtonsPressControl(p_Event)) return;
+	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
+	{
+		bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем текущее значение выбраности.
+		if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem)) // Если не было выбрано - добавляем для массовых действий.
+		{
+			SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
+		}
+		// Обработка статусов минимизации.
+		for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++) // По всем причастным.
+		{
+			GraphicsElementItem* p_GraphicsElementItemCurrent = SchematicWindow::vp_SelectedElements.at(iF);
+			//
+
+		}
+		//
+		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
+		{
+			SchematicWindow::vp_SelectedElements.removeAll(p_GraphicsElementItem);
+		}
+		goto gM;
+	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		// Создание нового порта.
@@ -2144,7 +2164,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			bElementMenuReady = true;
 		}
 	}
-	TrySendBufferToServer;
+gM:	TrySendBufferToServer;
 	p_GraphicsElementItem->OBMousePressEvent(p_Event);
 }
 
