@@ -2028,7 +2028,11 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 		{
 			GraphicsElementItem* p_GraphicsElementItemCurrent = SchematicWindow::vp_SelectedElements.at(iF);
 			//
-
+			p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits ^= SCH_SETTINGS_EG_BIT_MIN;
+			p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_MIN;
+			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
+														   (char*)&p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars,
+														   sizeof(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars));
 		}
 		//
 		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
