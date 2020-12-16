@@ -2277,7 +2277,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	{
 		return;
 	}
-	if(DoubleButtonsReleaseControl()) return;
+	DoubleButtonsReleaseControl();
 	if(p_GraphicsLinkItemNew != nullptr)
 	{
 		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseReleaseEvent(p_Event);
@@ -2597,7 +2597,11 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
 		return;
 	}
-	if(DoubleButtonsPressControl(p_Event)) return;
+	if(DoubleButtonsPressControl(p_Event))
+	{
+
+		goto gG;
+	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		//==== РАБОТА С ВЫБОРКОЙ. ====
@@ -2692,7 +2696,7 @@ gC:				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuCreateGroup))->set
 			bGroupMenuReady = true;
 		}
 	}
-	TrySendBufferToServer;
+gG:	TrySendBufferToServer;
 	p_GraphicsGroupItem->OBMousePressEvent(p_Event);
 }
 
@@ -2737,7 +2741,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 	{
 		return;
 	}
-	if(DoubleButtonsReleaseControl()) return;
+	DoubleButtonsReleaseControl();
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		ReleaseOccupiedAPFS();
