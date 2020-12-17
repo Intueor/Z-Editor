@@ -2033,7 +2033,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
 														   (char*)&p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars,
 														   sizeof(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars));
-			QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
+			QList<QGraphicsItem*> lp_Items = p_GraphicsElementItemCurrent->childItems();
 			int iCn = lp_Items.count();
 			for(int iC = 0; iC < iCn; iC++)
 			{
@@ -2051,7 +2051,8 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 						p_GraphicsPortItemInt->oDbPAlterPos.dbX = p_GraphicsPortItemInt->pos().x();
 						p_GraphicsPortItemInt->oDbPAlterPos.dbY = p_GraphicsPortItemInt->pos().y();
 						SetPortToPos(p_GraphicsPortItemInt, oDbPoint);
-						if(p_GraphicsPortItemInt->isVisible())
+						if(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+						   SCH_SETTINGS_EG_BIT_MIN)
 						{
 							p_GraphicsPortItemInt->hide();
 						}
