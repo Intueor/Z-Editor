@@ -2634,6 +2634,12 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 							  SCH_SETTINGS_EG_BIT_BUSY);
 }
 
+// Установка видимости содержимого группы рекурсивно.
+void SchematicView::GroupContentVisibilitySetRecursively(GraphicsGroupItem* p_GraphicsGroupItem)
+{
+
+}
+
 // Обработчик события нажатия мыши на группу.
 void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -2645,9 +2651,9 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
 		return;
 	}
-	if(DoubleButtonsPressControl(p_Event))
+	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
-
+		GroupContentVisibilitySetRecursively(p_GraphicsGroupItem);
 		goto gG;
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
