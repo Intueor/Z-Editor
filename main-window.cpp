@@ -1878,7 +1878,7 @@ gFn:if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_CHANGES_ELEMENT_BIT_ZPO
 	if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_CHANGES_ELEMENT_BIT_BUSY)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] busy.");
-		CopyBit(a_SchElementVars.oSchEGGraph.uchSettingsBits,
+		CopyBits(a_SchElementVars.oSchEGGraph.uchSettingsBits,
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits,
 				SCH_SETTINGS_EG_BIT_BUSY);
 		SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, p_GraphicsElementItem->
@@ -1906,7 +1906,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += dbYShift;
 			SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] free by shifting.");
-			ResetBit(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits, SCH_SETTINGS_EG_BIT_BUSY);
+			ResetBits(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits, SCH_SETTINGS_EG_BIT_BUSY);
 			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, false);
 		}
 	}
@@ -1922,7 +1922,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_CHANGES_GROUP_BIT_BUSY)
 	{
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] busy.");
-		CopyBit(a_SchGroupVars.oSchEGGraph.uchSettingsBits, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
+		CopyBits(a_SchGroupVars.oSchEGGraph.uchSettingsBits, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
 				SCH_SETTINGS_EG_BIT_BUSY);
 		SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem,
 											   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits &

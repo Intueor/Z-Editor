@@ -427,8 +427,10 @@ private:
 	static bool DoubleButtonsReleaseControl();
 							///< \return true при снятии совместного нажатия.
 	/// Установка видимости содержимого группы рекурсивно.
-	static void GroupContentVisibilitySetRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
+	static void GroupContentVisibilitySetRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bHide, bool bIsFirstLevel = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] bHide true - скрыть.
+							///< \param[in] bIsFirstLevel true - если верхний уровень (от пользлователя).
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.

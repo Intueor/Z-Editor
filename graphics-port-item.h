@@ -63,7 +63,8 @@ public:
 	GraphicsFrameItem* p_GraphicsFrameItem; ///< Указатель на графический объект рамки.
 	ushort ushiPortInt; ///< Внутренняя переменная номера порта.
 	SchEGGraph* p_SchEGGraph; ///< Указтель на граф. представление элемента.
-	DbPoint oDbPAlterPos; ///< Альтернативное положение порта для обмена с минимизированным статусом.
+	DbPoint oDbPAlterMinPos; ///< Альтернативное положение порта для обмена с минимизированным статусом.
+	DbPoint oDbPAlterVisPos; ///< Альтернативное положение порта для обмена со скрытым статусом.
 };
 
 #endif // GRAPHICSPORTITEM_H
