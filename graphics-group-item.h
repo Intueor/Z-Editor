@@ -76,6 +76,7 @@ public:
 	GraphicsGroupItem* p_GraphicsGroupItemRel; ///< Всп. указатель на группу-родителя.
 	QLabel* p_QLabel; ///< Указатель на объект метки названия группы.
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
+	bool bPortsForMin; ///< true - при наличии портов к группе (проверяется при минимизации).
 };
 
 #endif // GRAPHICSGROUPITEM_H

@@ -57,6 +57,7 @@ double SchematicView::dbMinTriangleR;
 double SchematicView::dbMinElementR;
 double SchematicView::dbMinElementD;
 double SchematicView::dbMinGroupD;
+double SchematicView::dbMinGroupR;
 double SchematicView::dbMinCircleR;
 double SchematicView::dbMinCircleD;
 double SchematicView::dbMinTriangleDerc;
@@ -110,6 +111,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinElementR = dbMinTriangleR * MIN_ELEMENT_PROPORTION;
 	dbMinElementD = MINIMIZED_DIM * MIN_ELEMENT_PROPORTION;
 	dbMinGroupD = MINIMIZED_DIM * MIN_GROUP_PROPORTION;
+	dbMinGroupR = dbMinGroupD / 2.0f;
 	dbMinCircleR = dbMinTriangleR * MIN_CIRCLE_PROPORTION;
 	dbMinCircleD = dbMinCircleR * 2.0f;
 	dbMinTriangleDerc = (dbMinTriangleR / TRIANGLE_DECR_PROPORTION) * 2.0f;
@@ -2647,6 +2649,7 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 			{
 				oDbPointLastGroupPos.dbX = p_GraphicsGroupItem->pos().x();
 				oDbPointLastGroupPos.dbY = p_GraphicsGroupItem->pos().y();
+				p_GraphicsGroupItem->bPortsForMin = true;
 			}
 			p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
 		}
@@ -2658,8 +2661,8 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		}
 		else
 		{
-			oDbPointCorr.dbX = oDbPointLastGroupPos.dbX - p_GraphicsElementItemCurrent->pos().x();
-			oDbPointCorr.dbY = oDbPointLastGroupPos.dbY - p_GraphicsElementItemCurrent->pos().y();
+			oDbPointCorr.dbX = oDbPointLastGroupPos.dbX - p_GraphicsElementItemCurrent->pos().x() + dbMinGroupR;
+			oDbPointCorr.dbY = oDbPointLastGroupPos.dbY - p_GraphicsElementItemCurrent->pos().y() + dbMinGroupR;
 			SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
 		}
 	}
@@ -2756,11 +2759,14 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				{
 					SetBits(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
 							SCH_SETTINGS_EG_BIT_MIN);
+					p_GraphicsGroupItemCurrent->p_QLabel->hide();
 				}
 				else // Если - выкл. - сброс.
 				{
 					ResetBits(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
 							  SCH_SETTINGS_EG_BIT_MIN);
+					p_GraphicsGroupItemCurrent->bPortsForMin = false;
+					p_GraphicsGroupItemCurrent->p_QLabel->show();
 				}
 				// Отправка инфо на сервер.
 				p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_MIN;
@@ -3059,9 +3065,22 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 	{
 		p_Painter->setPen(SchematicWindow::oQPenBlack);
 	}
-	p_Painter->drawRect(QRectF(0, 0, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
-						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH));
-	p_Painter->drawLine(QPointF(1, 18), QPointF(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 1, 18));
+	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	{
+		p_Painter->drawRect(QRectF(0, 0, dbMinGroupD, dbMinGroupD));
+		p_Painter->drawLine(QPointF(dbMinGroupR, 0), QPointF(dbMinGroupR, dbMinGroupD));
+		p_Painter->drawLine(QPointF(0, dbMinGroupR), QPointF(dbMinGroupD, dbMinGroupR));
+		if(p_GraphicsGroupItem->bPortsForMin)
+		{
+			p_Painter->drawEllipse(QPointF(dbMinGroupR, dbMinGroupR), PORT_DIM, PORT_DIM);
+		}
+	}
+	else
+	{
+		p_Painter->drawRect(QRectF(0, 0, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
+							p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH));
+		p_Painter->drawLine(QPointF(1, 18), QPointF(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 1, 18));
+	}
 }
 
 // Обработчик конструктора группы.
@@ -3078,6 +3097,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->setAcceptHoverEvents(true);
 	p_GraphicsGroupItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsGroupItem->bSelected = false;
+	p_GraphicsGroupItem->bPortsForMin = false;
 	//
 	oQColorBkg = QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor);
 	oQColorBkg.getRgb(&iR, &iG, &iB, &iA);
@@ -3982,6 +4002,7 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 										   bool bSrc, GraphicsElementItem* p_Parent)
 {
 	double dbX, dbY;
+	//
 	p_GraphicsPortItem->p_ParentInt = p_Parent;
 	p_GraphicsPortItem->bIsSrc = bSrc;
 	bPortAltPressed = false;
