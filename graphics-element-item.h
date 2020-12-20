@@ -66,6 +66,7 @@ public:
 	QGroupBox* p_QGroupBox; ///< Указатель на объект основного групбокса.
 	GraphicsScalerItem* p_GraphicsScalerItem; ///< Указатель на графический объект скалера.
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
+	bool bPorts; ///< true - при наличии портов на элементе.
 };
 
 #endif // GRAPHICSELEMENTITEM_H

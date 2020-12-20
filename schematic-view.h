@@ -369,6 +369,9 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
 							///< \param[in] bSrc Признак порта на источнике.
 							///< \param[in] p_Parent Указатель на родителя.
+	/// Проверка и установка наличия портов на элементе.
+	static void PortsAtElementUpdater(GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 	/// Обработчик нахождения курсора над портом.
 	static void PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortItem);
 							///< \param[in] p_GraphicsPortItem Указатель на порт.
@@ -465,6 +468,7 @@ private:
 	static double dbMinTriangleR; ///< Служебная переменная радиуса минимизированного транслятора.
 	static double dbMinElementR; ///< Служебная переменная радиуса минимизированного элемента.
 	static double dbMinElementD; ///< Служебная переменная диаметра минимизированного элемента.
+	static double dbMinGroupD; ///< Служебная переменная диаметра минимизированной группы.
 	static double dbMinCircleR; ///< Служебная переменная радиуса минимизированного приёмника.
 	static double dbMinCircleD; ///< Служебная переменная диаметра минимизированного приёмника.
 	static double dbMinTriangleDerc; ///< Служебная переменная коррекции положения минимизированного транслятора.

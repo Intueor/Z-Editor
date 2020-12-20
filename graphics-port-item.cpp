@@ -17,7 +17,7 @@ GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bS
 // Деструктор.
 GraphicsPortItem::~GraphicsPortItem()
 {
-	delete p_GraphicsFrameItem;
+
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.
