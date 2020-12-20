@@ -965,8 +965,6 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 void SchematicView::DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bFromElement, bool bRemoveFromClient)
 {
 	PSchLinkEraser oPSchLinkEraser;
-	GraphicsElementItem* p_GraphicsElementItemSrc = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
-	GraphicsElementItem* p_GraphicsElementItemDst = p_GraphicsLinkItem->p_GraphicsElementItemDst;
 	//
 	if(!bFromElement)
 	{
@@ -985,8 +983,6 @@ void SchematicView::DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bF
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemSrc);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsLinkItem->p_GraphicsPortItemDst);
-		PortsAtElementUpdater(p_GraphicsElementItemSrc);
-		PortsAtElementUpdater(p_GraphicsElementItemDst);
 	}
 }
 
@@ -2042,13 +2038,15 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			if((p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) ==
 			   uchMinStatus)
 			{
+				QList<QGraphicsItem*> lp_Items = p_GraphicsElementItemCurrent->childItems();
+				int iCn = lp_Items.count();
+				bool bPortsPresent = false;
+				//
 				p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits ^= SCH_SETTINGS_EG_BIT_MIN;
 				p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_MIN;
 				MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
 															   (char*)&p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars,
 															   sizeof(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars));
-				QList<QGraphicsItem*> lp_Items = p_GraphicsElementItemCurrent->childItems();
-				int iCn = lp_Items.count();
 				for(int iC = 0; iC < iCn; iC++)
 				{
 					GraphicsPortItem* p_GraphicsPortItemInt;
@@ -2060,6 +2058,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 					{
 						if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
 						{
+							bPortsPresent = true;
 							p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
 							oDbPoint = p_GraphicsPortItemInt->oDbPAlterMinPos;
 							p_GraphicsPortItemInt->oDbPAlterMinPos.dbX = p_GraphicsPortItemInt->pos().x();
@@ -2071,6 +2070,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 						}
 					}
 				}
+				p_GraphicsElementItemCurrent->bPortsForMin = bPortsPresent;
 				if(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 				{
 					p_GraphicsElementItemCurrent->p_GraphicsScalerItem->hide();
@@ -2446,7 +2446,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			   SCH_SETTINGS_EG_BIT_MIN)
 			{
 				p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), dbMinCircleR, dbMinCircleR);
-				if(p_GraphicsElementItem->bPorts)
+				if(p_GraphicsElementItem->bPortsForMin)
 				{
 					p_Painter->setBrush(SchematicWindow::oQBrushGray);
 					p_Painter->setPen(SchematicWindow::oQPenWhite);
@@ -2474,7 +2474,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 				oQPolygonFForTriangle.append(pntMinTrT);
 				oQPolygonFForTriangle.append(pntMinTrL);
 				p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
-				if(p_GraphicsElementItem->bPorts)
+				if(p_GraphicsElementItem->bPortsForMin)
 				{
 					p_Painter->setBrush(SchematicWindow::oQBrushGray);
 					p_Painter->setPen(SchematicWindow::oQPenWhite);
@@ -2501,7 +2501,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 		{
 			p_Painter->drawRect(QRectF(0, 0, dbMinElementD, dbMinElementD));
-			if(p_GraphicsElementItem->bPorts)
+			if(p_GraphicsElementItem->bPortsForMin)
 			{
 				p_Painter->setBrush(SchematicWindow::oQBrushGray);
 				p_Painter->setPen(SchematicWindow::oQPenWhite);
@@ -2531,7 +2531,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setAcceptHoverEvents(true);
 	p_GraphicsElementItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsElementItem->bSelected = false;
-	p_GraphicsElementItem->bPorts = false;
+	p_GraphicsElementItem->bPortsForMin = false;
 	// Группировщик для стандартного элемента.
 	if(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED))
 	{
@@ -3767,16 +3767,12 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 					if(bPortFromElement)
 					{
 gEld:					p_GraphicsElementItemFounded = nullptr; // Не найдено корректного элемента.
-gEl:					GraphicsElementItem* p_GraphicsElementItemSrc = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsElementItemSrc;
-						GraphicsElementItem* p_GraphicsElementItemDst = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsElementItemDst;
-						SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
+gEl:					SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
 						SchematicWindow::vp_Ports.removeOne(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
 						SchematicWindow::vp_Links.removeOne(p_GraphicsPortItem->p_GraphicsLinkItemInt);
 						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItem->p_GraphicsLinkItemInt);
 						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc);
 						MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst);
-						PortsAtElementUpdater(p_GraphicsElementItemSrc);
-						PortsAtElementUpdater(p_GraphicsElementItemDst);
 						goto gF;
 					}
 					oDbPointPortCurrent = BindToEdge(p_GraphicsElementItemFounded, oDbMappedToElement); // Прикрепление.
@@ -3997,7 +3993,7 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 	p_GraphicsPortItem->setAcceptHoverEvents(true);
 	p_GraphicsPortItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsPortItem->setParentItem(p_Parent);
-	p_Parent->bPorts = true;
+	p_Parent->bPortsForMin = true;
 	p_GraphicsPortItem->p_SchEGGraph = &p_GraphicsPortItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph;
 	if(p_GraphicsPortItem->bIsSrc)
 	{
@@ -4059,28 +4055,6 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 		}
 		p_GraphicsPortItem->setPos(dbX, dbY);
 	}
-}
-
-// Проверка и установка наличия портов на элементе.
-void SchematicView::PortsAtElementUpdater(GraphicsElementItem* p_GraphicsElementItem)
-{
-	QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
-	int iCn = lp_Items.count();
-	for(int iC = 0; iC < iCn; iC++)
-	{
-		QGraphicsItem* p_GraphicsItem;
-		//
-		p_GraphicsItem = lp_Items.at(iC);
-		if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
-		{
-			if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
-			{
-				p_GraphicsElementItem->bPorts = true;
-				return;
-			}
-		}
-	}
-	p_GraphicsElementItem->bPorts = false;
 }
 
 // Обработчик нахождения курсора над портом.

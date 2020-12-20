@@ -369,9 +369,6 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
 							///< \param[in] bSrc Признак порта на источнике.
 							///< \param[in] p_Parent Указатель на родителя.
-	/// Проверка и установка наличия портов на элементе.
-	static void PortsAtElementUpdater(GraphicsElementItem* p_GraphicsElementItem);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 	/// Обработчик нахождения курсора над портом.
 	static void PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortItem);
 							///< \param[in] p_GraphicsPortItem Указатель на порт.
