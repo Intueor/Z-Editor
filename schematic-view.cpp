@@ -1104,10 +1104,18 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 		// Получаем крайние точки следующей группы в группе.
 		oDbPointLeftTopTemp.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
 		oDbPointLeftTopTemp.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
-		oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
-		oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
+		if(p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+		{
+			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX + dbMinGroupD;
+			oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY + dbMinGroupD;
+		}
+		else
+		{
+			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX +
+					p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
+			oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY +
+					p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
+		}
 		// Расширяем до показателей текущей группы при зашкаливании по любой точке периметра.
 		if(oDbPointLeftTop.dbX > oDbPointLeftTopTemp.dbX) oDbPointLeftTop.dbX = oDbPointLeftTopTemp.dbX;
 		if(oDbPointLeftTop.dbY > oDbPointLeftTopTemp.dbY) oDbPointLeftTop.dbY = oDbPointLeftTopTemp.dbY;
@@ -1884,6 +1892,22 @@ void SchematicView::DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool b
 	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
 					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY, SEND_ELEMENTS);
 	p_GraphicsGroupItem->bSelected = false;
+}
+
+// Обновление вертикали фреймов групп рекурсивно.
+void SchematicView::UpdateVerticalOfGroupFramesRecursively(GraphicsGroupItem* p_GraphicsGroupItem)
+{
+	GraphicsGroupItem* p_GraphicsGroupItemHelper;
+	//
+	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
+	{
+		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
+		UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemHelper);
+	}
+	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
+	{
+		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
+	}
 }
 
 // Перемещение группы рекурсивно.
@@ -2788,7 +2812,9 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 		// Заход в каждый корень.
 		for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
 		{
-			GroupMinOperationsRecursively(vp_GraphicsGroupItemRoots.at(iF));
+			p_GraphicsGroupItemRoot = vp_GraphicsGroupItemRoots.at(iF);
+			GroupMinOperationsRecursively(p_GraphicsGroupItemRoot);
+			UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemRoot);
 		}
 		//
 		SetPortsPlacementAfterGroupsMinChanges();
@@ -3072,6 +3098,8 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 		p_Painter->drawLine(QPointF(0, dbMinGroupR), QPointF(dbMinGroupD, dbMinGroupR));
 		if(p_GraphicsGroupItem->bPortsForMin)
 		{
+			p_Painter->setBrush(SchematicWindow::oQBrushGray);
+			p_Painter->setPen(SchematicWindow::oQPenWhite);
 			p_Painter->drawEllipse(QPointF(dbMinGroupR, dbMinGroupR), PORT_DIM, PORT_DIM);
 		}
 	}
@@ -3290,8 +3318,15 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* pc_Gr
 // Обработчик функции возврата вместилища группы.
 QRectF SchematicView::GroupBoundingHandler(const GraphicsGroupItem* pc_GraphicsGroupItem)
 {
-	return QRectF(0, 0, pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
-				  pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH);
+	if(pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	{
+		return QRectF(0, 0, dbMinGroupD, dbMinGroupD);
+	}
+	else
+	{
+		return QRectF(0, 0, pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
+					  pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH);
+	}
 }
 
 // Обработчик функции возврата вместилища порта.
@@ -3379,11 +3414,20 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
 		p_Painter->setPen(SchematicWindow::oQPenGroupFrameFlash);
-		p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusCorr, dbFrameDimIncNegPlusCorr,
-							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW +
-								   dbFrameDimIncTwiceSubDoubleCorr,
-							p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH +
-								   dbFrameDimIncTwiceSubDoubleCorr));
+		if(p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+		{
+			p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusCorr, dbFrameDimIncNegPlusCorr,
+								dbMinGroupD + dbFrameDimIncTwiceSubDoubleCorr,
+								dbMinGroupD + dbFrameDimIncTwiceSubDoubleCorr));
+		}
+		else
+		{
+			p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusCorr, dbFrameDimIncNegPlusCorr,
+								p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW +
+									   dbFrameDimIncTwiceSubDoubleCorr,
+								p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH +
+									   dbFrameDimIncTwiceSubDoubleCorr));
+		}
 	}
 	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_PORT)
 	{

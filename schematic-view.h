@@ -234,6 +234,9 @@ public:
 	static void DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] bLastState Последнее значение выбранности.
+	/// Обновление вертикали фреймов групп рекурсивно.
+	static void UpdateVerticalOfGroupFramesRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на стартовую группу.
 	/// Перемещение группы рекурсивно.
 	static void MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem, QPointF& a_QPointFRes, bool bMoveBody = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на перемещаемую группу.
