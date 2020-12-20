@@ -62,6 +62,7 @@ double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 double SchematicView::dbMinCircleRPlusFrameDimIncSubCorr;
 double SchematicView::dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr;
+QVector<GraphicsPortItem*> SchematicView::pv_GraphicsPortItemsCollected;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
@@ -1075,15 +1076,18 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 	}
 	else
 	{
-		// Если нет элементов - начинаем с групп.
-		p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(0);
-		// Получаем крайние точки первой группы в группе.
-		oDbPointLeftTop.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
-		oDbPointLeftTop.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
-		oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
-		oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
-				p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
+		if(!p_GraphicsGroupItem->vp_ConnectedGroups.isEmpty())
+		{
+			// Если нет элементов - начинаем с групп.
+			p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(0);
+			// Получаем крайние точки первой группы в группе.
+			oDbPointLeftTop.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
+			oDbPointLeftTop.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
+			oDbPointRightBottom.dbX = oDbPointLeftTop.dbX +
+					p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
+			oDbPointRightBottom.dbY = oDbPointLeftTop.dbY +
+					p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
+		}
 	}
 	// ГРУППЫ.
 	// Цикл по группам для наращивания.
@@ -1867,12 +1871,9 @@ void SchematicView::DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool b
 {
 	if(bLastState != p_GraphicsGroupItem->bSelected)
 	{
-		int iN;
-		//
-		iN = SchematicWindow::vp_SelectedGroups.indexOf(p_GraphicsGroupItem);
-		if(iN != -1)
+		if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
 		{
-			SchematicWindow::vp_SelectedGroups.removeAt(iN);
+			SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
 			p_GraphicsGroupItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
 		}
 	}
@@ -2636,26 +2637,92 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 							  SCH_SETTINGS_EG_BIT_BUSY);
 }
 
-// Установка видимости содержимого группы рекурсивно.
-void SchematicView::GroupContentVisibilitySetRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bHide, bool bIsFirstLevel)
+// Установка портов групп после смены статуса минимизации.
+void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 {
-	// Меняем видимость группы.
-	if(!bIsFirstLevel) SetHidingStatus(p_GraphicsGroupItem, bHide);
+	for(int iF = 0; iF != pv_GraphicsPortItemsCollected.count(); iF++)
+	{
+		DbPoint oDbPointLastGroupPos;
+		GraphicsPortItem* p_GraphicsPortItemCurrent = pv_GraphicsPortItemsCollected.at(iF);
+		GraphicsElementItem* p_GraphicsElementItemCurrent = p_GraphicsPortItemCurrent->p_ParentInt;
+		GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel;
+		DbPoint oDbPointCorr;
+		//
+		oDbPointLastGroupPos.dbX = OVERMAX_NUMBER;
+		oDbPointLastGroupPos.dbY = OVERMAX_NUMBER;
+		while(p_GraphicsGroupItem)
+		{
+			if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+			{
+				oDbPointLastGroupPos.dbX = p_GraphicsGroupItem->pos().x();
+				oDbPointLastGroupPos.dbY = p_GraphicsGroupItem->pos().y();
+			}
+			p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
+		}
+		if(oDbPointLastGroupPos.dbX == OVERMAX_NUMBER)
+		{
+			oDbPointCorr.dbX = p_GraphicsPortItemCurrent->oDbPAlterVisPos.dbX;
+			oDbPointCorr.dbY = p_GraphicsPortItemCurrent->oDbPAlterVisPos.dbY;
+			SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
+		}
+		else
+		{
+			oDbPointCorr.dbX = oDbPointLastGroupPos.dbX - p_GraphicsElementItemCurrent->pos().x();
+			oDbPointCorr.dbY = oDbPointLastGroupPos.dbY - p_GraphicsElementItemCurrent->pos().y();
+			SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
+		}
+	}
+}
+
+// Рекурсивные операции по минимизации группы.
+void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding, bool bFirst)
+{
+	bool bGroupMinStatus = (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) != 0;
+	//
+	if(!bFirst) // Корень не скрываем.
+	{
+		SetHidingStatus(p_GraphicsGroupItem, bNextHiding);
+		if(bGroupMinStatus)
+		{
+			if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
+			{
+				SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
+				p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
+				p_GraphicsGroupItem->bSelected = false;
+			}
+		}
+	}
+	bNextHiding |= bGroupMinStatus;
 	// Элементы.
 	for(int iE = 0; iE != p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
 	{
 		GraphicsElementItem* p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
+		QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
 		// Меняем видимость элемента.
-		SetHidingStatus(p_GraphicsElementItem, bHide);
+		SetHidingStatus(p_GraphicsElementItem, bNextHiding);
 		// Обработка линков.
-
+		int iCn = lp_Items.count();
+		for(int iC = 0; iC < iCn; iC++)
+		{
+			GraphicsPortItem* p_GraphicsPortItemInt;
+			QGraphicsItem* p_GraphicsItem;
+			//
+			p_GraphicsItem = lp_Items.at(iC);
+			if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
+			{
+				if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
+				{
+					p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
+					pv_GraphicsPortItemsCollected.append(p_GraphicsPortItemInt);
+				}
+			}
+		}
 	}
-	// Группы.
 	for(int iE = 0; iE != p_GraphicsGroupItem->vp_ConnectedGroups.count(); iE++)
 	{
 		GraphicsGroupItem* p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(iE);
 		// Рекурсия.
-		GroupContentVisibilitySetRecursively(p_GraphicsGroupItemInt, bHide, false);
+		GroupMinOperationsRecursively(p_GraphicsGroupItemInt, bNextHiding, false);
 	}
 }
 
@@ -2672,62 +2739,67 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	}
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
-
-
-
-
-
-
-
-//		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем текущее значение выбраности.
-//		if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem)) // Если не было выбрано - добавляем для массовых действий.
-//		{
-//			SchematicWindow::vp_SelectedGroups.prepend(p_GraphicsGroupItem); // Вставляем в начало.
-//		}
-//		// Обработка статусов минимизации.
-//		for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++) // По всем причастным.
-//		{
-//			GraphicsGroupItem* p_GraphicsGroupItemCurrent = SchematicWindow::vp_SelectedGroups.at(iF);
-//			//
-//			// Минимизация группы, скрытие содержимого и перенос линков на клиенте.
-//			GroupContentVisibilitySetRecursively(p_GraphicsGroupItemCurrent,
-//												 !(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.
-//												   oSchEGGraph.uchSettingsBits &
-//												   SCH_SETTINGS_EG_BIT_MIN));
-//			p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits ^= SCH_SETTINGS_EG_BIT_MIN;
-//			p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_MIN;
-//			MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS,
-//														   (char*)&p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars,
-//														   sizeof(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars));
-//			//
-
-//			//
-//			if(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
-//			{
-//				p_GraphicsElementItemCurrent->p_GraphicsScalerItem->hide();
-//				if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->hide();
-//			}
-//			else
-//			{
-//				p_GraphicsElementItemCurrent->p_GraphicsScalerItem->show();
-//				if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->show();
-//			}
-//			if(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel)
-//			{
-//				UpdateGroupFrameByContentRecursively(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel);
-//			}
-//		}
-//		//
-//		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
-//		{
-//			SchematicWindow::vp_SelectedElements.removeAll(p_GraphicsElementItem);
-//		}
-
-
-
-
-
-
+		unsigned char uchMinStatus = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits &
+									 SCH_SETTINGS_EG_BIT_MIN; // Бит минимизации управляющей группы.
+		uchMinStatus ^= SCH_SETTINGS_EG_BIT_MIN; // Действие над битом для управляющей группы (переключение).
+		GraphicsGroupItem* p_GraphicsGroupItemCurrent;
+		GraphicsGroupItem* p_GraphicsGroupItemRoot;
+		QVector<GraphicsGroupItem*> vp_GraphicsGroupItemRoots;
+		QVector<GraphicsGroupItem*> vp_GraphicsGroupItemForMin;
+		//
+		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем текущее значение выбраности.
+		if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem)) // Если не было выбрано - добавляем для массовых действий.
+		{
+			SchematicWindow::vp_SelectedGroups.prepend(p_GraphicsGroupItem);
+		}
+		// Обработка статусов минимизации.
+		// Поиск, маркировка, коллекция и отправка изменяемых.
+		for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+		{
+			p_GraphicsGroupItemCurrent = SchematicWindow::vp_SelectedGroups.at(iF);
+			if((p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) !=
+			   uchMinStatus) // Если бит минимизации текущей группы не равен переключённому биту для управляющей...
+			{
+				vp_GraphicsGroupItemForMin.append(p_GraphicsGroupItemCurrent); // В вектор для обработки.
+				if(uchMinStatus & SCH_SETTINGS_EG_BIT_MIN) // Если новый статус - вкл. - установка бита.
+				{
+					SetBits(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
+							SCH_SETTINGS_EG_BIT_MIN);
+				}
+				else // Если - выкл. - сброс.
+				{
+					ResetBits(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
+							  SCH_SETTINGS_EG_BIT_MIN);
+				}
+				// Отправка инфо на сервер.
+				p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_MIN;
+		//		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(oPSchGroupVars));
+				// Сбор корней.
+				p_GraphicsGroupItemRoot = p_GraphicsGroupItemCurrent;
+				while(p_GraphicsGroupItemCurrent) // Пока не корень.
+				{
+					p_GraphicsGroupItemRoot = p_GraphicsGroupItemCurrent;
+					p_GraphicsGroupItemCurrent = p_GraphicsGroupItemCurrent->p_GraphicsGroupItemRel; // Глубже к корню.
+				}
+				if(!vp_GraphicsGroupItemRoots.contains(p_GraphicsGroupItemRoot))
+				{
+					vp_GraphicsGroupItemRoots.append(p_GraphicsGroupItemRoot); // Добавляется только уникальный корень.
+				}
+			}
+		}
+		pv_GraphicsPortItemsCollected.clear();
+		// Заход в каждый корень.
+		for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
+		{
+			GroupMinOperationsRecursively(vp_GraphicsGroupItemRoots.at(iF));
+		}
+		//
+		SetPortsPlacementAfterGroupsMinChanges();
+		//
+		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
+		{
+			SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
+		}
 		goto gG;
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
@@ -3909,6 +3981,9 @@ void SchematicView::PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPain
 	p_Painter->setPen(SchematicWindow::oQPenWhite);
 	p_Painter->drawEllipse(QPointF(0, 0), PORT_DIM, PORT_DIM);
 	SchematicWindow::RestoreBrushesStyles();
+	// Потом можно перевести в места, где актуально меняется.
+	p_GraphicsPortItem->oDbPAlterVisPos.dbX = p_GraphicsPortItem->pos().x();
+	p_GraphicsPortItem->oDbPAlterVisPos.dbY = p_GraphicsPortItem->pos().y();
 }
 
 // Обработчик конструктора порта.

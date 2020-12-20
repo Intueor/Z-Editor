@@ -39,6 +39,16 @@ public:
 		GraphicsElementItem* p_GraphicsElementItem;
 		GraphicsGroupItem* p_GraphicsGroupItem;
 	};
+	struct GroupBranchSegment
+	{
+		unsigned int uiDeepth;
+		GraphicsGroupItem* p_GraphicsGroupItem;
+	};
+	struct GroupsBranch
+	{
+		GraphicsGroupItem* p_GraphicsGroupItemRoot;
+		QVector<GroupBranchSegment> v_GroupBranchSegments;
+	};
 
 public:
 	/// Конструктор.
@@ -426,11 +436,13 @@ private:
 	/// Действия при отпускании кнопок мыши после совместного нажатия.
 	static bool DoubleButtonsReleaseControl();
 							///< \return true при снятии совместного нажатия.
-	/// Установка видимости содержимого группы рекурсивно.
-	static void GroupContentVisibilitySetRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bHide, bool bIsFirstLevel = true);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] bHide true - скрыть.
-							///< \param[in] bIsFirstLevel true - если верхний уровень (от пользлователя).
+	/// Рекурсивные операции по минимизации группы.
+	static void GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding = false, bool bFirst = true);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу - корень (для пользователя).
+							///< \param[in] bNextHiding Служебная для рекурсии - статус скрытия следующей группы.
+							///< \param[in] bFirst Служебная для рекурсии - true начало рекурсии.
+	/// Установка портов групп после смены статуса минимизации.
+	static void SetPortsPlacementAfterGroupsMinChanges();
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
@@ -469,6 +481,7 @@ private:
 	static QPointF pntMinFrameTrT; ///< Центральная вершина минимизированного треугольника рамки.
 	static QPointF pntMinFrameTrL; ///< Левая вершина минимизированного треугольника рамки.
 	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
+	static QVector<GraphicsPortItem*> pv_GraphicsPortItemsCollected; ///< Лист портов из пройденных элементов при смене статуса минимизации.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
