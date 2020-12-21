@@ -2419,7 +2419,10 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 					oPSchElementName.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
 																  sizeof(oPSchElementName));
-					p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
+					if(p_GraphicsElementItem->p_QGroupBox)
+					{
+						p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
+					}
 					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
@@ -2832,7 +2835,10 @@ void SchematicView::AfterLoadingPlacement()
 		//
 		if(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN))
 		{
-			p_GraphicsElementItem->p_QGroupBox->show();
+			if(p_GraphicsElementItem->p_QGroupBox)
+			{
+				p_GraphicsElementItem->p_QGroupBox->show();
+			}
 		}
 	}
 }
