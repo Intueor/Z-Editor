@@ -2697,16 +2697,24 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		}
 		if(oDbPointLastGroupPos.dbX == OVERMAX_NUMBER)
 		{
-			oDbPointCorr.dbX = p_GraphicsPortItemCurrent->oDbPAlterVisPos.dbX;
-			oDbPointCorr.dbY = p_GraphicsPortItemCurrent->oDbPAlterVisPos.dbY;
-			SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
+			if(p_GraphicsPortItemCurrent->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+			   SCH_SETTINGS_EG_BIT_MIN)
+			{
+				oDbPointCorr.dbX = p_GraphicsPortItemCurrent->oDbPMinPos.dbX;
+				oDbPointCorr.dbY = p_GraphicsPortItemCurrent->oDbPMinPos.dbY;
+			}
+			else
+			{
+				oDbPointCorr.dbX = p_GraphicsPortItemCurrent->oDbPAlterVisPos.dbX;
+				oDbPointCorr.dbY = p_GraphicsPortItemCurrent->oDbPAlterVisPos.dbY;
+			}
 		}
 		else
 		{
 			oDbPointCorr.dbX = oDbPointLastGroupPos.dbX - p_GraphicsElementItemCurrent->pos().x() + dbMinGroupR;
 			oDbPointCorr.dbY = oDbPointLastGroupPos.dbY - p_GraphicsElementItemCurrent->pos().y() + dbMinGroupR;
-			SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
 		}
+		SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
 	}
 }
 
@@ -4104,48 +4112,36 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 	}
 	p_GraphicsPortItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, p_GraphicsPortItem);
 	p_GraphicsPortItem->p_GraphicsFrameItem->hide();
+	// Установка минимизированной позиции порта в зависимости от типа элемента.
+	if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+			p_GraphicsPortItem->oDbPMinPos.dbX = dbMinCircleR;
+			p_GraphicsPortItem->oDbPMinPos.dbY = dbMinCircleR;
+		}
+		else
+		{
+			p_GraphicsPortItem->oDbPMinPos.dbX = dbMinTriangleRSubMinTriangleDerc;
+			p_GraphicsPortItem->oDbPMinPos.dbY = dbMinTriangleR;
+		}
+	}
+	else
+	{
+		p_GraphicsPortItem->oDbPMinPos.dbX = dbMinElementR;
+		p_GraphicsPortItem->oDbPMinPos.dbY = dbMinElementR;
+	}
 	// Установка текущего и запасного положения порта в зависимости от статуса свёрнутости.
 	if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 	{
 		p_GraphicsPortItem->oDbPAlterMinPos.dbX = dbX;
 		p_GraphicsPortItem->oDbPAlterMinPos.dbY = dbY;
-		if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
-		{
-			if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
-			{
-				p_GraphicsPortItem->setPos(dbMinCircleR, dbMinCircleR);
-			}
-			else
-			{
-				p_GraphicsPortItem->setPos(dbMinTriangleRSubMinTriangleDerc, dbMinTriangleR);
-			}
-		}
-		else
-		{
-			p_GraphicsPortItem->setPos(dbMinElementR, dbMinElementR);
-		}
+		p_GraphicsPortItem->setPos(p_GraphicsPortItem->oDbPMinPos.dbX, p_GraphicsPortItem->oDbPMinPos.dbY);
 		p_GraphicsPortItem->hide();
 	}
 	else
 	{
-		if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
-		{
-			if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
-			{
-				p_GraphicsPortItem->oDbPAlterMinPos.dbX = dbMinCircleR;
-				p_GraphicsPortItem->oDbPAlterMinPos.dbY = dbMinCircleR;
-			}
-			else
-			{
-				p_GraphicsPortItem->oDbPAlterMinPos.dbX = dbMinTriangleRSubMinTriangleDerc;
-				p_GraphicsPortItem->oDbPAlterMinPos.dbY = dbMinTriangleR;
-			}
-		}
-		else
-		{
-			p_GraphicsPortItem->oDbPAlterMinPos.dbX = dbMinElementR;
-			p_GraphicsPortItem->oDbPAlterMinPos.dbY = dbMinElementR;
-		}
+		p_GraphicsPortItem->oDbPAlterMinPos = p_GraphicsPortItem->oDbPMinPos;
 		p_GraphicsPortItem->setPos(dbX, dbY);
 	}
 }
