@@ -389,53 +389,56 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 					oQPointBR = p_QGraphicsRectItemSelectionDot->rect().bottomRight();
 					if(p_GraphicsElementItem)
 					{
-						if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-						   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
-						{
-							QPainterPath oQPainterPathShape = p_GraphicsElementItem->shape();
-							oQPainterPathShape.translate(QPointF(
-															 p_GraphicsElementItem->
-															 oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
-															 p_GraphicsElementItem->
-															 oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY));
-							QPainterPath oQPainterPathSelection;
-							//
-							oQPainterPathSelection.addRect(p_QGraphicsRectItemSelectionDot->rect());
-							if(oQPainterPathShape.subtracted(oQPainterPathSelection).isEmpty()) goto gTS;
-						}
-						else
+						if(p_GraphicsElementItem->isVisible())
 						{
 							if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-							   SCH_SETTINGS_EG_BIT_MIN)
+							   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 							{
-								if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
-								   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
-								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
-									 dbMinElementD) < oQPointBR.x()) &
-								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
-									 dbMinElementD) < oQPointBR.y()))
-								{
-									goto gTS;
-								}
+								QPainterPath oQPainterPathShape = p_GraphicsElementItem->shape();
+								oQPainterPathShape.translate(QPointF(
+																 p_GraphicsElementItem->
+																 oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+																 p_GraphicsElementItem->
+																 oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY));
+								QPainterPath oQPainterPathSelection;
+								//
+								oQPainterPathSelection.addRect(p_QGraphicsRectItemSelectionDot->rect());
+								if(oQPainterPathShape.subtracted(oQPainterPathSelection).isEmpty()) goto gTS;
 							}
 							else
 							{
-								if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX >
-									oQPointTL.x()) &
-								   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY >
-									oQPointTL.y()) &
-								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
-									 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW) <
-									oQPointBR.x()) &
-								   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
-									 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH) <
-									oQPointBR.y()))
+								if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+								   SCH_SETTINGS_EG_BIT_MIN)
 								{
-gTS:								if(!p_GraphicsElementItem->bSelected)
+									if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
+									   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
+									   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+										 dbMinElementD) < oQPointBR.x()) &
+									   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+										 dbMinElementD) < oQPointBR.y()))
 									{
-										SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
-										p_GraphicsElementItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
-										p_GraphicsElementItem->bSelected = true;
+										goto gTS;
+									}
+								}
+								else
+								{
+									if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX >
+										oQPointTL.x()) &
+									   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY >
+										oQPointTL.y()) &
+									   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX +
+										 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW) <
+										oQPointBR.x()) &
+									   ((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY +
+										 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH) <
+										oQPointBR.y()))
+									{
+	gTS:								if(!p_GraphicsElementItem->bSelected)
+										{
+											SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
+											p_GraphicsElementItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+											p_GraphicsElementItem->bSelected = true;
+										}
 									}
 								}
 							}
@@ -443,18 +446,33 @@ gTS:								if(!p_GraphicsElementItem->bSelected)
 					}
 					else
 					{
-						if((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
-						   (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
-						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX +
-							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW) < oQPointBR.x()) &
-						   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY +
-							 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH) < oQPointBR.y()))
+						DbPoint oDbPointWH;
+						//
+						if(p_GraphicsGroupItem->isVisible())
 						{
-							if(!p_GraphicsGroupItem->bSelected)
+							if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 							{
-								SchematicWindow::vp_SelectedGroups.push_front(p_GraphicsGroupItem);
-								p_GraphicsGroupItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
-								p_GraphicsGroupItem->bSelected = true;
+								oDbPointWH.dbX = dbMinGroupD;
+								oDbPointWH.dbY = dbMinGroupD;
+							}
+							else
+							{
+								oDbPointWH.dbX = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW;
+								oDbPointWH.dbY = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH;
+							}
+							if((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
+							   (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
+							   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX +
+								 oDbPointWH.dbX) < oQPointBR.x()) &
+							   ((p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY +
+								 oDbPointWH.dbY) < oQPointBR.y()))
+							{
+								if(!p_GraphicsGroupItem->bSelected)
+								{
+									SchematicWindow::vp_SelectedGroups.push_front(p_GraphicsGroupItem);
+									p_GraphicsGroupItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
+									p_GraphicsGroupItem->bSelected = true;
+								}
 							}
 						}
 					}
@@ -2693,20 +2711,24 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 }
 
 // Рекурсивные операции по минимизации группы.
-void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding, bool bFirst)
+void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding, bool bHiderFound)
 {
 	bool bGroupMinStatus = (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) != 0;
 	//
-	if(!bFirst) // Корень не скрываем.
+	SetHidingStatus(p_GraphicsGroupItem, bNextHiding);
+	if(bGroupMinStatus)
 	{
-		SetHidingStatus(p_GraphicsGroupItem, bNextHiding);
-		if(bGroupMinStatus)
+		if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
 		{
-			if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
+			if(bHiderFound)
 			{
 				SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
 				p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
 				p_GraphicsGroupItem->bSelected = false;
+			}
+			else
+			{
+				bHiderFound = true;
 			}
 		}
 	}
@@ -2718,6 +2740,12 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 		QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
 		// Меняем видимость элемента.
 		SetHidingStatus(p_GraphicsElementItem, bNextHiding);
+		if(bNextHiding)
+		{
+			SchematicWindow::vp_SelectedElements.removeAll(p_GraphicsElementItem);
+			p_GraphicsElementItem->p_GraphicsFrameItem->hide();
+			p_GraphicsElementItem->bSelected = false;
+		}
 		// Обработка линков.
 		int iCn = lp_Items.count();
 		for(int iC = 0; iC < iCn; iC++)
@@ -2740,7 +2768,7 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 	{
 		GraphicsGroupItem* p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(iE);
 		// Рекурсия.
-		GroupMinOperationsRecursively(p_GraphicsGroupItemInt, bNextHiding, false);
+		GroupMinOperationsRecursively(p_GraphicsGroupItemInt, bNextHiding, bHiderFound);
 	}
 }
 

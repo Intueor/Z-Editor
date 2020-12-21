@@ -440,10 +440,10 @@ private:
 	static bool DoubleButtonsReleaseControl();
 							///< \return true при снятии совместного нажатия.
 	/// Рекурсивные операции по минимизации группы.
-	static void GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding = false, bool bFirst = true);
+	static void GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding = false, bool bHiderFound = false);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу - корень (для пользователя).
 							///< \param[in] bNextHiding Служебная для рекурсии - статус скрытия следующей группы.
-							///< \param[in] bFirst Служебная для рекурсии - true начало рекурсии.
+							///< \param[in] bHiderFound Служебная для рекурсии - true - найдена скрывающая группа.
 	/// Установка портов групп после смены статуса минимизации.
 	static void SetPortsPlacementAfterGroupsMinChanges();
 private:
