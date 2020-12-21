@@ -301,7 +301,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				if(oPSchStatusInfo.uchBits & SCH_STATUS_LOADED)
 				{
 					SchematicView::AfterLoadingPlacement();
-					BlockSchematic(false);
+					BlockSchematic(BLOCKING_OFF);
 					p_SchematicWindow->p_SchematicView->bLoading = false;
 					p_SchematicWindow->oScene.update();
 					LOG_P_0(LOG_CAT_I, "Loading completed.");
@@ -389,7 +389,7 @@ gLO:		bProcessed = true;
 				p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos);
 				if(bBlockingGraphics)
 				{
-					SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, true);
+					SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, BLOCKING_ON);
 				}
 				SchematicWindow::vp_Elements.push_front(p_GraphicsElementItem);
 				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
@@ -680,7 +680,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 				p_GraphicsGroupItem = p_WidgetsThrAccess->p_ConnGraphicsGroupItem;
 				if(bBlockingGraphics)
 				{
-					SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, true);
+					SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, BLOCKING_ON);
 				}
 				p_GraphicsGroupItem->setZValue(oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos);
 				SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
@@ -1090,7 +1090,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 	{
 		LOG_P_0(LOG_CAT_W, "Unknown data type from the server.");
 	}
-	LCHECK_INT(p_Client->ReleaseDataInPositionC(iPocket, false));
+	LCHECK_INT(p_Client->ReleaseDataInPositionC(iPocket, DONT_TRY_LOCK));
 	return;
 }
 
@@ -1475,7 +1475,7 @@ void MainWindow::RemoteUpdateSchViewAndSendRFrame()
 	oQRectF = p_SchematicWindow->GetSchematicView()->GetVisibleRect();
 	QRealToDbFrame(oQRectF, oPSchReadyFrame.oDbFrame);
 	LCHECK_BOOL(p_Client->SendToServerImmediately(
-					PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame), true, false));
+					PROTO_O_SCH_READY, (char*)&oPSchReadyFrame, sizeof(PSchReadyFrame), RESET_POINTER, DONT_TRY_LOCK));
 }
 
 // Удаление линков у элемента.
@@ -1517,7 +1517,7 @@ void MainWindow::BlockSchematic(bool bBlock)
 		p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		if(bBlock)
 		{
-			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, true); // Если блокируется схемой - блокировка в любом случае.
+			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, BLOCKING_ON); // Если бл. схемой - блокировка в любом случае.
 		}
 		else
 		{
@@ -1533,7 +1533,7 @@ void MainWindow::BlockSchematic(bool bBlock)
 		p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
 		if(bBlock)
 		{
-			SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, true); // Если блокируется схемой - блокировка в любом случае.
+			SchematicView::SetGroupBlockingPattern(p_GraphicsGroupItem, BLOCKING_ON); // Если блокируется схемой - блокировка в любом случае.
 		}
 		else
 		{
@@ -1555,7 +1555,7 @@ void MainWindow::BlockSchematic(bool bBlock)
 // Процедуры остановки клиента.
 void MainWindow::SlotClientStopProcedures()
 {
-	BlockSchematic(true);
+	BlockSchematic(BLOCKING_ON);
 	chLastClientRequest = CLIENT_REQUEST_DISCONNECT;
 	SetStatusBarText("Остановка клиента...");
 	if(!p_Client->Stop())
@@ -1826,7 +1826,7 @@ void MainWindow::IncomingUpdateElementParameters(GraphicsElementItem* p_Graphics
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame =
 				a_SchElementVars.oSchEGGraph.oDbFrame;
 		SchematicView::UpdateSelectedInElement(p_GraphicsElementItem,
-											  SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN, 0, 0, true);
+											  SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN, 0, 0, IS_INCOMING);
 	}
 	// Отношение к группе.
 	if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_CHANGES_ELEMENT_BIT_GROUP)
@@ -1911,7 +1911,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 			SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] free by shifting.");
 			ResetBits(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits, SCH_SETTINGS_EG_BIT_BUSY);
-			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, false);
+			SchematicView::SetElementBlockingPattern(p_GraphicsElementItem, BLOCKING_OFF);
 		}
 	}
 	// Фрейм.

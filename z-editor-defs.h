@@ -50,6 +50,15 @@
 #define AFFECT_SELECTED						true
 #define DONT_AFFECT_SELECTED				false
 #define RECURSION_CONTINUE					false
+#define MOVE_BODY							true
+#define DONT_MOVE_BODY						false
+#define IS_SRC								true
+#define IS_DST								false
+#define IS_INCOMING							true
+#define IS_NOT_INCOMING						false
+#define BLOCKING_ON						true
+#define BLOCKING_OFF					false
+
 // Размеры.
 #define SCALER_RECT_DIM					9.0f
 #define SCALER_TR_DIM					6.0f

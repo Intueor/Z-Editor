@@ -1463,7 +1463,7 @@ void SchematicView::ReleaseOccupiedAPFS()
 		//
 		if(oEGPointersVariant.p_GraphicsElementItem != nullptr)
 		{
-			SetElementBlockingPattern(oEGPointersVariant.p_GraphicsElementItem, false);
+			SetElementBlockingPattern(oEGPointersVariant.p_GraphicsElementItem, BLOCKING_OFF);
 			oPSchElementVars.ullIDInt = oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 			oPSchElementVars.oSchEGGraph.dbObjectZPos =
 					oEGPointersVariant.p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
@@ -1477,7 +1477,7 @@ void SchematicView::ReleaseOccupiedAPFS()
 		}
 		else
 		{
-			SetGroupBlockingPattern(oEGPointersVariant.p_GraphicsGroupItem, false);
+			SetGroupBlockingPattern(oEGPointersVariant.p_GraphicsGroupItem, BLOCKING_OFF);
 			oPSchGroupVars.ullIDInt = oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 			oPSchGroupVars.oSchEGGraph.dbObjectZPos =
 					oEGPointersVariant.p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos;
@@ -1959,7 +1959,7 @@ void SchematicView::MoveGroupRecursively(GraphicsGroupItem* p_GraphicsGroupItem,
 	for(int iF = 0; iF < p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
 	{
 		p_GraphicsGroupItemHelper = p_GraphicsGroupItem->vp_ConnectedGroups.at(iF);
-		MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, true);
+		MoveGroupRecursively(p_GraphicsGroupItemHelper, a_QPointFRes, MOVE_BODY);
 	}
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
 	{
@@ -3037,7 +3037,7 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 	oQPointFRes.setX(oQPointFRes.x() - oQPointFInit.x()); // Смещение по X.
 	oQPointFRes.setY(oQPointFRes.y() - oQPointFInit.y()); // Смещение по Y.
 	v_AlreadyMovedGroups.clear();
-	MoveGroupRecursively(p_GraphicsGroupItem, oQPointFRes, false);
+	MoveGroupRecursively(p_GraphicsGroupItem, oQPointFRes, DONT_MOVE_BODY);
 	if(p_GraphicsGroupItem->bSelected)
 	{
 		for(int iE = 0; iE != SchematicWindow::vp_SelectedGroups.count(); iE ++)
@@ -3658,8 +3658,8 @@ void SchematicView::LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem,
 			GraphicsPortItem* p_GraphicsPortItemSrc;
 			GraphicsPortItem* p_GraphicsPortItemDst;
 			//
-			p_GraphicsPortItemSrc = new GraphicsPortItem(p_GraphicsLinkItem, true, p_GraphicsLinkItem->p_GraphicsElementItemSrc);
-			p_GraphicsPortItemDst = new GraphicsPortItem(p_GraphicsLinkItem, false, p_GraphicsLinkItem->p_GraphicsElementItemDst);
+			p_GraphicsPortItemSrc = new GraphicsPortItem(p_GraphicsLinkItem, IS_SRC, p_GraphicsLinkItem->p_GraphicsElementItemSrc);
+			p_GraphicsPortItemDst = new GraphicsPortItem(p_GraphicsLinkItem, IS_DST, p_GraphicsLinkItem->p_GraphicsElementItemDst);
 			p_GraphicsLinkItem->p_PSchElementVarsSrc = &p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars;
 			p_GraphicsLinkItem->p_PSchElementVarsDst = &p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars;
 			SchematicWindow::vp_Ports.append(p_GraphicsPortItemSrc);
@@ -4442,7 +4442,8 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 			p_Painter->setPen(SchematicWindow::oQPenBlack);
 		}
 		p_Painter->setBrush(p_GraphicsScalerItem->p_ParentInt->oQBrush);
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 		{
 			if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 			   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
