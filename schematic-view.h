@@ -411,6 +411,8 @@ public:
 	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Parent Указатель на родителя.
+	/// Расстановка размеров, статусов групп и их содержания после загрузки.
+	static void AfterLoadingPlacement();
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);

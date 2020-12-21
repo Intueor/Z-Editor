@@ -2781,6 +2781,50 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 	}
 }
 
+// Расстановка размеров, статусов групп и их содержания после загрузки.
+void SchematicView::AfterLoadingPlacement()
+{
+	GraphicsGroupItem* p_GraphicsGroupItemCurrent;
+	GraphicsGroupItem* p_GraphicsGroupItemRoot;
+	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemRoots;
+	//
+	for(int iF = 0; iF != SchematicWindow::vp_Groups.count(); iF++)
+	{
+		p_GraphicsGroupItemCurrent = SchematicWindow::vp_Groups.at(iF);
+		if(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+		{
+			p_GraphicsGroupItemCurrent->p_QLabel->hide();
+		}
+		else
+		{
+			p_GraphicsGroupItemCurrent->bPortsForMin = false;
+			p_GraphicsGroupItemCurrent->p_QLabel->show();
+		}
+		p_GraphicsGroupItemRoot = p_GraphicsGroupItemCurrent;
+		while(p_GraphicsGroupItemCurrent)
+		{
+			p_GraphicsGroupItemRoot = p_GraphicsGroupItemCurrent;
+			p_GraphicsGroupItemCurrent = p_GraphicsGroupItemCurrent->p_GraphicsGroupItemRel;
+		}
+		if(!vp_GraphicsGroupItemRoots.contains(p_GraphicsGroupItemRoot))
+		{
+			vp_GraphicsGroupItemRoots.append(p_GraphicsGroupItemRoot);
+		}
+	}
+	pv_GraphicsPortItemsCollected.clear();
+	SchematicWindow::vp_SelectedGroups.clear();
+	//
+	for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
+	{
+		p_GraphicsGroupItemRoot = vp_GraphicsGroupItemRoots.at(iF);
+		GroupMinOperationsRecursively(p_GraphicsGroupItemRoot);
+		UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemRoot);
+	}
+	//
+	SetPortsPlacementAfterGroupsMinChanges();
+}
+
+
 // Обработчик события нажатия мыши на группу.
 void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -2800,7 +2844,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 		GraphicsGroupItem* p_GraphicsGroupItemCurrent;
 		GraphicsGroupItem* p_GraphicsGroupItemRoot;
 		QVector<GraphicsGroupItem*> vp_GraphicsGroupItemRoots;
-		QVector<GraphicsGroupItem*> vp_GraphicsGroupItemForMin;
 		//
 		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем текущее значение выбраности.
 		if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem)) // Если не было выбрано - добавляем для массовых действий.
@@ -2815,7 +2858,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			if((p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) !=
 			   uchMinStatus) // Если бит минимизации текущей группы не равен переключённому биту для управляющей...
 			{
-				vp_GraphicsGroupItemForMin.append(p_GraphicsGroupItemCurrent); // В вектор для обработки.
 				if(uchMinStatus & SCH_SETTINGS_EG_BIT_MIN) // Если новый статус - вкл. - установка бита.
 				{
 					SetBits(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
@@ -2831,7 +2873,9 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				}
 				// Отправка инфо на сервер.
 				p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_MIN;
-		//		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(oPSchGroupVars));
+				MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS,
+															   (char*)&p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars,
+															   sizeof(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars));
 				// Сбор корней.
 				p_GraphicsGroupItemRoot = p_GraphicsGroupItemCurrent;
 				while(p_GraphicsGroupItemCurrent) // Пока не корень.
@@ -2860,6 +2904,9 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 		{
 			SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
 		}
+		// ЛИШНЯЯ МЕРА, найти где исправить локально атрефакты на фоне после минимизации.
+		SchematicWindow::p_MainWindow->p_SchematicWindow->UpdateScene();
+		//
 		goto gG;
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)

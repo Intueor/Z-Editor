@@ -144,7 +144,6 @@ MainWindow::MainWindow(QWidget* p_parent) :
 		RETVAL_SET(RETVAL_ERR);
 		return;
 	}
-	BlockSchematic(true);
 	p_Client = new Client(LOG_MUTEX);
 	p_Client->SetServerCommandArrivedCB(ServerCommandArrivedCallback);
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
@@ -299,6 +298,8 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				oPSchStatusInfo = *(PSchStatusInfo*)p_ReceivedData;
 				if(oPSchStatusInfo.uchBits & SCH_STATUS_LOADED)
 				{
+					SchematicView::AfterLoadingPlacement();
+					p_SchematicWindow->p_SchematicView->show();
 					BlockSchematic(false);
 					LOG_P_0(LOG_CAT_I, "Loading completed.");
 					goto gLO;
@@ -316,6 +317,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					SchematicWindow::dbObjectZPos = 1;
 					RemoteUpdateSchViewAndSendRFrame();
 					LOG_P_0(LOG_CAT_I, "Loading...");
+					p_SchematicWindow->p_SchematicView->hide();
 				}
 				else // Если отключена - блокировка схем.
 				{
@@ -1520,7 +1522,6 @@ void MainWindow::BlockSchematic(bool bBlock)
 													 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 													 SCH_SETTINGS_EG_BIT_BUSY);
 		}
-
 	}
 	for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 	{
