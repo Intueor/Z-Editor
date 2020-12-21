@@ -144,6 +144,8 @@ MainWindow::MainWindow(QWidget* p_parent) :
 		RETVAL_SET(RETVAL_ERR);
 		return;
 	}
+	BlockSchematic(true);
+	p_SchematicWindow->p_SchematicView->bLoading = true;
 	p_Client = new Client(LOG_MUTEX);
 	p_Client->SetServerCommandArrivedCB(ServerCommandArrivedCallback);
 	p_Client->SetServerDataArrivedCB(ServerDataArrivedCallback);
@@ -299,8 +301,9 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 				if(oPSchStatusInfo.uchBits & SCH_STATUS_LOADED)
 				{
 					SchematicView::AfterLoadingPlacement();
-					p_SchematicWindow->p_SchematicView->show();
 					BlockSchematic(false);
+					p_SchematicWindow->p_SchematicView->bLoading = false;
+					p_SchematicWindow->oScene.update();
 					LOG_P_0(LOG_CAT_I, "Loading completed.");
 					goto gLO;
 				}
@@ -316,8 +319,8 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					}
 					SchematicWindow::dbObjectZPos = 1;
 					RemoteUpdateSchViewAndSendRFrame();
+					p_SchematicWindow->p_SchematicView->bLoading = true;
 					LOG_P_0(LOG_CAT_I, "Loading...");
-					p_SchematicWindow->p_SchematicView->hide();
 				}
 				else // Если отключена - блокировка схем.
 				{

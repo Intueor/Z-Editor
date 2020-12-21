@@ -509,6 +509,7 @@ public:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
+	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 };
 
 #endif // SCHEMATICVIEW_H
