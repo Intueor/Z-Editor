@@ -1147,6 +1147,7 @@ void SchematicView::UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_Gr
 	oDbFrameResult.dbH = oDbPointRightBottom.dbY - oDbPointLeftTop.dbY + 22;
 	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame = oDbFrameResult;
 	UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_FRAME | SCH_UPDATE_MAIN);
+	p_GraphicsGroupItem->p_QLabel->setFixedWidth(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6);
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel)
 	{
 		UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
@@ -3192,9 +3193,8 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->p_QLabel = new QLabel(QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName));
 	p_GraphicsGroupItem->p_QLabel->setAttribute(Qt::WA_TranslucentBackground);
 	p_GraphicsGroupItem->p_QLabel->setCursor(Qt::CursorShape::PointingHandCursor);
-	p_GraphicsGroupItem->p_QLabel->move(3, 3);
-	p_GraphicsGroupItem->p_QLabel->
-			setFixedSize(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6, 13);
+	p_GraphicsGroupItem->p_QLabel->move(3, 0);
+	p_GraphicsGroupItem->p_QLabel->setFixedWidth(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget = MainWindow::p_SchematicWindow->oScene.addWidget(p_GraphicsGroupItem->p_QLabel);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsGroupItem);
