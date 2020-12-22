@@ -117,8 +117,8 @@ public:
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bSend При true - отправка.
 							///< \param[in] bToTop При true - поднятие на передний план на клиенте.
-	/// Обновление фрейма группы по геометрии контента рекурсивно.
-	static void UpdateGroupFrameByContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
+	/// Обновление фрейма группы по геометрии контента рекурсивно вверх.
+	static void UpdateGroupFrameByContentRecursivelyUpstream(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
 	/// Обновление выбранных параметров в элементе.
 	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
@@ -310,9 +310,8 @@ public:
 							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
 
 	/// Рекурсивное удаление пустых групп.
-	static bool GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
+	static void GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \return true, если было удаление.
 	/// Обработчик функции возврата вместилища рамки.
 	static QRectF FrameBoundingHandler(const GraphicsFrameItem* pc_GraphicsFrameItem);
 							///< \param[in] GraphicsFrameItem Указатель на фрейм.
@@ -448,6 +447,7 @@ private:
 							///< \param[in] bHiderFound Служебная для рекурсии - true - найдена скрывающая группа.
 	/// Установка портов групп после смены статуса минимизации.
 	static void SetPortsPlacementAfterGroupsMinChanges();
+
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
@@ -488,7 +488,8 @@ private:
 	static QPointF pntMinFrameTrT; ///< Центральная вершина минимизированного треугольника рамки.
 	static QPointF pntMinFrameTrL; ///< Левая вершина минимизированного треугольника рамки.
 	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
-	static QVector<GraphicsPortItem*> pv_GraphicsPortItemsCollected; ///< Лист портов из пройденных элементов при смене статуса минимизации.
+	static QVector<GraphicsPortItem*> pv_GraphicsPortItemsCollected; ///< Вектор портов из пройденных элементов при смене статуса минимизации.
+	static QVector<GraphicsElementItem*> vp_SelectedForDeleteElements; ///< Вектор с указателями на выбранные для удаления граф. элементы.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

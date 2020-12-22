@@ -13,6 +13,8 @@
 #define SCENE_DIM_X							6000
 #define SCENE_DIM_Y							6000
 //
+#define SEND								true
+#define DONT_SEND							false
 #define SEND_ELEMENTS						true
 #define DONT_SEND_ELEMENTS					false
 #define SEND_ELEMENT						true
@@ -39,8 +41,6 @@
 #define WITHOUT_POSITION					false
 #define WITH_ELEMENTS_FRAMES				true
 #define WITHOUT_ELEMENTS_FRAMES				false
-#define WITH_FRAME							true
-#define WITHOUT_FRAME						false
 #define FROM_ELEMENT						true
 #define NOT_FROM_ELEMENT					false
 #define REMOVE_FROM_CLIENT					true

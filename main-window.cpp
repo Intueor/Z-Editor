@@ -405,7 +405,7 @@ gLO:		bProcessed = true;
 							bGroupFounded = true;
 							if(p_GraphicsElementItem->oPSchElementBaseInt.bRequestGroupUpdate)
 							{
-								SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
+								SchematicView::UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
 							}
 							break;
 						}
@@ -706,7 +706,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 							p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem); // Добавление в группу.
 							if(p_GraphicsElementItem->oPSchElementBaseInt.bRequestGroupUpdate)
 							{
-								SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem);
+								SchematicView::UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
 							}
 							p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 							// По всем элементам в ожидании групп.
@@ -779,7 +779,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 							p_GraphicsGroupItemInt->vp_ConnectedGroups.push_front(p_GraphicsGroupItem); // Добавление в группу.
 							if(p_GraphicsGroupItem->oPSchGroupBaseInt.bRequestGroupUpdate)
 							{
-								SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemInt);
+								SchematicView::UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItemInt);
 							}
 							p_GraphicsGroupItem->p_GraphicsGroupItemRel = p_GraphicsGroupItemInt;
 							bGroupFounded = true;
@@ -1000,12 +1000,8 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 										oPSchElementVars.ullIDInt == oPSchElementEraser.ullIDInt)
 								{
 									p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.removeAt(iEGC);
-
-									if(!SchematicView::GroupCheckEmptyAndRemoveRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel))
-									{
-										SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
-										break;
-									}
+									SchematicView::GroupCheckEmptyAndRemoveRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+									break;
 								}
 							}
 						}
@@ -1839,10 +1835,7 @@ void MainWindow::IncomingUpdateElementParameters(GraphicsElementItem* p_Graphics
 			if(a_SchElementVars.ullIDGroup == 0) // И пришёл запрос на ОТСОЕДИНЕНИЕ от группы...
 			{
 				p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.removeOne(p_GraphicsElementItem);
-				if(!SchematicView::GroupCheckEmptyAndRemoveRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel))
-				{ // Ещё остались...
-					SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
-				}
+				SchematicView::GroupCheckEmptyAndRemoveRecursively(p_GraphicsElementItem->p_GraphicsGroupItemRel);
 				p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
 				// Элемент не поднимается автоматически.
@@ -1949,10 +1942,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 			if(a_SchGroupVars.ullIDGroup == 0) // И пришёл запрос на ОТСОЕДИНЕНИЕ от группы...
 			{
 				p_GraphicsGroupItem->p_GraphicsGroupItemRel->vp_ConnectedGroups.removeOne(p_GraphicsGroupItem);
-				if(!SchematicView::GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel))
-				{ // Ещё остались...
-					SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
-				}
+				SchematicView::GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
 				p_GraphicsGroupItem->p_GraphicsGroupItemRel = nullptr;
 				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = 0;
 			}
@@ -1967,7 +1957,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 					p_GraphicsGroupItemHelper->vp_ConnectedGroups.append(p_GraphicsGroupItem);
 					p_GraphicsGroupItem->p_GraphicsGroupItemRel = p_GraphicsGroupItemHelper;
 					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = a_SchGroupVars.ullIDGroup;
-					SchematicView::UpdateGroupFrameByContentRecursively(p_GraphicsGroupItemHelper);
+					SchematicView::UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItemHelper);
 					return;
 				}
 			}
