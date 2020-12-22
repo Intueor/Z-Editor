@@ -700,7 +700,6 @@ void SchematicView::DeleteSelectedAPFS()
 	GraphicsGroupItem* p_GraphicsGroupItem;
 	GraphicsGroupItem* p_GraphicsGroupItemRoot;
 	GraphicsElementItem* p_GraphicsElementItem;
-	SchematicWindow::vp_SelectedGroups;
 	QVector <GraphicsGroupItem*> vp_GraphicsGroupItemsRoots; // Корни групп для последующей отправки изменений фреймов.
 	QVector <GraphicsGroupItem*> vp_GraphicsGroupItemsAffectedByElements; // Будущий список групп, где есть удаляемые элементы не под уд. групп.
 	/////// ОТСЕВ ЛИШНИХ ДЕЙСТВИЙ ПОЛЬЗОВАТЕЛЯ. Реальных удалений не производится, лишь коррекция списков. ///////
@@ -765,13 +764,11 @@ gEF:	SchematicWindow::vp_SelectedElements.removeLast();
 		}
 		if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot)) // Может быть потом удалён корень при рекурсии удаления пустых.
 		{
-			vp_GraphicsGroupItemsRoots.append(vp_GraphicsGroupItemsRoots);
+			vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
 		}
 		// Удаление элемента с рекурсивным удалением опустевших групп вверх по дереву.
 		DeleteElementAPFS(p_GraphicsElementItem);
 	}
-	//
-
 	// Работа с изначально выбранными + группы с удалением всех элементов внутри по выборке пользователя.
 	while(!SchematicWindow::vp_SelectedGroups.isEmpty()) // Пока обычное удаление и удаление по опустошению не исчерпает список.
 	{
@@ -784,7 +781,7 @@ gEF:	SchematicWindow::vp_SelectedElements.removeLast();
 		}
 		if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot)) // Может быть потом удалён корень при рекурсии удаления пустых.
 		{
-			vp_GraphicsGroupItemsRoots.append(vp_GraphicsGroupItemsRoots);
+			vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
 		}
 		DeleteGroupRecursiveAPFS(SchematicWindow::vp_SelectedGroups.at(0));
 	}
