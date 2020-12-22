@@ -80,6 +80,9 @@ public:
 	/// Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
 	static bool DetachSelectedAPFS();
 							///< \return true, если добавлялись пакеты в буфер.
+	/// Подготовка всех фреймов групп дерева к отправке рекурсивно.
+	static void GetTreeGroupFramesRecursivelyAPFS(GraphicsGroupItem* p_GraphicsGroupItemRoot);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу-корень.
 	/// Удаление выбранного и подготовка отправки по запросу.
 	static void DeleteSelectedAPFS();
 	/// Создание нового элемента и подготовка отсылки параметров.

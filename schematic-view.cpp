@@ -694,6 +694,19 @@ bool SchematicView::DetachSelectedAPFS()
 	return bAction;
 }
 
+// Подготовка всех фреймов групп дерева к отправке рекурсивно.
+void SchematicView::GetTreeGroupFramesRecursivelyAPFS(GraphicsGroupItem* p_GraphicsGroupItemRoot)
+{
+	p_GraphicsGroupItemRoot->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_FRAME;
+	MainWindow::p_Client->AddPocketToOutputBufferC(
+				PROTO_O_SCH_GROUP_VARS, (char*)&p_GraphicsGroupItemRoot->oPSchGroupBaseInt.oPSchGroupVars,
+				sizeof(p_GraphicsGroupItemRoot->oPSchGroupBaseInt.oPSchGroupVars));
+	for(int iF = 0; iF != p_GraphicsGroupItemRoot->vp_ConnectedGroups.count(); iF++)
+	{
+		GetTreeGroupFramesRecursivelyAPFS(p_GraphicsGroupItemRoot->vp_ConnectedGroups.at(iF));
+	}
+}
+
 // Удаление выбранного и подготовка отправки по запросу.
 void SchematicView::DeleteSelectedAPFS()
 {
@@ -785,11 +798,10 @@ gEF:	SchematicWindow::vp_SelectedElements.removeLast();
 		}
 		DeleteGroupRecursiveAPFS(SchematicWindow::vp_SelectedGroups.at(0));
 	}
-	// Поднятие корней всех задействованных групп.
+	// Отсылка фреймов всех задействованных деревьев.
 	for(int iF = 0; iF != vp_GraphicsGroupItemsRoots.count(); iF++)
 	{
-		GroupsBranchToTopAPFSRecursively(vp_GraphicsGroupItemsRoots.at(iF), SEND, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-										 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_ZPOS, ADD_SEND_FRAME);
+		GetTreeGroupFramesRecursivelyAPFS(vp_GraphicsGroupItemsRoots.at(iF));
 	}
 	//
 	SchematicWindow::vp_SelectedGroups.clear();
@@ -1898,7 +1910,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 	QVector<EGPointersVariant> v_EGPointersVariants;
 	const EGPointersVariant* p_EGPointersVariant;
 	//
-	if((p_GraphicsGroupItem == p_GraphicsGroupItemExclude) || SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem)) return;
+	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
 	if(bToTop)
 	{
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
