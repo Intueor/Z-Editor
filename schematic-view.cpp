@@ -735,7 +735,7 @@ void SchematicView::DeleteSelectedAPFS()
 		{
 			vp_GraphicsGroupItemsAffectedByElements.append(p_GraphicsElementItem->p_GraphicsGroupItemRel); // Группа идёт в вектор вовлечённых.
 		}
-gEF:	SchematicWindow::vp_SelectedElements.removeLast();
+gEF:	SchematicWindow::vp_SelectedElements.removeFirst();
 	}
 	// Выяснение будущих пустых групп по причине удаления всех элементов и замена удалений в них на удаление групы.
 	for(int iF = 0; iF != vp_GraphicsGroupItemsAffectedByElements.count(); iF++) // По всем вовлечённым группам.
@@ -744,23 +744,26 @@ gEF:	SchematicWindow::vp_SelectedElements.removeLast();
 		int iElInGroupForDelete = 0;
 		//
 		p_GraphicsGroupItem = vp_GraphicsGroupItemsAffectedByElements.at(iF);
-		iElInGroupWhole = p_GraphicsGroupItem->vp_ConnectedElements.count(); // Кол-во элементов в группе вообще.
-		for(int iE = 0; iE != iElInGroupWhole; iE++) // По всем подключённым элементам.
+		if(p_GraphicsGroupItem->vp_ConnectedGroups.isEmpty())
 		{
-			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
-			if(vp_SelectedForDeleteElements.contains(p_GraphicsElementItem)) // Если элемент есть в выбранных удвляемых...
-			{
-				iElInGroupForDelete++; // Счётчик удаляемых из группы - плюс.
-			}
-		}
-		if(iElInGroupWhole == iElInGroupForDelete) // Если удалится всё...
-		{
+			iElInGroupWhole = p_GraphicsGroupItem->vp_ConnectedElements.count(); // Кол-во элементов в группе вообще.
 			for(int iE = 0; iE != iElInGroupWhole; iE++) // По всем подключённым элементам.
 			{
-				vp_SelectedForDeleteElements.removeAll(p_GraphicsGroupItem->vp_ConnectedElements.at(iE)); // Удаление из списка на удаление.
+				p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
+				if(vp_SelectedForDeleteElements.contains(p_GraphicsElementItem)) // Если элемент есть в выбранных удвляемых...
+				{
+					iElInGroupForDelete++; // Счётчик удаляемых из группы - плюс.
+				}
 			}
-			// Добавление группы к удаляемым (там удалится с удалением вышележащих возможно-пустых групп).
-			SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+			if(iElInGroupWhole == iElInGroupForDelete) // Если удалится всё...
+			{
+				for(int iE = 0; iE != iElInGroupWhole; iE++) // По всем подключённым элементам.
+				{
+					vp_SelectedForDeleteElements.removeAll(p_GraphicsGroupItem->vp_ConnectedElements.at(iE)); // Удаление из списка на удаление.
+				}
+				// Добавление группы к удаляемым (там удалится с удалением вышележащих возможно-пустых групп).
+				SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+			}
 		}
 	}
 	/////// ОБЫЧНОЕ УДАЛЕНИЕ. ///////
