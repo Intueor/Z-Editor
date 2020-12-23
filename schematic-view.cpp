@@ -67,6 +67,7 @@ double SchematicView::dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr;
 QVector<GraphicsPortItem*> SchematicView::pv_GraphicsPortItemsCollected;
 bool SchematicView::bLoading = false;
 QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
+QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
@@ -576,10 +577,10 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 		// Проверка лишних действий - удаления группы внутри удаляемой.
 		while(p_GraphicsGroupItemAbove) // До корня.
 		{
-			if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItemAbove)) // Если в выбранных выше есть текущая - выход с перест.
+			if(vp_SelectedForDeleteGroups.contains(p_GraphicsGroupItemAbove)) // Если в выбранных выше есть текущая - выход с перест.
 			{
-				SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
-				SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+				vp_SelectedForDeleteGroups.removeAll(p_GraphicsGroupItem);
+				vp_SelectedForDeleteGroups.append(p_GraphicsGroupItem);
 				return;
 			}
 			p_GraphicsGroupItemAbove = p_GraphicsGroupItemAbove->p_GraphicsGroupItemRel;
@@ -612,7 +613,7 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 	{
 		GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel); // Уд. всех пустых вверх, в т.ч. и из списка на уд.
 	}
-	SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem);
+	vp_SelectedForDeleteGroups.removeAll(p_GraphicsGroupItem);
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
 	SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItem);
 }
@@ -631,75 +632,73 @@ void SchematicView::DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem
 }
 
 // Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
-bool SchematicView::DetachSelectedAPFS()
+void SchematicView::DetachSelectedAPFS()
 {
-	bool bAction = false;
 	GraphicsElementItem* p_GraphicsElementItem;
-	PSchGroupVars oPSchGroupVars;
+	GraphicsGroupItem* p_GraphicsGroupItemRoot;
 	QVector<GraphicsGroupItem*> vp_AffectedGroups;
-	PSchElementVars oPSchElementVars;
+	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsRoots;
 	QVector<GraphicsElementItem*> vp_SelectedGroupedElements;
-	//
+	// Сбор всех элементов в группах.
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
-		GraphicsElementItem* pGraphicsElementItemSelected = SchematicWindow::vp_SelectedElements.at(iF);
-		if(pGraphicsElementItemSelected->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
+		p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+		if(p_GraphicsElementItem->p_GraphicsGroupItemRel)
 		{
-			vp_SelectedGroupedElements.append(pGraphicsElementItemSelected);
+			vp_SelectedGroupedElements.append(p_GraphicsElementItem);
 		}
 	}
+	// Отсоединение элементов.
 	for(int iF = 0; iF != vp_SelectedGroupedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
-		if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
+		if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr) // Если у элемента есть группа...
 		{
-			GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItem->p_GraphicsGroupItemRel;
-			//
-			p_GraphicsGroupItem->vp_ConnectedElements.removeOne(p_GraphicsElementItem);
-			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//			if(!GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem))
-//			{
-//				if(!vp_AffectedGroups.contains(p_GraphicsGroupItem)) // Может быть игнор на случай остоединения более одного элемента от гр.
-//				{
-//					vp_AffectedGroups.append(p_GraphicsGroupItem); // Добавление в затронутые.
-//				}
-//			}
-			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
+			p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление привязки в группе.
+			vp_AffectedGroups.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);// Добавление в вовлечённые группы.
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
-			bAction = true;
+			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr; // Удаление привязки в элементе.
 		}
 	}
-	if(bAction)
+	// Проверка и модификация опустевших вовлечённых групп после отсоединения элементов.
+	for(int iG = 0; iG != vp_AffectedGroups.count(); iG++)
 	{
-		for(int iG = 0; iG != vp_AffectedGroups.count(); iG++)
+		GraphicsGroupItem* p_GraphicsGroupItem = vp_AffectedGroups.at(iG);
+		//
+		GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem); // Рекурсивная проверка с правкой от текущей вовлечённой и вверх.
+		if(SchematicWindow::vp_Groups.contains(p_GraphicsGroupItem)) // (Могли и всё удалить).
 		{
-			GraphicsGroupItem* p_GraphicsGroupItem = vp_AffectedGroups.at(iG);
-			//
-			oPSchGroupVars.oSchEGGraph.oDbFrame =
-					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
-			oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_FRAME;
-			MainWindow::p_Client->AddPocketToOutputBufferC(
-						PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars, sizeof(PSchGroupVars));
-		}
-		for(int iF = 0; iF != vp_SelectedGroupedElements.count(); iF++)
-		{
-			p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
-			p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
-			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-			SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-			p_GraphicsElementItem->update();
-			oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-			oPSchElementVars.ullIDGroup = 0;
-			oPSchElementVars.oSchEGGraph.dbObjectZPos =
-					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
-			oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_GROUP | SCH_CHANGES_ELEMENT_BIT_ZPOS;
-			MainWindow::p_Client->AddPocketToOutputBufferC(
-						PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
-			UpdateLinksZPos();
+			// Взятие корня, включая текщую группу (в отличие от варианта в удалении).
+			p_GraphicsGroupItemRoot = GetRootOfGroup(p_GraphicsGroupItem);
+			// Добавление в вектор корней для последующей отправки фреймов на сервер.
+			if(p_GraphicsGroupItemRoot)
+			{
+				if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot))
+				{
+					vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItem);
+				}
+			}
 		}
 	}
-	return bAction;
+	// Отсылка фреймов всех вовлечённых деревьев.
+	GetTreesOfGroupFramesAPFS(vp_GraphicsGroupItemsRoots);
+	// Отсылка статусов всех остоединённых элементов.
+	for(int iF = 0; iF != vp_SelectedGroupedElements.count(); iF++)
+	{
+		p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
+		p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos); // Наверх на сцене.
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos; // Наверх в сп.
+		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT; // На следующую позицию.
+		p_GraphicsElementItem->update(); // Применение изменений для сцены.
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits =
+				SCH_CHANGES_ELEMENT_BIT_GROUP | SCH_CHANGES_ELEMENT_BIT_ZPOS;
+		// Именения - на сервер.
+		MainWindow::p_Client->AddPocketToOutputBufferC(
+					PROTO_O_SCH_ELEMENT_VARS, (char*)&p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars,
+					sizeof(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars));
+		UpdateLinksZPos(); // Поднимаем линки до уровня элемента.
+	}
 }
 
 // Подготовка всех фреймов групп дерева к отправке рекурсивно.
@@ -718,6 +717,28 @@ void SchematicView::GetTreeGroupFramesRecursivelyAPFS(GraphicsGroupItem* p_Graph
 	}
 }
 
+// Подготовка всех фреймов групп дерева к отправке рекурсивно.
+void SchematicView::GetTreesOfGroupFramesAPFS(QVector <GraphicsGroupItem*> &avp_GraphicsGroupItemsRoots)
+{
+	for(int iF = 0; iF != avp_GraphicsGroupItemsRoots.count(); iF++)
+	{
+		GetTreeGroupFramesRecursivelyAPFS(avp_GraphicsGroupItemsRoots.at(iF));
+	}
+}
+
+// Путешествие по ветке группы до корня.
+GraphicsGroupItem* SchematicView::GetRootOfGroup(GraphicsGroupItem* p_GraphicsGroupItemParent)
+{
+	GraphicsGroupItem* p_GraphicsGroupItemRoot = nullptr;
+	//
+	while(p_GraphicsGroupItemParent)
+	{
+		p_GraphicsGroupItemRoot = p_GraphicsGroupItemParent;
+		p_GraphicsGroupItemParent = p_GraphicsGroupItemParent->p_GraphicsGroupItemRel;
+	}
+	return p_GraphicsGroupItemRoot;
+}
+
 // Удаление выбранного и подготовка отправки по запросу.
 void SchematicView::DeleteSelectedAPFS()
 {
@@ -727,6 +748,8 @@ void SchematicView::DeleteSelectedAPFS()
 	QVector <GraphicsGroupItem*> vp_GraphicsGroupItemsRoots; // Корни групп для последующей отправки изменений фреймов.
 	QVector <GraphicsGroupItem*> vp_GraphicsGroupItemsAffectedByElements; // Будущий список групп, где есть удаляемые элементы не под уд. групп.
 	/////// ОТСЕВ ЛИШНИХ ДЕЙСТВИЙ ПОЛЬЗОВАТЕЛЯ. Реальных удалений не производится, лишь коррекция списков. ///////
+	vp_SelectedForDeleteGroups = SchematicWindow::vp_SelectedGroups;
+	SchematicWindow::vp_SelectedGroups.clear();
 	// Отсев элементов в удаляемых группах.
 	while(!SchematicWindow::vp_SelectedElements.isEmpty()) // До полной очистки вектора выбранных - перетасовка в vp_SelectedForDeleteElements.
 	{
@@ -735,7 +758,7 @@ void SchematicView::DeleteSelectedAPFS()
 		// По группам элемента до корня.
 		while(p_GraphicsGroupItem)
 		{
-			if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem)) // Если группа над элементом затем будет удалена...
+			if(vp_SelectedForDeleteGroups.contains(p_GraphicsGroupItem)) // Если группа над элементом затем будет удалена...
 			{
 				goto gEF; // Игнор добавления элемента в вектор удаления.
 			}
@@ -773,7 +796,7 @@ gEF:	SchematicWindow::vp_SelectedElements.removeFirst();
 					vp_SelectedForDeleteElements.removeAll(p_GraphicsGroupItem->vp_ConnectedElements.at(iE)); // Удаление из списка на удаление.
 				}
 				// Добавление группы к удаляемым (там удалится с удалением вышележащих возможно-пустых групп).
-				SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+				vp_SelectedForDeleteGroups.append(p_GraphicsGroupItem);
 			}
 		}
 	}
@@ -783,42 +806,36 @@ gEF:	SchematicWindow::vp_SelectedElements.removeFirst();
 	{
 		// Сбор корней элементов (уникальных).
 		p_GraphicsElementItem = vp_SelectedForDeleteElements.at(iF);
-		p_GraphicsGroupItem = p_GraphicsElementItem->p_GraphicsGroupItemRel;
-		while(p_GraphicsGroupItem)
+		p_GraphicsGroupItemRoot = GetRootOfGroup(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+		if(p_GraphicsGroupItemRoot)
 		{
-			p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
-			p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
-		}
-		if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot)) // Может быть потом удалён корень при рекурсии удаления пустых.
-		{
-			vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
+			if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot)) // Может быть потом удалён корень при рекурсии удаления пустых.
+			{
+				vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
+			}
 		}
 		// Удаление элемента с рекурсивным удалением опустевших групп вверх по дереву.
 		DeleteElementAPFS(p_GraphicsElementItem);
 	}
 	// Работа с изначально выбранными + группы с удалением всех элементов внутри по выборке пользователя.
-	while(!SchematicWindow::vp_SelectedGroups.isEmpty()) // Пока обычное удаление и удаление по опустошению не исчерпает список.
+	while(!vp_SelectedForDeleteGroups.isEmpty()) // Пока обычное удаление и удаление по опустошению не исчерпает список.
 	{
 		// Сбор корней групп (уникальных).
-		p_GraphicsGroupItem = SchematicWindow::vp_SelectedGroups.at(0);
-		while(p_GraphicsGroupItem)
+		p_GraphicsGroupItem = vp_SelectedForDeleteGroups.at(0);
+		p_GraphicsGroupItemRoot = GetRootOfGroup(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
+		if(p_GraphicsGroupItemRoot)
 		{
-			p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
-			p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
+			if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot)) // Может быть потом удалён корень при рекурсии удаления пустых.
+			{
+				vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
+			}
 		}
-		if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot)) // Может быть потом удалён корень при рекурсии удаления пустых.
-		{
-			vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
-		}
-		DeleteGroupRecursiveAPFS(SchematicWindow::vp_SelectedGroups.at(0));
+		DeleteGroupRecursiveAPFS(p_GraphicsGroupItem);
 	}
 	// Отсылка фреймов всех задействованных деревьев.
-	for(int iF = 0; iF != vp_GraphicsGroupItemsRoots.count(); iF++)
-	{
-		GetTreeGroupFramesRecursivelyAPFS(vp_GraphicsGroupItemsRoots.at(iF));
-	}
+	GetTreesOfGroupFramesAPFS(vp_GraphicsGroupItemsRoots);
 	//
-	SchematicWindow::vp_SelectedGroups.clear();
+	vp_SelectedForDeleteGroups.clear();
 	vp_SelectedForDeleteElements.clear();
 }
 
@@ -3395,7 +3412,10 @@ void SchematicView::GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_Gra
 			p_GraphicsGroupItem->p_GraphicsGroupItemRel->vp_ConnectedGroups.removeOne(p_GraphicsGroupItem); // Удаление из состава.
 			GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel); // Теперь та же проверка для хост-группы.
 		}
-		SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem); // Удаление из списка удаления.
+		if(!vp_SelectedForDeleteGroups.isEmpty())
+		{
+			vp_SelectedForDeleteGroups.removeAll(p_GraphicsGroupItem); // Удаление из списка удаления (если есть, возможны вызовы из отделения).
+		}
 		SchematicWindow::vp_Groups.removeAll(p_GraphicsGroupItem);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
 	}

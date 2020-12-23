@@ -78,11 +78,13 @@ public:
 							///< \param[in] bFromElement Признак вызова из элемента.
 							///< \param[in] bRemoveFromClient Флаг для удаления с клиента.
 	/// Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
-	static bool DetachSelectedAPFS();
-							///< \return true, если добавлялись пакеты в буфер.
+	static void DetachSelectedAPFS();
 	/// Подготовка всех фреймов групп дерева к отправке рекурсивно.
 	static void GetTreeGroupFramesRecursivelyAPFS(GraphicsGroupItem* p_GraphicsGroupItemRoot);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу-корень.
+	/// Подготовка всех фреймов групп дерева к отправке рекурсивно.
+	static void GetTreesOfGroupFramesAPFS(QVector <GraphicsGroupItem*> &avp_GraphicsGroupItemsRoots);
+							///< \param[in] avp_GraphicsGroupItemsRoots Ссылка на вектор с деревьями.
 	/// Удаление выбранного и подготовка отправки по запросу.
 	static void DeleteSelectedAPFS();
 	/// Создание нового элемента и подготовка отсылки параметров.
@@ -450,6 +452,10 @@ private:
 							///< \param[in] bHiderFound Служебная для рекурсии - true - найдена скрывающая группа.
 	/// Установка портов групп после смены статуса минимизации.
 	static void SetPortsPlacementAfterGroupsMinChanges();
+	/// Путешествие по ветке группы до корня.
+	static GraphicsGroupItem* GetRootOfGroup(GraphicsGroupItem* p_GraphicsGroupItemParent);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу-родителя элемента или группы.
+							///< \return Указатель на корень.
 
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
@@ -493,6 +499,7 @@ private:
 	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
 	static QVector<GraphicsPortItem*> pv_GraphicsPortItemsCollected; ///< Вектор портов из пройденных элементов при смене статуса минимизации.
 	static QVector<GraphicsElementItem*> vp_SelectedForDeleteElements; ///< Вектор с указателями на выбранные для удаления граф. элементы.
+	static QVector<GraphicsGroupItem*> vp_SelectedForDeleteGroups; ///< Вектор с указателями на выбранные для удаления граф. группы.
 
 public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
