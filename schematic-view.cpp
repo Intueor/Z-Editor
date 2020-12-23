@@ -71,24 +71,28 @@ QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;\
-										if(!SchematicWindow::vp_SelectedGroups.contains(group))\
+										if(!group->bSelected)\
 										{\
 											SchematicWindow::vp_SelectedGroups.append(group);\
 											_bForceSelected = true;\
+											group->bSelected = true;\
 										}
 #define TempDeselectGroup(group)		if(_bForceSelected)\
 										{\
 											SchematicWindow::vp_SelectedGroups.removeOne(group);\
+											group->bSelected = false;\
 										}
 #define TempSelectElement(element)		bool _bForceSelected = false;\
-										if(!SchematicWindow::vp_SelectedElements.contains(element))\
+										if(!element->bSelected)\
 										{\
 											SchematicWindow::vp_SelectedElements.append(element);\
 											_bForceSelected = true;\
+											element->bSelected = true;\
 										}
 #define TempDeselectElement(element)	if(_bForceSelected)\
 										{\
 											SchematicWindow::vp_SelectedElements.removeOne(element);\
+											element->bSelected = false;\
 										}
 #define GetDiagPointOnCircle(radius)	(radius + (dbSqrtFromTwoDivByTwo * radius))
 #define SetHidingStatus(object,status)	{if(status) object->hide(); else object->show();}
@@ -689,22 +693,18 @@ void SchematicView::DetachSelectedAPFS()
 	for(int iG = 0; iG != vp_AffectedGroups.count(); iG++)
 	{
 		GraphicsGroupItem* p_GraphicsGroupItem = vp_AffectedGroups.at(iG);
-		//
-		GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem,
-											REMOVE_GROUPS_FROM_SELECTED); // Рекурсивная проверка с правкой от текущей вовлечённой и вверх.
-		if(SchematicWindow::vp_Groups.contains(p_GraphicsGroupItem)) // (Могли и всё удалить).
+		// В любом случае берём корень - даже если при чистке будет удалены группы по пути - от корня нужно будет обновлять фреймы.
+		p_GraphicsGroupItemRoot = GetRootOfGroup(p_GraphicsGroupItem); // Взятие корня, вкл. текщую группу (в отличие от варианта в удалении).
+		// Добавление в вектор корней для последующей отправки фреймов на сервер.
+		if(p_GraphicsGroupItemRoot)
 		{
-			// Взятие корня, включая текщую группу (в отличие от варианта в удалении).
-			p_GraphicsGroupItemRoot = GetRootOfGroup(p_GraphicsGroupItem);
-			// Добавление в вектор корней для последующей отправки фреймов на сервер.
-			if(p_GraphicsGroupItemRoot)
+			if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot))
 			{
-				if(!vp_GraphicsGroupItemsRoots.contains(p_GraphicsGroupItemRoot))
-				{
-					vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItem);
-				}
+				vp_GraphicsGroupItemsRoots.append(p_GraphicsGroupItemRoot);
 			}
 		}
+		GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem,
+											 REMOVE_GROUPS_FROM_SELECTED); // Рекурсивная проверка с правкой от текущей вовлечённой и вверх.
 	}
 	// Поднятие и отсылка статусов всех остоединённых групп.
 	for(int iF = 0; iF != vp_SelectedGroupedGroups.count(); iF++)
@@ -712,9 +712,7 @@ void SchematicView::DetachSelectedAPFS()
 		p_GraphicsGroupItem = vp_SelectedGroupedGroups.at(iF);
 		if(SchematicWindow::vp_Groups.contains(p_GraphicsGroupItem)) // Могли удалить в процессе чисток опустевших групп.
 		{
-//			// Отправка поднятых веток отсоединённых групп с изменением принадлежности главной группы.
-//			BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
-//										   SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS);
+			// Отправка поднятых веток отсоединённых групп с изменением принадлежности главной группы.
 			GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, SEND, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
 											 SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, DONT_ADD_SEND_FRAME,
 											 nullptr, nullptr, SEND_ELEMENTS, TO_TOP, GROUPS_TO_GROUPS_FIRST_ONLY);
@@ -2570,6 +2568,11 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 		//
 		bElementMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
+		if(!p_GraphicsElementItem->bSelected)
+		{
+			p_GraphicsElementItem->p_GraphicsFrameItem->show();
+		}
+		TempSelectElement(p_GraphicsElementItem);
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
@@ -2626,6 +2629,11 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 
 			}
 			TrySendBufferToServer;
+		}
+		TempDeselectElement(p_GraphicsElementItem);
+		if(!p_GraphicsElementItem->bSelected)
+		{
+			p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 		}
 	}
 }
@@ -3250,6 +3258,11 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 		//
 		bGroupMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
+		if(!p_GraphicsGroupItem->bSelected)
+		{
+			p_GraphicsGroupItem->p_GraphicsFrameItem->show();
+		}
+		TempSelectGroup(p_GraphicsGroupItem);
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		if(p_SelectedMenuItem != 0)
 		{
@@ -3272,10 +3285,6 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
-				if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
-				{
-					SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
-				}
 				DeleteSelectedAPFS();
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
@@ -3285,15 +3294,12 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
 			{
-				TempSelectGroup(p_GraphicsGroupItem);
 				CreateGroupFromSelected();
-				TempDeselectGroup(p_GraphicsGroupItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
 			{
 				GraphicsGroupItem* p_GraphicsGroupItemUtil;
 				//
-				TempSelectGroup(p_GraphicsGroupItem);
 				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 				{
 					p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
@@ -3321,13 +3327,10 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 					SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItemUtil);
 					MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItemUtil);
 				}
-				TempDeselectGroup(p_GraphicsGroupItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DETACH)
 			{
-				TempSelectGroup(p_GraphicsGroupItem);
 				DetachSelectedAPFS();
-				TempDeselectGroup(p_GraphicsGroupItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_ELEMENT)
 			{
@@ -3350,8 +3353,13 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			{
 
 			}
+			TrySendBufferToServer;
 		}
-		TrySendBufferToServer;
+		TempDeselectGroup(p_GraphicsGroupItem);
+		if(!p_GraphicsGroupItem->bSelected)
+		{
+			p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
+		}
 	}
 }
 
