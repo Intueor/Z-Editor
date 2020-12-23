@@ -635,11 +635,13 @@ void SchematicView::DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem
 void SchematicView::DetachSelectedAPFS()
 {
 	GraphicsElementItem* p_GraphicsElementItem;
+	GraphicsGroupItem* p_GraphicsGroupItem;
 	GraphicsGroupItem* p_GraphicsGroupItemRoot;
 	QVector<GraphicsGroupItem*> vp_AffectedGroups;
 	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsRoots;
 	QVector<GraphicsElementItem*> vp_SelectedGroupedElements;
-	// Сбор всех элементов в группах.
+	QVector<GraphicsGroupItem*> vp_SelectedGroupedGroups;
+	// Сбор всех выбранных элементов, находящихся в составе групп, остальные - лишнее действие пользователя.
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
@@ -648,24 +650,48 @@ void SchematicView::DetachSelectedAPFS()
 			vp_SelectedGroupedElements.append(p_GraphicsElementItem);
 		}
 	}
-	// Отсоединение элементов.
+	// Сбор всех выбранных групп, находящихся в составе групп, остальные - лишнее действие пользователя.
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+	{
+		p_GraphicsGroupItem = SchematicWindow::vp_SelectedGroups.at(iF);
+		if(p_GraphicsGroupItem->p_GraphicsGroupItemRel)
+		{
+			vp_SelectedGroupedGroups.append(p_GraphicsGroupItem);
+		}
+	}
+	// Отсоединение элементов выбранных элементов по списку.
 	for(int iF = 0; iF != vp_SelectedGroupedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
-		if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr) // Если у элемента есть группа...
+		if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr) // Если элемент в составе группы...
 		{
-			p_GraphicsElementItem->p_GraphicsGroupItemRel->vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление привязки в группе.
-			vp_AffectedGroups.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);// Добавление в вовлечённые группы.
+			p_GraphicsElementItem->p_GraphicsGroupItemRel->
+					vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление привязки в родительской группе.
+			vp_AffectedGroups.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
 			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr; // Удаление привязки в элементе.
 		}
 	}
-	// Проверка и модификация опустевших вовлечённых групп после отсоединения элементов.
+	// Отсоединение выбранных групп по списку.
+	for(int iF = 0; iF != vp_SelectedGroupedGroups.count(); iF++)
+	{
+		p_GraphicsGroupItem = vp_SelectedGroupedGroups.at(iF);
+		if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr) // Если группа в составе группы...
+		{
+			p_GraphicsGroupItem->p_GraphicsGroupItemRel->
+					vp_ConnectedGroups.removeOne(p_GraphicsGroupItem); // Удаление привязки в родительской группе.
+			vp_AffectedGroups.append(p_GraphicsGroupItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
+			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = 0;
+			p_GraphicsGroupItem->p_GraphicsGroupItemRel = nullptr; // Удаление привязки в группе.
+		}
+	}
+	// Проверка и модификация опустевших вовлечённых групп после отсоединения элементов и групп.
 	for(int iG = 0; iG != vp_AffectedGroups.count(); iG++)
 	{
 		GraphicsGroupItem* p_GraphicsGroupItem = vp_AffectedGroups.at(iG);
 		//
-		GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem); // Рекурсивная проверка с правкой от текущей вовлечённой и вверх.
+		GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem,
+											REMOVE_GROUPS_FROM_SELECTED); // Рекурсивная проверка с правкой от текущей вовлечённой и вверх.
 		if(SchematicWindow::vp_Groups.contains(p_GraphicsGroupItem)) // (Могли и всё удалить).
 		{
 			// Взятие корня, включая текщую группу (в отличие от варианта в удалении).
@@ -682,7 +708,18 @@ void SchematicView::DetachSelectedAPFS()
 	}
 	// Отсылка фреймов всех вовлечённых деревьев.
 	GetTreesOfGroupFramesAPFS(vp_GraphicsGroupItemsRoots);
-	// Отсылка статусов всех остоединённых элементов.
+	// Поднятие и отсылка статусов всех остоединённых групп.
+	for(int iF = 0; iF != vp_SelectedGroupedGroups.count(); iF++)
+	{
+		p_GraphicsGroupItem = vp_SelectedGroupedGroups.at(iF);
+		if(SchematicWindow::vp_Groups.contains(p_GraphicsGroupItem)) // Могли удалить в процессе чисток опустевших групп.
+		{
+			// Отправка поднятых веток отсоединённых групп с изменением принадлежности главной группы.
+			GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, SEND, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+											 SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, GROUPS_TO_GROUPS_FIRST_ONLY);
+		}
+	}
+	// Поднятие и отсылка статусов всех остоединённых элементов.
 	for(int iF = 0; iF != vp_SelectedGroupedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
@@ -690,7 +727,6 @@ void SchematicView::DetachSelectedAPFS()
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos; // Наверх в сп.
 		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT; // На следующую позицию.
 		p_GraphicsElementItem->update(); // Применение изменений для сцены.
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits =
 				SCH_CHANGES_ELEMENT_BIT_GROUP | SCH_CHANGES_ELEMENT_BIT_ZPOS;
 		// Именения - на сервер.
@@ -1672,7 +1708,7 @@ void SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_Grap
 	{
 		UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
 		BlockingVerticalsAndPopupElement(p_GraphicsElementItemInitial, p_GraphicsGroupItem,
-										 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+										 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION,
 										 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		UpdateLinksZPos();
 	}
@@ -1701,8 +1737,8 @@ void SchematicView::AddFreeSelectedGroupsToGroupAPFS(GraphicsGroupItem* p_Graphi
 	if(bAction)
 	{
 		UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
-		BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, SEND_NEW_GROUPS_TO_GROUP,
-									   ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+		BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+									   SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
 		UpdateLinksZPos();
 	}
 }
@@ -1717,8 +1753,8 @@ void SchematicView::SelectElement(GraphicsElementItem* p_GraphicsElementItem, bo
 	}
 	//
 	BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel,
-									 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-									 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
+									 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+									 DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_BUSY,
 									 DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
 	p_GraphicsElementItem->bSelected = true;
 }
@@ -1738,8 +1774,8 @@ void SchematicView::DeselectElement(GraphicsElementItem* p_GraphicsElementItem, 
 		}
 	}
 	BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel,
-									 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-									 DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
+									 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+									 DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_BUSY,
 									 DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
 	p_GraphicsElementItem->bSelected = false;
 }
@@ -1822,7 +1858,8 @@ void SchematicView::PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGro
 
 // Блокировка вертикалей и поднятие выбранного элемента.
 void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem,
-													 bool bSend, bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
+													 bool bSend, bool bAddNewElementsToGroupsRelationSending,
+													 bool bAddNewGroupsToGroupsRelationSending,
 													 bool bAddBusyOrZPosToSending, bool bAddFrame, bool bSendElements, bool bAffectSelected)
 {
 	GraphicsGroupItem* p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
@@ -1870,7 +1907,8 @@ void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_Grap
 			if(p_GraphicsGroupItemTempRoot != p_GraphicsGroupItemRoot) // Кроме корня группы в фокусе - его в последнюю очередь.
 			{
 				GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
-												 bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+												 bAddNewElementsToGroupsRelationSending,
+												 bAddNewGroupsToGroupsRelationSending, bAddBusyOrZPosToSending,
 												 bAddFrame, p_GraphicsElementItem, nullptr, bSendElements, LEAVE_IN_PLACE);
 			}
 		}
@@ -1878,18 +1916,20 @@ void SchematicView::BlockingVerticalsAndPopupElement(GraphicsElementItem* p_Grap
 	if(p_GraphicsGroupItem != nullptr)
 	{
 		PullUpZOfBranch(vp_GraphicsGroupItemsFocusedBranch);
-		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
+		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend,
+										 bAddNewElementsToGroupsRelationSending, bAddNewGroupsToGroupsRelationSending,
 										 bAddBusyOrZPosToSending, bAddFrame, p_GraphicsElementItem, p_GraphicsGroupItem, bSendElements);
-		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
-										 bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+		GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupsRelationSending,
+										 bAddNewGroupsToGroupsRelationSending, bAddBusyOrZPosToSending,
 										 bAddFrame, p_GraphicsElementItem, nullptr, bSendElements);
 	}
-	ElementToTopOrBusyAPFS(p_GraphicsElementItem, bAddNewElementsToGroupSending, bAddBusyOrZPosToSending, bSendElements);
+	ElementToTopOrBusyAPFS(p_GraphicsElementItem, bAddNewElementsToGroupsRelationSending, bAddBusyOrZPosToSending, bSendElements);
 }
 
 // Блокировка вертикалей и поднятие выбранной группы.
 void SchematicView::BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_GraphicsGroupItem,
-												   bool bSend, bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
+												   bool bSend, bool bAddNewElementsToGroupsRelationSending,
+												   bool bAddNewGroupsToGroupsRelationSending,
 												   bool bAddBusyOrZPosToSending, bool bAddFrame, bool bSendElements)
 {
 	GraphicsGroupItem* p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
@@ -1915,68 +1955,71 @@ void SchematicView::BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_Graphics
 			if(p_GraphicsGroupItemTempRoot != p_GraphicsGroupItemRoot) // Кроме корня группы в фокусе - его в последнюю очередь.
 			{
 				GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemTempRoot, bSend,
-												  bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-												  bAddFrame, nullptr, nullptr, bSendElements, LEAVE_IN_PLACE);
+												 bAddNewElementsToGroupsRelationSending,
+												 bAddNewGroupsToGroupsRelationSending, bAddBusyOrZPosToSending,
+												 bAddFrame, nullptr, nullptr, bSendElements, LEAVE_IN_PLACE);
 			}
 		}
 	}
 	PullUpZOfBranch(vp_GraphicsGroupItemsFocusedBranch);
-	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend, bAddNewElementsToGroupSending, bAddNewGroupsToGroupSending,
-										 bAddBusyOrZPosToSending, bAddFrame, nullptr, p_GraphicsGroupItem, bSendElements);
-	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
-										 bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-										 bAddFrame, nullptr, nullptr, bSendElements);
+	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItemRoot, bSend,
+									 bAddNewElementsToGroupsRelationSending, bAddNewGroupsToGroupsRelationSending,
+									 bAddBusyOrZPosToSending, bAddFrame, nullptr, p_GraphicsGroupItem, bSendElements);
+	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, bSend, bAddNewElementsToGroupsRelationSending,
+									 bAddNewGroupsToGroupsRelationSending, bAddBusyOrZPosToSending,
+									 bAddFrame, nullptr, nullptr, bSendElements);
 }
 
 // Поднятие ветки групп на первый план и подготовка к отсылке по запросу рекурсивно.
 void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend,
-													 bool bAddNewElementsToGroupSending, bool bAddNewGroupsToGroupSending,
+													 bool bAddNewElementsToGroupsRelationSending, bool bAddNewGroupsToGroupsRelationSending,
 													 bool bAddBusyOrZPosToSending, bool bAddFrame,
 													 GraphicsElementItem* p_GraphicsElementItemExclude,
 													 GraphicsGroupItem* p_GraphicsGroupItemExclude,
-													 bool bSendElements, bool bToTop)
+													 bool bSendElements, bool bToTop, bool bGroupsToGroupsFirstOnly)
 {
-	PSchGroupVars oPSchGroupVars;
 	EGPointersVariant oEGPointersVariant;
 	QVector<EGPointersVariant> v_EGPointersVariants;
 	const EGPointersVariant* p_EGPointersVariant;
+	PSchGroupVars oPSchGroupVars;
 	//
 	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
+	oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 	if(bToTop)
 	{
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+		oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 		p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
 		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		p_GraphicsGroupItem->update();
 	}
 	if(bSend)
 	{
-		oPSchGroupVars.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+		// (В процессе проверки условий инициализация uchChangesBits пройдёт в любом случае).
 		if(bAddBusyOrZPosToSending)
 		{
-			oPSchGroupVars.oSchEGGraph.uchSettingsBits |= SCH_SETTINGS_EG_BIT_BUSY;
+			oPSchGroupVars.oSchEGGraph.uchSettingsBits = SCH_SETTINGS_EG_BIT_BUSY;
 			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_BUSY;
 		}
 		else
 		{
 			oPSchGroupVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_GROUP_BIT_ZPOS;
-			oPSchGroupVars.oSchEGGraph.dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos;
+			oPSchGroupVars.oSchEGGraph.dbObjectZPos =
+					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos;
 		}
 		if(bAddFrame)
 		{
 			oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_CHANGES_GROUP_BIT_FRAME;
-			oPSchGroupVars.oSchEGGraph.oDbFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
+			oPSchGroupVars.oSchEGGraph.oDbFrame =
+					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 		}
-		if(bAddNewGroupsToGroupSending)
+		if(bAddNewGroupsToGroupsRelationSending)
 		{
-			if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup != 0)
-			{
-				oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_CHANGES_GROUP_BIT_GROUP;
-				oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup;
-			}
+			oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_CHANGES_GROUP_BIT_GROUP;
+			oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup;
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
-													   sizeof(PSchGroupVars));
+													   sizeof(oPSchGroupVars));
+		if(bGroupsToGroupsFirstOnly) bAddNewGroupsToGroupsRelationSending = false; // Остечка отправки дальнейших зависимостей по рекурсии.
 	}
 	oEGPointersVariant.p_GraphicsElementItem = nullptr;
 	oEGPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
@@ -1995,14 +2038,14 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 		{
 			if(!vp_SelectedForDeleteElements.contains(p_EGPointersVariant->p_GraphicsElementItem))
 			{
-				ElementToTopOrBusyAPFS(p_EGPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupSending,
+				ElementToTopOrBusyAPFS(p_EGPointersVariant->p_GraphicsElementItem, bAddNewElementsToGroupsRelationSending,
 								 bAddBusyOrZPosToSending, bSendElements, bToTop);
 			}
 		}
 		else
 		{
-			GroupsBranchToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
-										   bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
+			GroupsBranchToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupsRelationSending,
+										   bAddNewGroupsToGroupsRelationSending, bAddBusyOrZPosToSending,
 										   DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude, SEND_ELEMENTS, bToTop);
 		}
 	}
@@ -2018,8 +2061,8 @@ void SchematicView::SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLa
 		p_GraphicsGroupItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
 	}
 	//
-	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY,
+	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+					  DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_BUSY,
 					  DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
 	p_GraphicsGroupItem->bSelected = true;
 }
@@ -2035,8 +2078,8 @@ void SchematicView::DeselectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool b
 			p_GraphicsGroupItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
 		}
 	}
-	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP,
-					  DONT_SEND_NEW_GROUPS_TO_GROUP, ADD_SEND_BUSY);
+	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+					  DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_BUSY);
 	p_GraphicsGroupItem->bSelected = false;
 }
 
@@ -2386,7 +2429,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			// Из группы.
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
 			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRemoveFromGroup))->setData(MENU_REMOVE_FROM_GROUPS);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetach))->setData(MENU_DETACH);
 			}
 			// Цвет фона.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackground))->setData(MENU_CHANGE_BACKGROUND);
@@ -2494,8 +2537,8 @@ void SchematicView::CreateGroupFromSelected()
 			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 	MainWindow::p_Client->AddPocketToOutputBufferC(
 				PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
-	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUP, SEND_NEW_GROUPS_TO_GROUP,
-								   ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+								   SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
 	UpdateLinksZPos();
 }
 
@@ -2575,7 +2618,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			{
 				AddFreeSelectedElementsToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0), p_GraphicsElementItem);
 			}
-			else if(p_SelectedMenuItem->data() == MENU_REMOVE_FROM_GROUPS)
+			else if(p_SelectedMenuItem->data() == MENU_DETACH)
 			{
 				TempSelectElement(p_GraphicsElementItem);
 				DetachSelectedAPFS();
@@ -3283,6 +3326,12 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				}
 				TempDeselectGroup(p_GraphicsGroupItem);
 			}
+			else if(p_SelectedMenuItem->data() == MENU_DETACH)
+			{
+				TempSelectGroup(p_GraphicsGroupItem);
+				DetachSelectedAPFS();
+				TempDeselectGroup(p_GraphicsGroupItem);
+			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_ELEMENT)
 			{
 				GraphicsElementItem* p_GraphicsElementItem;
@@ -3295,7 +3344,8 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 				UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
 				BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsGroupItem,
-												 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+												 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+												 DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION,
 												 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 				UpdateLinksZPos();
 			}
@@ -3403,20 +3453,25 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 }
 
 // Рекурсивное удаление пустых групп.
-void SchematicView::GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem)
+void SchematicView::GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bRemoveFromSelectedVec)
 {
 	if(p_GraphicsGroupItem->vp_ConnectedElements.isEmpty() & p_GraphicsGroupItem->vp_ConnectedGroups.isEmpty()) // Если пустая группа...
 	{
 		if(p_GraphicsGroupItem->p_GraphicsGroupItemRel) // Если была в составе другой...
 		{
 			p_GraphicsGroupItem->p_GraphicsGroupItemRel->vp_ConnectedGroups.removeOne(p_GraphicsGroupItem); // Удаление из состава.
-			GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel); // Теперь та же проверка для хост-группы.
+			GroupCheckEmptyAndRemoveRecursively(p_GraphicsGroupItem->p_GraphicsGroupItemRel,
+												bRemoveFromSelectedVec); // Теперь та же проверка для хост-группы.
 		}
 		if(!vp_SelectedForDeleteGroups.isEmpty())
 		{
 			vp_SelectedForDeleteGroups.removeAll(p_GraphicsGroupItem); // Удаление из списка удаления (если есть, возможны вызовы из отделения).
 		}
 		SchematicWindow::vp_Groups.removeAll(p_GraphicsGroupItem);
+		if(bRemoveFromSelectedVec)
+		{ // При вызове из отсоединения, при вызове из удаления - не нужно, в функции удаления вектор выбранных групп очищаются полностью.
+			SchematicWindow::vp_SelectedFreeGroups.removeAll(p_GraphicsGroupItem); // Удаление из вектора выбранных групп.
+		}
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
 	}
 	else
@@ -3882,8 +3937,8 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 		oDbPointPortRB.dbX = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbW; // Крайняя правая точка.
 		oDbPointPortRB.dbY = p_GraphicsPortItem->p_SchEGGraph->oDbFrame.dbH; // Крайняя нижняя точка.
 		BlockingVerticalsAndPopupElement(p_GraphicsPortItem->p_ParentInt, p_GraphicsPortItem->p_ParentInt->p_GraphicsGroupItemRel,
-						  SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
-						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
+										 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION,
+										 ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		TrySendBufferToServer;
 		if(p_Event->modifiers() == Qt::AltModifier)
 		{
@@ -4390,7 +4445,7 @@ void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsS
 	{
 		BlockingVerticalsAndPopupElement(p_GraphicsScalerItem->p_ParentInt,
 										 p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel, SEND_GROUP,
-						  DONT_SEND_NEW_ELEMENTS_TO_GROUP, DONT_SEND_NEW_GROUPS_TO_GROUP,
+						  DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION,
 						  ADD_SEND_BUSY, DONT_ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
 		TrySendBufferToServer;
 	}

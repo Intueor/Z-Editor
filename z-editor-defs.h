@@ -12,52 +12,56 @@
 #define OVERMIN_NUMBER						-999999999
 #define SCENE_DIM_X							6000
 #define SCENE_DIM_Y							6000
-//
-#define SEND								true
-#define DONT_SEND							false
-#define SEND_ELEMENTS						true
-#define DONT_SEND_ELEMENTS					false
-#define SEND_ELEMENT						true
-#define DONT_SEND_ELEMENT					false
-#define SEND_GROUP							true
-#define DONT_SEND_GROUP						false
-#define WITH_GROUP							true
-#define WITHOUT_GROUP						false
-#define SEND_NEW_ELEMENTS_TO_GROUP			true
-#define DONT_SEND_NEW_ELEMENTS_TO_GROUP		false
-#define SEND_NEW_GROUPS_TO_GROUP			true
-#define DONT_SEND_NEW_GROUPS_TO_GROUP		false
-#define SEND_ELEMENT_GROUP_CHANGE			true
-#define DONT_SEND_ELEMENT_GROUP_CHANGE		false
-#define ADD_SEND_BUSY						true
-#define ADD_SEND_ZPOS						false
-#define ADD_SEND_FRAME						true
-#define DONT_ADD_SEND_FRAME					false
-#define GET_SELECTED_OBJECTS_UP				true
-#define DONT_GET_SELECTED_OBJECTS_UP		false
-#define WITH_FRAME							true
-#define WITHOUT_FRAME						false
-#define WITH_POSITION						true
-#define WITHOUT_POSITION					false
-#define WITH_ELEMENTS_FRAMES				true
-#define WITHOUT_ELEMENTS_FRAMES				false
-#define FROM_ELEMENT						true
-#define NOT_FROM_ELEMENT					false
-#define REMOVE_FROM_CLIENT					true
-#define DONT_REMOVE_FROM_CLIENT				false
-#define TO_TOP								true
-#define LEAVE_IN_PLACE						false
-#define AFFECT_SELECTED						true
-#define DONT_AFFECT_SELECTED				false
-#define RECURSION_CONTINUE					false
-#define MOVE_BODY							true
-#define DONT_MOVE_BODY						false
-#define IS_SRC								true
-#define IS_DST								false
-#define IS_INCOMING							true
-#define IS_NOT_INCOMING						false
-#define BLOCKING_ON						true
-#define BLOCKING_OFF					false
+// Макросы для удобного чтения сложных вызовов функций.
+#define SEND										true
+#define DONT_SEND									false
+#define SEND_ELEMENTS								true
+#define DONT_SEND_ELEMENTS							false
+#define SEND_ELEMENT								true
+#define DONT_SEND_ELEMENT							false
+#define SEND_GROUP									true
+#define DONT_SEND_GROUP								false
+#define WITH_GROUP									true
+#define WITHOUT_GROUP								false
+#define SEND_NEW_ELEMENTS_TO_GROUPS_RELATION		true
+#define DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION	false
+#define SEND_NEW_GROUPS_TO_GROUPS_RELATION			true
+#define DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION		false
+#define GROUPS_TO_GROUPS_FIRST_ONLY					true
+#define GROUPS_TO_GROUPS_WHOLE_BRANCH				false
+#define SEND_ELEMENT_GROUP_CHANGE					true
+#define DONT_SEND_ELEMENT_GROUP_CHANGE				false
+#define ADD_SEND_BUSY								true
+#define ADD_SEND_ZPOS								false
+#define ADD_SEND_FRAME								true
+#define DONT_ADD_SEND_FRAME							false
+#define GET_SELECTED_OBJECTS_UP						true
+#define DONT_GET_SELECTED_OBJECTS_UP				false
+#define WITH_FRAME									true
+#define WITHOUT_FRAME								false
+#define WITH_POSITION								true
+#define WITHOUT_POSITION							false
+#define WITH_ELEMENTS_FRAMES						true
+#define WITHOUT_ELEMENTS_FRAMES						false
+#define FROM_ELEMENT								true
+#define NOT_FROM_ELEMENT							false
+#define REMOVE_FROM_CLIENT							true
+#define DONT_REMOVE_FROM_CLIENT						false
+#define TO_TOP										true
+#define LEAVE_IN_PLACE								false
+#define AFFECT_SELECTED								true
+#define DONT_AFFECT_SELECTED						false
+#define RECURSION_CONTINUE							false
+#define MOVE_BODY									true
+#define DONT_MOVE_BODY								false
+#define IS_SRC										true
+#define IS_DST										false
+#define IS_INCOMING									true
+#define IS_NOT_INCOMING								false
+#define BLOCKING_ON									true
+#define BLOCKING_OFF								false
+#define REMOVE_GROUPS_FROM_SELECTED					true
+#define DONT_REMOVE_GROUPS_FROM_SELECTED			false
 
 // Размеры.
 #define SCALER_RECT_DIM					9.0f
@@ -147,28 +151,26 @@ const char m_chMenuDstPort[] = "Порт приёмника ";
 #define MENU_DST_PORT			4
 const char m_chMenuSelectedPort[] = "Выбранный порт ";
 #define MENU_SELECTED_PORT		5
-const char m_chMenuRemoveFromGroup[] = "Удалить выбранное из групп";
-#define MENU_REMOVE_FROM_GROUPS	6
 const char m_chMenuCreateGroup[] = "Создать группу с выбранным";
-#define MENU_CREATE_GROUP		7
+#define MENU_CREATE_GROUP		6
 const char m_chMenuCreateElement[] = "Создать элемент";
-#define MENU_CREATE_ELEMENT		8
+#define MENU_CREATE_ELEMENT		7
 const char m_chMenuAddFreeSelected[] = "Добавить выбранное в группу";
-#define MENU_ADD_SELECTED		9
+#define MENU_ADD_SELECTED		8
 const char m_chMenuBackground[] = "Изменить цвет фона";
-#define MENU_CHANGE_BACKGROUND	10
+#define MENU_CHANGE_BACKGROUND	9
 const char m_chMenuDisband[] = "Расформировать выбранные группы";
-#define MENU_DISBAND			11
-const char m_chMenuDetach[] = "Отсоединить выбранные группы";
-#define MENU_DETACH				12
+#define MENU_DISBAND			10
+const char m_chMenuDetach[] = "Отсоединить выбранное от групп";
+#define MENU_DETACH				11
 const char m_chMenuAddElement[] = "Создать элемент в группе";
-#define MENU_ADD_ELEMENT		13
+#define MENU_ADD_ELEMENT		12
 const char m_chMenuSetPassword[] = "Задать пароль";
-#define MENU_SET_PASSWORD		14
+#define MENU_SET_PASSWORD		13
 const char m_chMenuSetAsDefault[] = "Установить как текущий";
-#define MENU_SET_AS_DEFAULT		15
+#define MENU_SET_AS_DEFAULT		14
 const char m_chMenuRename[] = "Переименовать";
-#define MENU_RENAME				16
+#define MENU_RENAME				15
 const char m_chMenuRenameSelection[] = "Переименовать выборку";
-#define MENU_RENAME_SELECTION	17
+#define MENU_RENAME_SELECTION	16
 #endif // ZEDITORDEFS_H

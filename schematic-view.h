@@ -189,48 +189,50 @@ public:
 							///< \param[in] avp_GraphicsGroupItemsBranch Ссылка на вектор с веткой групп.
 	/// Блокировка вертикалей и поднятие выбранного элемента.
 	static void BlockingVerticalsAndPopupElement(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem = nullptr,
-												 bool bSend = true, bool bAddNewElementsToGroupSending = false,
-												 bool bAddNewGroupsToGroupSending = false,
+												 bool bSend = true, bool bAddNewElementsToGroupsRelationSending = false,
+												 bool bAddNewGroupsToGroupsRelationSending = false,
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 												 bool bSendElements = true, bool bAffectSelected = true);
 							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
-							///< \param[in] bAddNewElementsToGroupSending При true - передача сод. элементами параметра текущей группы.
-							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
+							///< \param[in] bAddNewElementsToGroupsRelationSending При true - передача сод. элементами параметра текущей группы.
+							///< \param[in] bAddNewGroupsToGroupsRelationSending При true - передача содержащимеся гр.параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - уст. флагов занятости, иначе - отпр. z-поз. (для нового содерж.)
 							///< \param[in] bAddFrame При true - передача фреймов групп.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bAffectSelected При true - обработка занятостей выбранных элементов кроме текущего.
 	/// Блокировка вертикалей и поднятие выбранной группы.
 	static void BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_GraphicsGroupItem,
-											   bool bSend = true, bool bAddNewElementsToGroupSending = false,
-											   bool bAddNewGroupsToGroupSending = false,
+											   bool bSend = true, bool bAddNewElementsToGroupsRelationSending = false,
+											   bool bAddNewGroupsToGroupsRelationSending = false,
 											   bool bAddBusyOrZPosToSending = true, bool bAddFrame = false, bool bSendElements = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
-							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
-							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
+							///< \param[in] bAddNewElementsToGroupsRelationSending При true - передача содержащимеся эл. пар. текущей группы.
+							///< \param[in] bAddNewGroupsToGroupsRelationSending При true - передача содержащимеся гр. параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - уст. флагов занятости, иначе - отпр. z-поз. (для нового содерж.)
 							///< \param[in] bAddFrame При true - передача фреймов групп.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 	// Поднятие ветки групп на первый план и подготовка к отсылке по запросу рекурсивно.
 	static void GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bSend = true,
-												 bool bAddNewElementsToGroupSending = false, bool bAddNewGroupsToGroupSending =  false,
+												 bool bAddNewElementsToGroupsRelationSending = false,
+												 bool bAddNewGroupsToGroupsRelationSending = false,
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 												 GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 												 GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-												 bool bSendElements = true, bool bToTop = true);
+												 bool bSendElements = true, bool bToTop = true, bool bGroupsToGroupsFirstOnly = false);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
-							///< \param[in] bAddNewElementsToGroupSending При true - передача содержащимеся элементами параметра текущей группы.
-							///< \param[in] bAddNewGroupsToGroupSending При true - передача содержащимеся группами параметра текущей группы.
+							///< \param[in] bAddNewElementsToGroupsRelationSending При true - передача содержащимеся эл. пар. текущей группы.
+							///< \param[in] bAddNewGroupsToGroupsRelationSending При true - передача содержащимеся гр. параметра текущей группы.
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций рекурсивно.
 							///< \param[in] bAddFrame При true - передача фрейма группы.
 							///< \param[in] p_GraphicsElementItemExclude Указатель на исключаемый элемент или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bToTop При true - поднятие содержимого.
+							///< \param[in] bGroupsToGroupsFirstOnly true - для вызова из отделения ветки групп, отправит только первую завис.
 	/// Выбор группы.
 	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
@@ -315,8 +317,9 @@ public:
 							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
 
 	/// Рекурсивное удаление пустых групп.
-	static void GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem);
+	static void GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bRemoveFromSelectedVec = false);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] bRemoveFromSelectedVec При true - удаление удаляемых групп из вектора выбранных (выз. из отсоедин.).
 	/// Обработчик функции возврата вместилища рамки.
 	static QRectF FrameBoundingHandler(const GraphicsFrameItem* pc_GraphicsFrameItem);
 							///< \param[in] GraphicsFrameItem Указатель на фрейм.
