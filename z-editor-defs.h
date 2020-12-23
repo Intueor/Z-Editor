@@ -140,9 +140,10 @@ const char m_chMsgServerPassword[] = "Пароль сервера.";
 const char m_chNewElement[] = "Новый элемент";
 const char m_chNewGroup[] = "Новая группа";
 const char m_chPortTooltip[] = "Порт: ";
+const char m_chSelection[] = "Выборка";
 //
-const char m_chMenuDelete[] = "Удалить";
-#define MENU_DELETE				1
+const char m_chMenuDelete[] = "Удалить выбранное";
+#define MENU_DELETE_SELECTED	1
 const char m_chMenuPorts[] = "Порты";
 #define MENU_PORTS				2
 const char m_chMenuSrcPort[] = "Порт источника ";
@@ -172,5 +173,5 @@ const char m_chMenuSetAsDefault[] = "Установить как текущий"
 const char m_chMenuRename[] = "Переименовать";
 #define MENU_RENAME				15
 const char m_chMenuRenameSelection[] = "Переименовать выборку";
-#define MENU_RENAME_SELECTION	16
+#define MENU_RENAME_SELECTED	16
 #endif // ZEDITORDEFS_H

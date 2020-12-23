@@ -517,6 +517,7 @@ public:
 	static bool bElementMenuReady; ///< Флаг готового меню для элемента.
 	static bool bGroupMenuReady; ///< Флаг готового меню для группы.
 	static bool bPortMenuReady; ///< Флаг готового меню для порта.
+	static bool bPortMenuInExecution; ///< Флаг исполняющегося меню для порта.
 	static bool bRMBPressed; ///< Флаг нажатой ПКМ.
 	static DbPoint oDbPointPortRB; ///< Точка правого нижнего края элемента для порта.
 	static DbPoint oDbPointPortCurrent; ///< Текщая точка для порта.

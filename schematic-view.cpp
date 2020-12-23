@@ -33,6 +33,7 @@ DbPoint SchematicView::oDbPointPortCurrent;
 DbPoint SchematicView::oDbPointPortInitialClick;
 bool SchematicView::bPortFromElement = false;
 bool SchematicView::bPortMenuExecuted = false;
+bool SchematicView::bPortMenuInExecution = false;
 QVector<GraphicsGroupItem*> SchematicView::v_AlreadyMovedGroups;
 QVector<SchematicView::EGPointersVariant> SchematicView::v_OccupiedByClient;
 constexpr QPointF SchematicView::pntTrR;
@@ -2341,7 +2342,6 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 				p_GraphicsLinkItemNew = nullptr;
 				goto gNL;
 			}
-
 			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 			UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 			MainWindow::p_This->RemoteUpdateSchView();
@@ -2380,7 +2380,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			}
 			else
 			{
-				strCaption = "Выборка элементов";
+				strCaption = m_chSelection;
 			}
 			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 34);
 			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
@@ -2391,10 +2391,10 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			}
 			else
 			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTED);
 			}
 			// Удалить.
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE_SELECTED);
 			// Порты.
 			for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
 			{
@@ -2556,7 +2556,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		ReleaseOccupiedAPFS();
-		TrySendBufferToServer;
 	}
 	p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
 	if((SchematicWindow::p_SafeMenu != nullptr) && bElementMenuReady)
@@ -2596,7 +2595,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->data() == MENU_DELETE)
+			else if(p_SelectedMenuItem->data() == MENU_DELETE_SELECTED)
 			{
 				if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem))
 				{
@@ -2628,7 +2627,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			{
 
 			}
-			TrySendBufferToServer;
 		}
 		TempDeselectElement(p_GraphicsElementItem);
 		if(!p_GraphicsElementItem->bSelected)
@@ -2636,6 +2634,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 		}
 	}
+	TrySendBufferToServer;
 }
 
 // Обработчик функции рисования элемента.
@@ -3135,7 +3134,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			}
 			else
 			{
-				strCaption = "Выборка групп";
+				strCaption = m_chSelection;
 			}
 			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 50);
 			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
@@ -3146,10 +3145,10 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			}
 			else
 			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTION);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameSelection))->setData(MENU_RENAME_SELECTED);
 			}
 			// Удалить.
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE_SELECTED);
 			// Расформировать.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
 			// Отсоединить.
@@ -3246,7 +3245,6 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		ReleaseOccupiedAPFS();
-		TrySendBufferToServer;
 	}
 	p_GraphicsGroupItem->OBMouseReleaseEvent(p_Event);
 	if((SchematicWindow::p_SafeMenu != nullptr) && bGroupMenuReady)
@@ -3283,7 +3281,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
 			}
-			else if(p_SelectedMenuItem->data() == MENU_DELETE)
+			else if(p_SelectedMenuItem->data() == MENU_DELETE_SELECTED)
 			{
 				DeleteSelectedAPFS();
 			}
@@ -3353,7 +3351,6 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			{
 
 			}
-			TrySendBufferToServer;
 		}
 		TempDeselectGroup(p_GraphicsGroupItem);
 		if(!p_GraphicsGroupItem->bSelected)
@@ -3361,6 +3358,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
 		}
 	}
+	TrySendBufferToServer;
 }
 
 // Обработчик функции рисования группы.
@@ -3984,7 +3982,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuSrcPort) + "[" + strPortSrc + "]")->setData(MENU_SRC_PORT);
 			}
 			// Удалить.
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE_SELECTED);
 			bPortMenuReady = true;
 		}
 	}
@@ -4260,7 +4258,11 @@ gF:		ReleaseOccupiedAPFS();
 		//
 		bPortMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
+		p_GraphicsPortItem->p_GraphicsFrameItem->show();
+		SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsPortItem->p_GraphicsFrameItem;
+		bPortMenuInExecution = true; // Ухищрения для того, чтобы не сработала глушилка мигания по уходу ховера с порта.
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
+		bPortMenuInExecution = false;
 		if(p_SelectedMenuItem != 0)
 		{
 			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog = nullptr;
@@ -4317,12 +4319,14 @@ gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsI
 					else goto gDst;
 				}
 			}
-gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
+gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE_SELECTED)
 			{
 				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt);
 			}
 			if(p_Set_Proposed_String_Dialog) p_Set_Proposed_String_Dialog->deleteLater();
 		}
+		p_GraphicsPortItem->p_GraphicsFrameItem->hide();
+		SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
 		bPortMenuExecuted = true;
 	}
 	TrySendBufferToServer;
@@ -4434,8 +4438,11 @@ void SchematicView::PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortI
 // Обработчик ухода курсора с порта.
 void SchematicView::PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortItem)
 {
-	p_GraphicsPortItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
-	SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
+	if(!bPortMenuInExecution)
+	{
+		p_GraphicsPortItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
+		SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
+	}
 }
 
 // Обработчик события нажатия мыши на скалер.
