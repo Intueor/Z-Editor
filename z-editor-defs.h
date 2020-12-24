@@ -146,7 +146,7 @@ const char m_chNumOrPseudo[] = "Номер или псевдоним порта 
 //
 const char m_chMenuDelete[] = "Удалить выбранное";
 #define MENU_DELETE_SELECTED	1
-const char m_chMenuPorts[] = "Порты";
+const char m_chMenuPorts[] = "Порты выбранного";
 #define MENU_PORTS				2
 const char m_chMenuSrcPort[] = "Порт источника ";
 #define MENU_SRC_PORT			3
