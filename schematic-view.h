@@ -463,7 +463,8 @@ private:
 							///< \param[in] p_GraphicsGroupItem Указатель на группу-родителя элемента или группы.
 							///< \return Указатель на корень.
 	/// Проверка на включённость в состав групп в выборке.
-	static bool TestSelectedForNesting();
+	static bool TestSelectedForNesting(GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr);
+							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения из поиска.
 
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.

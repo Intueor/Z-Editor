@@ -2473,14 +2473,14 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				}
 			}
 			// В группу.
-			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+			if(SchematicWindow::vp_SelectedGroups.count() == 1)
 			{
-				if(SchematicWindow::vp_SelectedGroups.count() == 1)
+				GraphicsGroupItem* p_GraphicsGroupItemFirstSelected = SchematicWindow::vp_SelectedGroups.at(0);
+				//
+				if(!TestSelectedForNesting(p_GraphicsGroupItemFirstSelected))
 				{
 					SchematicWindow::p_SafeMenu->addAction(QString(QString(m_chMenuAddFreeSelected) +
-																   " [" +
-																   QString(SchematicWindow::vp_SelectedGroups.at(0)->
-																		   oPSchGroupBaseInt.m_chName)
+																   " [" + QString(p_GraphicsGroupItemFirstSelected->oPSchGroupBaseInt.m_chName)
 																   + "]"))->setData(MENU_ADD_SELECTED);
 				}
 			}
@@ -2499,7 +2499,7 @@ gM:	TrySendBufferToServer;
 }
 
 // Проверка на включённость в состав групп в выборке.
-bool SchematicView::TestSelectedForNesting()
+bool SchematicView::TestSelectedForNesting(GraphicsGroupItem* p_GraphicsGroupItemExclude)
 {
 	for(int iE = 0; iE != SchematicWindow::vp_SelectedElements.count(); iE++)
 	{
@@ -2507,7 +2507,9 @@ bool SchematicView::TestSelectedForNesting()
 	}
 	for(int iG = 0; iG != SchematicWindow::vp_SelectedGroups.count(); iG++)
 	{
-		if(SchematicWindow::vp_SelectedGroups.at(iG)->p_GraphicsGroupItemRel) return true;
+		GraphicsGroupItem* p_GraphicsGroupItemSelected = SchematicWindow::vp_SelectedGroups.at(iG);
+		// Обработка возможного исключения для опций добавления выбранного в группу.
+		if(p_GraphicsGroupItemSelected->p_GraphicsGroupItemRel && (p_GraphicsGroupItemSelected != p_GraphicsGroupItemExclude)) return true;
 	}
 	return false;
 }
@@ -3265,15 +3267,13 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 					SchematicWindow::vp_SelectedFreeGroups.append(p_GraphicsGroupItemHelper);
 				}
 			}
-//			if(!SchematicWindow::vp_SelectedFreeElements.isEmpty() | (SchematicWindow::vp_SelectedFreeGroups.count() > 1))
-//			{ // Если хоть что-то выбрано, кроме текущей группы...
-//				if(bNoSelection) // И если текущая не выбрана...
-//				{
-//					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
-//				}
-//				else goto gC; // Иначе - на создание группы.
-//			}
-//			else // Иначе - создание группы.
+			if(!TestSelectedForNesting(p_GraphicsGroupItem))
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(QString(m_chMenuAddFreeSelected) +
+															   " [" +
+															   QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName)
+															   + "]"))->setData(MENU_ADD_SELECTED);
+			}
 			if(p_GraphicsGroupItem->p_GraphicsGroupItemRel == nullptr)
 			{
 				if(!TestSelectedForNesting())
