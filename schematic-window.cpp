@@ -31,8 +31,6 @@ QPen SchematicWindow::oQPenPortFrameFlash;
 QPen SchematicWindow::oQPenSelectionDash;
 QPen SchematicWindow::oQPenSelectionDot;
 QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedElements;
-QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedFreeElements;
-QVector<GraphicsGroupItem*> SchematicWindow::vp_SelectedFreeGroups;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_SelectedGroups;
 QVector<GraphicsElementItem*> SchematicWindow::vp_Elements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_Groups;
@@ -181,8 +179,6 @@ void SchematicWindow::ClearScene()
 	vp_Ports.clear();
 	vp_LonelyElements.clear();
 	vp_SelectedElements.clear();
-	vp_SelectedFreeElements.clear();
-	vp_SelectedFreeGroups.clear();
 	vp_SelectedGroups.clear();
 	bCleaningSceneNow = false;
 }

@@ -1714,73 +1714,37 @@ void SchematicView::RemovePortsByID(unsigned long long ullID)
 	}
 }
 
-// Добавление свободных элементов в группу и подготовка к отправке по запросу.
-void SchematicView::AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
-													   GraphicsElementItem* p_GraphicsElementItemInitial)
+// Добавление выбранного в группу и подготовка к отправке по запросу.
+void SchematicView::AddFreeSelectedToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
-	bool bAction;
-	//
-	if(SchematicWindow::vp_SelectedFreeElements.isEmpty()) return;
-	if(p_GraphicsElementItemInitial == nullptr)
-	{
-		p_GraphicsElementItemInitial = SchematicWindow::vp_SelectedElements.at(0);
-	}
-	TempSelectElement(p_GraphicsElementItemInitial);
-	bAction = false;
-	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
-	{
-		p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
-		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
-		{
-			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup !=
-			   p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt)
-			{
-				p_GraphicsGroupItem->vp_ConnectedElements.push_front(p_GraphicsElementItem);
-				p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
-				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup =
-						p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-				bAction = true;
-			}
-		}
-	}
-	if(bAction)
-	{
-		UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
-		BlockingVerticalsAndPopupElement(p_GraphicsElementItemInitial, p_GraphicsGroupItem,
-										 SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION,
-										 ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS, DONT_AFFECT_SELECTED);
-		UpdateLinksZPos();
-	}
-	TempDeselectElement(p_GraphicsElementItemInitial);
-}
-
-void SchematicView::AddFreeSelectedGroupsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem)
-{
 	GraphicsGroupItem* p_GraphicsGroupItemHelper;
-	bool bAction;
 	//
-	if(SchematicWindow::vp_SelectedFreeGroups.isEmpty()) return;
-	bAction = false;
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 	{
 		p_GraphicsGroupItemHelper = SchematicWindow::vp_SelectedGroups.at(iF);
 		if((p_GraphicsGroupItemHelper != p_GraphicsGroupItem) & (p_GraphicsGroupItemHelper->p_GraphicsGroupItemRel == nullptr))
 		{
-			p_GraphicsGroupItem->vp_ConnectedGroups.push_front(p_GraphicsGroupItemHelper);
+			p_GraphicsGroupItem->vp_ConnectedGroups.append(p_GraphicsGroupItemHelper);
 			p_GraphicsGroupItemHelper->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 			p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup =
 					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-			bAction = true;
 		}
 	}
-	if(bAction)
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
-		UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
-		BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
-									   SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
-		UpdateLinksZPos();
+		p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+
+		p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItem);
+		p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup =
+				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
 	}
+	UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
+	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, SEND, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, SEND_NEW_GROUPS_TO_GROUPS_RELATION,
+									 ADD_SEND_ZPOS, ADD_SEND_FRAME, nullptr, nullptr,
+									 SEND_ELEMENTS, TO_TOP, GROUPS_TO_GROUPS_EXCLUDE_VAR_FOR_GROUPING);
+	UpdateLinksZPos();
 }
 
 // Выбор элемента.
@@ -2589,23 +2553,17 @@ void SchematicView::CreateGroupFromSelected()
 		p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
 		if(p_GraphicsGroupItemUtil != p_GraphicsGroupItem)
 		{
-			if(p_GraphicsGroupItemUtil->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup == 0)
-			{
-				p_GraphicsGroupItemUtil->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
-				p_GraphicsGroupItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
-				p_GraphicsGroupItem->vp_ConnectedGroups.append(p_GraphicsGroupItemUtil);
-			}
+			p_GraphicsGroupItemUtil->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
+			p_GraphicsGroupItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+			p_GraphicsGroupItem->vp_ConnectedGroups.append(p_GraphicsGroupItemUtil);
 		}
 	}
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 	{
 		p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iF);
-		if(p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
-		{
-			p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
-			p_GraphicsElementItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
-			p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
-		}
+		p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
+		p_GraphicsElementItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+		p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
 	}
 	UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
 	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, SEND, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, SEND_NEW_GROUPS_TO_GROUPS_RELATION,
@@ -2690,7 +2648,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
-				AddFreeSelectedElementsToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0), p_GraphicsElementItem);
+				AddFreeSelectedToGroupAPFS(SchematicWindow::vp_SelectedGroups.at(0));
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DETACH)
 			{
@@ -3244,29 +3202,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			}
 			// Создать элемент в группе.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
-			// Добавить выбранные свободные объекты.
-			SchematicWindow::vp_SelectedFreeElements.clear();
-			SchematicWindow::vp_SelectedFreeGroups.clear();
 			TempSelectGroup(p_GraphicsGroupItem);
-			if(!SchematicWindow::vp_SelectedElements.isEmpty())
-			{
-				for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
-				{
-					GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
-					if(p_GraphicsElementItem->p_GraphicsGroupItemRel == nullptr)
-					{
-						SchematicWindow::vp_SelectedFreeElements.append(p_GraphicsElementItem);
-					}
-				}
-			}
-			for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
-			{
-				GraphicsGroupItem* p_GraphicsGroupItemHelper = SchematicWindow::vp_SelectedGroups.at(iF);
-				if(p_GraphicsGroupItemHelper->p_GraphicsGroupItemRel == nullptr)
-				{
-					SchematicWindow::vp_SelectedFreeGroups.append(p_GraphicsGroupItemHelper);
-				}
-			}
 			if(!TestSelectedForNesting(p_GraphicsGroupItem))
 			{
 				SchematicWindow::p_SafeMenu->addAction(QString(QString(m_chMenuAddFreeSelected) +
@@ -3378,8 +3314,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
-				AddFreeSelectedElementsToGroupAPFS(p_GraphicsGroupItem);
-				AddFreeSelectedGroupsToGroupAPFS(p_GraphicsGroupItem);
+				AddFreeSelectedToGroupAPFS(p_GraphicsGroupItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
 			{

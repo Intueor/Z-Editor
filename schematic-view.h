@@ -153,13 +153,8 @@ public:
 	/// Удаление всех графических элементов портов с элемента по ID.
 	static void RemovePortsByID(unsigned long long ullID);
 							///< \param[in] ullID ID элемента.
-	/// Добавление свободных элементов в группу и подготовка к отправке по запросу.
-	static void AddFreeSelectedElementsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem,
-												   GraphicsElementItem* p_GraphicsElementItemInitial = nullptr);
-							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
-							///< \param[in] p_GraphicsGroupItem Указатель на инициирующий граф. элемент (по необходимости).
-	///  Добавление свободных групп в группу и подготовка к отправке по запросу.
-	static void AddFreeSelectedGroupsToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem);
+	/// Добавление выбранного в группу и подготовка к отправке по запросу.
+	static void AddFreeSelectedToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 	/// Выбор элемента.
 	static void SelectElement(GraphicsElementItem* p_GraphicsElementItem, bool bLastState = true);
