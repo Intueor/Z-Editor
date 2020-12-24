@@ -77,6 +77,8 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
 							///< \param[in] bFromElement Признак вызова из элемента.
 							///< \param[in] bRemoveFromClient Флаг для удаления с клиента.
+	/// Расформирование выбранных групп и подготовка отправки всех изменеий на сервер.
+	static void DisbandSelectedGroupsAPFS();
 	/// Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
 	static void DetachSelectedAPFS();
 	/// Подготовка всех фреймов групп дерева к отправке рекурсивно.
@@ -459,6 +461,8 @@ private:
 	static GraphicsGroupItem* GetRootOfGroup(GraphicsGroupItem* p_GraphicsGroupItemParent);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу-родителя элемента или группы.
 							///< \return Указатель на корень.
+	/// Проверка на включённость в состав групп в выборке.
+	static bool TestSelectedForNesting();
 
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.

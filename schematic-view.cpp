@@ -636,6 +636,41 @@ void SchematicView::DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem
 	MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
 }
 
+// Расформирование выбранных групп и подготовка отправки всех изменеий на сервер.
+void SchematicView::DisbandSelectedGroupsAPFS()
+{
+	GraphicsGroupItem* p_GraphicsGroupItem;
+	QVector<GraphicsElementItem*> vp_SelectedElementsMem = SchematicWindow::vp_SelectedElements; // Запоминаем выборку элементов пользователя.
+	QVector<GraphicsGroupItem*> vp_SelectedGroupsMem = SchematicWindow::vp_SelectedGroups; // Запоминаем выборку групп пользователя.
+	// Будет своя выборка для отсоединений.
+	SchematicWindow::vp_SelectedElements.clear();
+	SchematicWindow::vp_SelectedGroups.clear();
+	// Сбор всех элементов и групп, находящихся в составе сохранённой выборки групп пользователя.
+	for(int iF = 0; iF != vp_SelectedGroupsMem.count(); iF++)
+	{
+		p_GraphicsGroupItem = vp_SelectedGroupsMem.at(iF);
+		if(!p_GraphicsGroupItem->vp_ConnectedElements.isEmpty())
+		{
+			for(int iE = 0; iE != p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
+			{
+				SchematicWindow::vp_SelectedElements.append(p_GraphicsGroupItem->vp_ConnectedElements.at(iE)); // Новая выборка элементов.
+			}
+		}
+		if(!p_GraphicsGroupItem->vp_ConnectedGroups.isEmpty())
+		{
+			for(int iE = 0; iE != p_GraphicsGroupItem->vp_ConnectedGroups.count(); iE++)
+			{
+				SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem->vp_ConnectedGroups.at(iE)); // Новая выборка групп.
+			}
+		}
+	}
+	// Отсоединение.
+	DetachSelectedAPFS();
+	// Возврат выборки пользователя.
+	SchematicWindow::vp_SelectedElements = vp_SelectedElementsMem;
+	SchematicWindow::vp_SelectedGroups = vp_SelectedGroupsMem;
+}
+
 // Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
 void SchematicView::DetachSelectedAPFS()
 {
@@ -685,7 +720,10 @@ void SchematicView::DetachSelectedAPFS()
 		{
 			p_GraphicsGroupItem->p_GraphicsGroupItemRel->
 					vp_ConnectedGroups.removeOne(p_GraphicsGroupItem); // Удаление привязки в родительской группе.
-			vp_AffectedGroups.append(p_GraphicsGroupItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
+			if(!vp_AffectedGroups.contains(p_GraphicsGroupItem->p_GraphicsGroupItemRel)) // (Могла быть уже добавлена от элементов).
+			{
+				vp_AffectedGroups.append(p_GraphicsGroupItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
+			}
 			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup = 0;
 			p_GraphicsGroupItem->p_GraphicsGroupItemRel = nullptr; // Удаление привязки в группе.
 		}
@@ -2435,8 +2473,8 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 																   + "]"))->setData(MENU_ADD_SELECTED);
 				}
 			}
-			// Из группы.
-			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup != 0)
+			// Отсоединить.
+			if((p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr) || TestSelectedForNesting()) // Есть в составе группы - вкл.
 			{
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetach))->setData(MENU_DETACH);
 			}
@@ -2447,6 +2485,20 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 	}
 gM:	TrySendBufferToServer;
 	p_GraphicsElementItem->OBMousePressEvent(p_Event);
+}
+
+// Проверка на включённость в состав групп в выборке.
+bool SchematicView::TestSelectedForNesting()
+{
+	for(int iE = 0; iE != SchematicWindow::vp_SelectedElements.count(); iE++)
+	{
+		if(SchematicWindow::vp_SelectedElements.at(iE)->p_GraphicsGroupItemRel) return true;
+	}
+	for(int iG = 0; iG != SchematicWindow::vp_SelectedGroups.count(); iG++)
+	{
+		if(SchematicWindow::vp_SelectedGroups.at(iG)->p_GraphicsGroupItemRel) return true;
+	}
+	return false;
 }
 
 // Обработчик события перемещения мыши с элементом.
@@ -3180,7 +3232,10 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			// Расформировать.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisband))->setData(MENU_DISBAND);
 			// Отсоединить.
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetach))->setData(MENU_DETACH);
+			if((p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr) || TestSelectedForNesting()) // Есть в составе группы - вкл.
+			{
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetach))->setData(MENU_DETACH);
+			}
 			// Создать элемент в группе.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
 			// Добавить выбранные свободные объекты.
@@ -3324,35 +3379,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DISBAND)
 			{
-				GraphicsGroupItem* p_GraphicsGroupItemUtil;
-				//
-				for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
-				{
-					p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
-					for(int iF = 0; iF != p_GraphicsGroupItemUtil->vp_ConnectedElements.count(); iF++)
-					{
-						GraphicsElementItem* p_GraphicsElementItem = p_GraphicsGroupItemUtil->vp_ConnectedElements.at(iF);
-						PSchElementVars oPSchElementVars;
-						//
-						p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos);
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos =
-								SchematicWindow::dbObjectZPos;
-						SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-						p_GraphicsElementItem->update();
-						oPSchElementVars.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-						oPSchElementVars.ullIDGroup = 0;
-						oPSchElementVars.oSchEGGraph.dbObjectZPos =
-								p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos;
-						oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_GROUP | SCH_CHANGES_ELEMENT_BIT_ZPOS;
-						p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
-						MainWindow::p_Client->AddPocketToOutputBufferC(
-									PROTO_O_SCH_ELEMENT_VARS, (char*)&oPSchElementVars, sizeof(PSchElementVars));
-						UpdateLinksZPos();
-					}
-					SchematicWindow::vp_Groups.removeOne(p_GraphicsGroupItemUtil);
-					MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItemUtil);
-				}
+				DisbandSelectedGroupsAPFS();
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DETACH)
 			{
@@ -3498,10 +3525,10 @@ void SchematicView::GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_Gra
 		{
 			vp_SelectedForDeleteGroups.removeAll(p_GraphicsGroupItem); // Удаление из списка удаления (если есть, возможны вызовы из отделения).
 		}
-		SchematicWindow::vp_Groups.removeAll(p_GraphicsGroupItem);
+		SchematicWindow::vp_Groups.removeAll(p_GraphicsGroupItem); // На сервере пустая группа удалится сама.
 		if(bRemoveFromSelectedVec)
 		{ // При вызове из отсоединения, при вызове из удаления - не нужно, в функции удаления вектор выбранных групп очищаются полностью.
-			SchematicWindow::vp_SelectedFreeGroups.removeAll(p_GraphicsGroupItem); // Удаление из вектора выбранных групп.
+			SchematicWindow::vp_SelectedGroups.removeAll(p_GraphicsGroupItem); // Удаление из вектора выбранных групп.
 		}
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsGroupItem);
 	}
