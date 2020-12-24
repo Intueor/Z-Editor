@@ -2371,12 +2371,26 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
 			QString strCaption;
-			bool bNoSelection = SchematicWindow::vp_SelectedElements.isEmpty();
+			bool bNoSelection;
+			bool bNoSelEGroups = SchematicWindow::vp_SelectedGroups.isEmpty();
 			//
+			if(!(SchematicWindow::vp_SelectedElements.isEmpty() && bNoSelEGroups))
+			{ // Если где-то есть выбранные...
+				if((SchematicWindow::vp_SelectedElements.count() == 1) && bNoSelEGroups)
+				{ // Если в выборке есть один элемент...
+					if(SchematicWindow::vp_SelectedElements.at(0) == p_GraphicsElementItem)
+					{ // И если это не текущий элемент...
+						bNoSelection = true; // Выборки для меню нет.
+					}
+					else bNoSelection = false; // Иначе - есть.
+				}
+				else bNoSelection = false; // Иначе - есть.
+			}
+			else bNoSelection = true; // Иначе - автовыборка.
 			if(bNoSelection)
 			{
-				strCaption = QString(m_chElement) +
-						" [" + QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "]";
+				strCaption = QString("Выбрано: ") + QString(m_chElement) +
+							 " [" + QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "]";
 			}
 			else
 			{
@@ -3124,13 +3138,27 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			// Объект.
 			QString strCaption;
-			bool bNoSelection = SchematicWindow::vp_SelectedGroups.isEmpty();
+			bool bNoSelection;
 			bool bGroupSelected = p_GraphicsGroupItem->bSelected;
+			bool bNoSelElements = SchematicWindow::vp_SelectedElements.isEmpty();
 			//
+			if(!(bNoSelElements && SchematicWindow::vp_SelectedGroups.isEmpty()))
+			{ // Если где-то есть выбранные...
+				if((SchematicWindow::vp_SelectedGroups.count() == 1) && bNoSelElements)
+				{ // Если в выборке есть одна группа...
+					if(SchematicWindow::vp_SelectedGroups.at(0) == p_GraphicsGroupItem)
+					{ // И если это не текущая группа...
+						bNoSelection = true; // Выборки для меню нет.
+					}
+					else bNoSelection = false; // Иначе - есть.
+				}
+				else bNoSelection = false; // Иначе - есть.
+			}
+			else bNoSelection = true; // Иначе - автовыборка.
 			if(bNoSelection)
 			{
-				strCaption = QString(m_chGroup) +
-						" [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]";
+				strCaption = QString("Выбрано: ") + QString(m_chGroup) +
+							 " [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]";
 			}
 			else
 			{
