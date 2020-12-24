@@ -4281,8 +4281,9 @@ gF:		ReleaseOccupiedAPFS();
 				{
 gSrc:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(),
 								 m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер или псевдоним порта источника",
-																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
+					p_Set_Proposed_String_Dialog =
+							new Set_Proposed_String_Dialog((char*)QString(QString(m_chNumOrPseudo) + "источника").toStdString().c_str(),
+														   m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
@@ -4300,8 +4301,9 @@ gSd:					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (c
 				{
 gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(),
 								 m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)"Номер или псевдоним порта приёмника",
-																				  m_chPortNumber, PORT_NUMBER_STR_LEN);
+					p_Set_Proposed_String_Dialog =
+							new Set_Proposed_String_Dialog((char*)QString(QString(m_chNumOrPseudo) + "приёмника").toStdString().c_str(),
+														   m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);

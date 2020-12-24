@@ -141,6 +141,7 @@ const char m_chNewElement[] = "Новый элемент";
 const char m_chNewGroup[] = "Новая группа";
 const char m_chPortTooltip[] = "Порт: ";
 const char m_chSelection[] = "Выборка";
+const char m_chNumOrPseudo[] = "Номер или псевдоним порта ";
 //
 const char m_chMenuDelete[] = "Удалить выбранное";
 #define MENU_DELETE_SELECTED	1
