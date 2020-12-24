@@ -3196,7 +3196,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			// Объект.
 			QString strCaption;
 			bool bNoSelection;
-			bool bGroupSelected = p_GraphicsGroupItem->bSelected;
 			bool bNoSelElements = SchematicWindow::vp_SelectedElements.isEmpty();
 			//
 			if(!(bNoSelElements && SchematicWindow::vp_SelectedGroups.isEmpty()))
@@ -3266,17 +3265,21 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 					SchematicWindow::vp_SelectedFreeGroups.append(p_GraphicsGroupItemHelper);
 				}
 			}
-			if(!SchematicWindow::vp_SelectedFreeElements.isEmpty() | (SchematicWindow::vp_SelectedFreeGroups.count() > 1))
-			{ // Если хоть что-то выбрано, кроме текущей группы...
-				if(!bGroupSelected) // И если текущая не выбрана...
-				{
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
-				}
-				else goto gC; // Иначе - на создание группы.
-			}
-			else // Иначе - создание группы.
+//			if(!SchematicWindow::vp_SelectedFreeElements.isEmpty() | (SchematicWindow::vp_SelectedFreeGroups.count() > 1))
+//			{ // Если хоть что-то выбрано, кроме текущей группы...
+//				if(bNoSelection) // И если текущая не выбрана...
+//				{
+//					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddFreeSelected))->setData(MENU_ADD_SELECTED);
+//				}
+//				else goto gC; // Иначе - на создание группы.
+//			}
+//			else // Иначе - создание группы.
+			if(p_GraphicsGroupItem->p_GraphicsGroupItemRel == nullptr)
 			{
-gC:				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuCreateGroup))->setData(MENU_CREATE_GROUP);
+				if(!TestSelectedForNesting())
+				{
+					SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+				}
 			}
 			TempDeselectGroup(p_GraphicsGroupItem);
 			// Цвет фона.
