@@ -754,7 +754,7 @@ void SchematicView::DetachSelectedAPFS()
 			// Отправка поднятых веток отсоединённых групп с изменением принадлежности главной группы.
 			GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, SEND, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
 											 SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, DONT_ADD_SEND_FRAME,
-											 nullptr, nullptr, SEND_ELEMENTS, TO_TOP, GROUPS_TO_GROUPS_FIRST_ONLY);
+											 nullptr, nullptr, SEND_ELEMENTS, TO_TOP, GROUPS_TO_GROUPS_EXCLUDE_VAR_FOR_DETACH);
 		}
 	}
 	// Поднятие и отсылка статусов всех остоединённых элементов.
@@ -1975,7 +1975,7 @@ void SchematicView::BlockingVerticalsAndPopupGroup(GraphicsGroupItem* p_Graphics
 	GraphicsGroupItem* p_GraphicsGroupItemRoot = p_GraphicsGroupItem;
 	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemsFocusedBranch;
 	bool bGroupSelected = false;
-	// Вниз, к корню группы в фокусе.
+	// Вверх, к корню группы в фокусе.
 	bGroupSelected = p_GraphicsGroupItem->bSelected;
 	while(p_GraphicsGroupItemRoot->p_GraphicsGroupItemRel != nullptr)
 	{
@@ -2016,7 +2016,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 													 bool bAddBusyOrZPosToSending, bool bAddFrame,
 													 GraphicsElementItem* p_GraphicsElementItemExclude,
 													 GraphicsGroupItem* p_GraphicsGroupItemExclude,
-													 bool bSendElements, bool bToTop, bool bGroupsToGroupsFirstOnly)
+													 bool bSendElements, bool bToTop, int iGroupsToGroupsGenerationsBeforeExclude)
 {
 	PSchGroupVars oPSchGroupVars;
 	EGPointersVariant oEGPointersVariant;
@@ -2049,14 +2049,21 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 			oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_CHANGES_GROUP_BIT_FRAME;
 			oPSchGroupVars.oSchEGGraph.oDbFrame = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
 		}
-		if(bAddNewGroupsToGroupSending)
-		{
-			oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_CHANGES_GROUP_BIT_GROUP;
-			oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup;
+		if(iGroupsToGroupsGenerationsBeforeExclude != GROUPS_TO_GROUPS_EXCLUDE_VAR_FOR_GROUPING)
+		{ // Варианте для создания группы с выбранным - отношение (верхней) новой группы пропускаем.
+			if(bAddNewGroupsToGroupSending)
+			{
+				oPSchGroupVars.oSchEGGraph.uchChangesBits |= SCH_CHANGES_GROUP_BIT_GROUP;
+				oPSchGroupVars.ullIDGroup = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDGroup;
+			}
 		}
 		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_VARS, (char*)&oPSchGroupVars,
 													   sizeof(PSchGroupVars));
-		if(bGroupsToGroupsFirstOnly) bAddNewGroupsToGroupSending = false; // Остечка отправки дальнейших зависимостей по рекурсии.
+		iGroupsToGroupsGenerationsBeforeExclude--; // Отнимаем единицу от статуса (на предыдущую позицию).
+		if(iGroupsToGroupsGenerationsBeforeExclude < 1)
+		{
+			bAddNewGroupsToGroupSending = false; // Остечка отправки дальнейших зависимостей по рекурсии.
+		}
 	}
 	oEGPointersVariant.p_GraphicsElementItem = nullptr;
 	oEGPointersVariant.p_GraphicsGroupItem = p_GraphicsGroupItem;
@@ -2080,7 +2087,8 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 		{
 			GroupsBranchToTopAPFSRecursively(p_EGPointersVariant->p_GraphicsGroupItem, bSend, bAddNewElementsToGroupSending,
 											 bAddNewGroupsToGroupSending, bAddBusyOrZPosToSending,
-											 DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude, SEND_ELEMENTS, bToTop);
+											 DONT_ADD_SEND_FRAME, nullptr, p_GraphicsGroupItemExclude,
+											 SEND_ELEMENTS, bToTop, iGroupsToGroupsGenerationsBeforeExclude);
 		}
 	}
 	UpdateLinksZPos();
@@ -2459,7 +2467,10 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			// Создать группу из выбранного.
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 			{
-				SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+				if(!TestSelectedForNesting())
+				{
+					SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateGroup)->setData(MENU_CREATE_GROUP);
+				}
 			}
 			// В группу.
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
@@ -2559,27 +2570,18 @@ void SchematicView::CreateGroupFromSelected()
 	unsigned char uchB = rand() % 255;
 	unsigned char uchA = 200;
 	//
+	memset(&oPSchGroupBase, 0, sizeof(oPSchGroupBase));
 	oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
 	strName += ": " + QString::number(oPSchGroupBase.oPSchGroupVars.ullIDInt);
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
 	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 	oPSchGroupBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
-	ResetBits(oPSchGroupBase.oPSchGroupVars.oSchEGGraph.uchSettingsBits, SCH_SETTINGS_EG_BIT_BUSY);
-	oPSchGroupBase.oPSchGroupVars.ullIDGroup = 0;
 	p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsGroupItem);
-	SchematicWindow::vp_Groups.push_front(p_GraphicsGroupItem);
-	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
-	{
-		p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iF);
-		if(p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
-		{
-			p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
-			p_GraphicsElementItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
-			p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
-		}
-	}
+	SchematicWindow::vp_Groups.append(p_GraphicsGroupItem);
+	MainWindow::p_Client->AddPocketToOutputBufferC(
+				PROTO_O_SCH_GROUP_BASE, (char*)&p_GraphicsGroupItem->oPSchGroupBaseInt, sizeof(p_GraphicsGroupItem->oPSchGroupBaseInt));
 	for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 	{
 		p_GraphicsGroupItemUtil = SchematicWindow::vp_SelectedGroups.at(iF);
@@ -2593,13 +2595,20 @@ void SchematicView::CreateGroupFromSelected()
 			}
 		}
 	}
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+	{
+		p_GraphicsElementItemUtil = SchematicWindow::vp_SelectedElements.at(iF);
+		if(p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+		{
+			p_GraphicsElementItemUtil->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = oPSchGroupBase.oPSchGroupVars.ullIDInt;
+			p_GraphicsElementItemUtil->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
+			p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItemUtil);
+		}
+	}
 	UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem);
-	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.oDbFrame =
-			p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame;
-	MainWindow::p_Client->AddPocketToOutputBufferC(
-				PROTO_O_SCH_GROUP_BASE, (char*)&oPSchGroupBase, sizeof(PSchGroupBase));
-	BlockingVerticalsAndPopupGroup(p_GraphicsGroupItem, SEND_GROUP, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
-								   SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS, ADD_SEND_FRAME, SEND_ELEMENTS);
+	GroupsBranchToTopAPFSRecursively(p_GraphicsGroupItem, SEND, SEND_NEW_ELEMENTS_TO_GROUPS_RELATION, SEND_NEW_GROUPS_TO_GROUPS_RELATION,
+									 ADD_SEND_ZPOS, ADD_SEND_FRAME, nullptr, nullptr,
+									 SEND_ELEMENTS, TO_TOP, GROUPS_TO_GROUPS_EXCLUDE_VAR_FOR_GROUPING);
 	UpdateLinksZPos();
 }
 
@@ -2675,9 +2684,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
 			{
-				TempSelectElement(p_GraphicsElementItem);
 				CreateGroupFromSelected();
-				TempDeselectElement(p_GraphicsElementItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_SELECTED)
 			{
@@ -2685,9 +2692,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_DETACH)
 			{
-				TempSelectElement(p_GraphicsElementItem);
 				DetachSelectedAPFS();
-				TempDeselectElement(p_GraphicsElementItem);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BACKGROUND)
 			{

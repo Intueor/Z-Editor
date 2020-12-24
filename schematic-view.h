@@ -223,7 +223,8 @@ public:
 												 bool bAddBusyOrZPosToSending = true, bool bAddFrame = false,
 												 GraphicsElementItem* p_GraphicsElementItemExclude = nullptr,
 												 GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr,
-												 bool bSendElements = true, bool bToTop = true, bool bGroupsToGroupsFirstOnly = false);
+												 bool bSendElements = true, bool bToTop = true,
+												 int iGroupsToGroupsGenerationsBeforeExclude = 0);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
 							///< \param[in] bSend При true - отправка на сервер.
 							///< \param[in] bAddNewElementsToGroupsRelationSending При true - передача содержащимеся эл. пар. текущей группы.
@@ -234,7 +235,7 @@ public:
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на исключаемую группу.
 							///< \param[in] bSendElements При true - отправка поднятых и отсортированных элементов.
 							///< \param[in] bToTop При true - поднятие содержимого.
-							///< \param[in] bGroupsToGroupsFirstOnly true - для вызова из отделения ветки групп, отправит только первую завис.
+							///< \param[in] iGroupsToGroupsGenerationsBeforeExclude Количство поколений вглубь ветки до отсечки отправки завис.
 	/// Выбор группы.
 	static void SelectGroup(GraphicsGroupItem* p_GraphicsGroupItem, bool bLastState = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
