@@ -261,7 +261,10 @@ public:
 	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem, DbPoint dbPortPos);
 							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.
 							///< \param[in] dbPortPos Позиция порта в коорд. элемента.
-
+	/// Проверка наличия портов в выборке и по элементу (опционально).
+	static bool CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem = nullptr);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент или nullprt.
+							///< \return true - при обнаружении.
 	/// Обработчик события нажатия мыши на элемент.
 	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.

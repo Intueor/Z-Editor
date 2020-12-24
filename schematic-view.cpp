@@ -2249,6 +2249,36 @@ bool SchematicView::DoubleButtonsReleaseControl()
 	return false;
 }
 
+// Проверка наличия портов в выборке и по элементу (опционально).
+bool SchematicView::CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem)
+{
+	for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
+	{
+		GraphicsElementItem* p_GraphicsElementItemHelper;
+		GraphicsElementItem* p_GraphicsElementItemPortParent = SchematicWindow::vp_Ports.at(iF)->p_ParentInt;
+		//
+		if(p_GraphicsElementItem == p_GraphicsElementItemPortParent) return true;
+		for(int iE = 0; iE != SchematicWindow::vp_SelectedElements.count(); iE++)
+		{
+			p_GraphicsElementItemHelper = SchematicWindow::vp_SelectedElements.at(iE);
+			//
+			if(p_GraphicsElementItemHelper == p_GraphicsElementItemPortParent) return true;
+		}
+		for(int iG = 0; iG != SchematicWindow::vp_SelectedGroups.count(); iG++)
+		{
+			GraphicsGroupItem* p_GraphicsGroupItemHelper = SchematicWindow::vp_SelectedGroups.at(iG);
+			//
+			for(int iL = 0; iL != p_GraphicsGroupItemHelper->vp_ConnectedElements.count(); iL++)
+			{
+				p_GraphicsElementItemHelper = p_GraphicsGroupItemHelper->vp_ConnectedElements.at(iL);
+				//
+				if(p_GraphicsElementItemHelper == p_GraphicsElementItemPortParent) return true;
+			}
+		}
+	}
+	return false;
+}
+
 // Обработчик события нажатия мыши на элемент.
 void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -2439,20 +2469,10 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			// Удалить.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDelete))->setData(MENU_DELETE_SELECTED);
 			// Порты.
-			for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
-			{
-				if(p_GraphicsElementItem == SchematicWindow::vp_Ports.at(iF)->p_ParentInt) goto gPA;
-				for(int iE = 0; iE != SchematicWindow::vp_SelectedElements.count(); iE++)
-				{
-					GraphicsElementItem* p_GraphicsElementItemHelper = SchematicWindow::vp_SelectedElements.at(iE);
-					//
-					if(p_GraphicsElementItemHelper == SchematicWindow::vp_Ports.at(iF)->p_ParentInt) goto gPA;
-				}
-			}
-			goto gPF;
-gPA:		SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
+			if(CheckPortsInSelection(p_GraphicsElementItem))
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
 			// Создать группу из выбранного.
-gPF:		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
+			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup == 0)
 			{
 				if(!TestSelectedForNesting())
 				{
@@ -2464,7 +2484,7 @@ gPF:		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup 
 			{
 				GraphicsGroupItem* p_GraphicsGroupItemFirstSelected = SchematicWindow::vp_SelectedGroups.at(0);
 				//
-				if(!TestSelectedForNesting(p_GraphicsGroupItemFirstSelected))
+				if((!TestSelectedForNesting(p_GraphicsGroupItemFirstSelected) && (p_GraphicsElementItem->p_GraphicsGroupItemRel == nullptr)))
 				{
 					SchematicWindow::p_SafeMenu->addAction(QString(QString(m_chMenuAddFreeSelected) +
 																   " [" + QString(p_GraphicsGroupItemFirstSelected->oPSchGroupBaseInt.m_chName)
@@ -3222,6 +3242,9 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			// Создать элемент в группе.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
 			TempSelectGroup(p_GraphicsGroupItem);
+			// Порты.
+			if(CheckPortsInSelection())
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPorts))->setData(MENU_PORTS);
 			// Добавить выбранное в группу.
 			if(!((SchematicWindow::vp_SelectedGroups.count() == 1) && SchematicWindow::vp_SelectedElements.isEmpty()))
 			{ // Иначе даст ссылку на себя (единственную оставшуюся).
