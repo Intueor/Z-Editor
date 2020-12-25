@@ -132,10 +132,12 @@
 
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
+// Логи.
 const char m_chLogWrongData[] = "Wrong data in pocket.";
 const char m_chLogSyncFault[] = "Schematic object operations synchronization fault.";
 const char m_chLogSource[] = "Source ";
 const char m_chLogDestination[] = "Destination ";
+// Тексты.
 const char m_chStatusConnected[] = "Соединён";
 const char m_chMsgServerPassword[] = "Пароль сервера.";
 const char m_chNewElement[] = "Новый элемент";
@@ -144,36 +146,67 @@ const char m_chPortTooltip[] = "Порт: ";
 const char m_chSelection[] = "Выборка";
 const char m_chNumOrPseudo[] = "Номер или псевдоним порта ";
 //
-const char m_chMenuDelete[] = "Удалить выбранное";
-#define MENU_DELETE_SELECTED	1
-const char m_chMenuPorts[] = "Порты выбранного";
-#define MENU_PORTS				2
-const char m_chMenuSrcPort[] = "Порт источника ";
-#define MENU_SRC_PORT			3
-const char m_chMenuDstPort[] = "Порт приёмника ";
-#define MENU_DST_PORT			4
-const char m_chMenuSelectedPort[] = "Выбранный порт ";
-#define MENU_SELECTED_PORT		5
-const char m_chMenuCreateGroup[] = "Создать группу с выбранным";
-#define MENU_CREATE_GROUP		6
-const char m_chMenuCreateElement[] = "Создать элемент";
-#define MENU_CREATE_ELEMENT		7
-const char m_chMenuAddFreeSelected[] = "Добавить выбранное в группу";
-#define MENU_ADD_SELECTED		8
-const char m_chMenuBackground[] = "Изменить цвет фона";
-#define MENU_CHANGE_BACKGROUND	9
-const char m_chMenuDisband[] = "Расформировать выбранные группы";
-#define MENU_DISBAND			10
-const char m_chMenuDetach[] = "Отсоединить выбранное от групп";
-#define MENU_DETACH				11
-const char m_chMenuAddElement[] = "Создать элемент в группе";
-#define MENU_ADD_ELEMENT		12
-const char m_chMenuSetPassword[] = "Задать пароль";
-#define MENU_SET_PASSWORD		13
-const char m_chMenuSetAsDefault[] = "Установить как текущий";
-#define MENU_SET_AS_DEFAULT		14
-const char m_chMenuRename[] = "Переименовать";
-#define MENU_RENAME				15
-const char m_chMenuRenameSelection[] = "Переименовать выборку";
-#define MENU_RENAME_SELECTED	16
+// <== МЕНЮ ПКМ ОБЪЕКТОВ ВИДА ==>
+//										УДАЛЕНИЕ.
+#define MENU_DELETE						1
+const char m_chMenuDeleteS[] =			"Удалить выбранное";
+const char m_chMenuDeleteE[] =			"Удалить элемент";
+const char m_chMenuDeleteG[] =			"Удалить группу";
+const char m_chMenuDeleteL[] =			"Удалить линк";
+//										ПОРТЫ.
+#define MENU_PORTS						2
+const char m_chMenuPortsS[] =			"Порты выбранного";
+const char m_chMenuPortsE[] =			"Порты элемента";
+const char m_chMenuPortsG[] =			"Порты внутри группы";
+#define MENU_SRC_PORT					3
+const char m_chMenuPortSrc[] =			"Порт источника ";
+#define MENU_DST_PORT					4
+const char m_chMenuPortDst[] =			"Порт приёмника ";
+//										СОЗДАНИЕ ГРУППЫ.
+#define MENU_CREATE_GROUP				5
+const char m_chMenuCreateFromS[] =		"Создать группу для выбранного";
+const char m_chMenuCreateFromE[] =		"Создать группу для элемента";
+const char m_chMenuCreateFromG[] =		"Создать группу для группы";
+//										ДОБАВЛЕНИЕ В ГРУППУ.
+#define MENU_ADD						6
+const char m_chMenuAddFreeS[] =			"Добавить выбранное в группу";
+const char m_chMenuAddFreeE[] =			"Добавить элемент в группу";
+const char m_chMenuAddFreeG[] =			"Добавить группу в группу";
+//										ЦВЕТ.
+#define MENU_CHANGE_BKG					7
+const char m_chMenuBackgroundS[] =		"Изменить цвет фона выбранного";
+const char m_chMenuBackgroundE[] =		"Изменить цвет фона элемента";
+const char m_chMenuBackgroundG[] =		"Изменить цвет фона группы";
+//										РАСФОРМИРОВАТЬ.
+#define MENU_DISBAND					8
+const char m_chMenuDisbandS[] =			"Расформировать выбранные группы";
+const char m_chMenuDisbandG[] =			"Расформировать группу";
+//										ОТСОЕДИНИТЬ.
+#define MENU_DETACH						9
+const char m_chMenuDetachS[] =			"Отсоединить выбранное от групп";
+const char m_chMenuDetachE[] =			"Отсоединить элемент от группы";
+const char m_chMenuDetachG[] =			"Отсоединить группу от группы";
+//										СОЗДАТЬ.
+#define MENU_CREATE_ELEMENT				10
+const char m_chMenuCreateElement[] =	"Создать элемент";
+#define MENU_ADD_ELEMENT				11
+const char m_chMenuAddElement[] =		"Создать элемент в группе";
+//										ПЕРЕИМЕНОВАТЬ.
+#define MENU_RENAME_SELECTED			12
+const char m_chMenuRenameS[] =			"Переименовать выборку";
+#define MENU_RENAME_EG					13
+const char m_chMenuRenameE[] =			"Переименовать элемент";
+const char m_chMenuRenameG[] =			"Переименовать группу";
+//
+// <== ПРОЧИЕ МЕНЮ ==>
+//										МЕНЮ ПОРТОВ.
+#define MENU_SELECTED_PORT				14
+const char m_chMenuSelectedPort[] =		"Выбранный порт ";
+//										МЕНЮ СЕРВЕРА.
+#define MENU_SET_PASSWORD				15
+const char m_chMenuSetPassword[] =		"Задать пароль";
+#define MENU_SET_AS_DEFAULT				16
+const char m_chMenuSetAsDefault[] =		"Установить как текущий";
+#define MENU_DELETE_ITEM				17
+const char m_chMenuDeleteItem[] =		"Удалить выбранный";
 #endif // ZEDITORDEFS_H

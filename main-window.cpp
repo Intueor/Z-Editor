@@ -1668,7 +1668,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 	if(p_ServersListWidgetItem != 0)
 	{
 		pntGlobalPos = QCursor::pos();
-		oSafeMenu.addAction(m_chMenuDelete)->setData(MENU_DELETE_SELECTED);
+		oSafeMenu.addAction(m_chMenuDeleteItem)->setData(MENU_DELETE_ITEM);
 		oSafeMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
 		if(!p_Client->CheckServerAlive())
 		{
@@ -1677,7 +1677,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 		p_SelectedMenuItem = oSafeMenu.exec(pntGlobalPos);
 		if(p_SelectedMenuItem != 0)
 		{
-			if(p_SelectedMenuItem->data() == MENU_DELETE_SELECTED)
+			if(p_SelectedMenuItem->data() == MENU_DELETE_ITEM)
 			{
 				delete p_ServersListWidgetItem;
 				LCHECK_BOOL(SaveClientConfig());
