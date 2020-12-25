@@ -685,9 +685,8 @@ void SchematicView::DisbandSelectedGroupsAPFS()
 	}
 	// Отсоединение.
 	DetachSelectedAPFS();
-	// Возврат выборки пользователя.
 	SchematicWindow::vp_SelectedElements = vp_SelectedElementsMem;
-	SchematicWindow::vp_SelectedGroups = vp_SelectedGroupsMem;
+	SchematicWindow::vp_SelectedGroups.clear(); // Все выбранные должны были быть расформированы.
 }
 
 // Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
@@ -726,7 +725,10 @@ void SchematicView::DetachSelectedAPFS()
 		{
 			p_GraphicsElementItem->p_GraphicsGroupItemRel->
 					vp_ConnectedElements.removeOne(p_GraphicsElementItem); // Удаление привязки в родительской группе.
-			vp_AffectedGroups.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
+			if(!vp_AffectedGroups.contains(p_GraphicsElementItem->p_GraphicsGroupItemRel))
+			{
+				vp_AffectedGroups.append(p_GraphicsElementItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
+			}
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup = 0;
 			p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr; // Удаление привязки в элементе.
 		}
@@ -739,7 +741,7 @@ void SchematicView::DetachSelectedAPFS()
 		{
 			p_GraphicsGroupItem->p_GraphicsGroupItemRel->
 					vp_ConnectedGroups.removeOne(p_GraphicsGroupItem); // Удаление привязки в родительской группе.
-			if(!vp_AffectedGroups.contains(p_GraphicsGroupItem->p_GraphicsGroupItemRel)) // (Могла быть уже добавлена от элементов).
+			if(!vp_AffectedGroups.contains(p_GraphicsGroupItem->p_GraphicsGroupItemRel))
 			{
 				vp_AffectedGroups.append(p_GraphicsGroupItem->p_GraphicsGroupItemRel);// Добавление родительской группы в вовлечённые группы.
 			}
