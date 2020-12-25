@@ -25,7 +25,7 @@ DEFINES += WIN32 _WINDOWS _CRT_SECURE_NO_WARNINGS
 }
 
 SOURCES += \
-    ../Z-Hub/Dialogs/set-server-dialog.cpp \
+	../Z-Hub/Dialogs/set_server_dialog.cpp \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.cpp \
     graphics-element-item.cpp \
     graphics-frame-item.cpp \
@@ -46,10 +46,10 @@ SOURCES += \
     ../Z-Hub/Server/net-hub.cpp \
     ../Z-Hub/Server/proto-parser.cpp \
     ../Z-Hub/Server/proto-util.cpp \
-    ../Z-Hub/Dialogs/message-dialog.cpp
+	../Z-Hub/Dialogs/message_dialog.cpp
 
 HEADERS += \
-    ../Z-Hub/Dialogs/set-server-dialog.h \
+	../Z-Hub/Dialogs/set_server_dialog.h \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.h \
     graphics-element-item.h \
     graphics-frame-item.h \
@@ -75,14 +75,14 @@ HEADERS += \
     ../Z-Hub/Server/protocol.h \
     ../Z-Hub/Server/net-hub.h \
     ../Z-Hub/Server/proto-parser.h \
-    ../Z-Hub/Dialogs/message-dialog.h
+	../Z-Hub/Dialogs/message_dialog.h
 
 FORMS += \
-    ../Z-Hub/Dialogs/set-server-dialog.ui \
+	../Z-Hub/Dialogs/set_server_dialog.ui \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.ui \
     main-window.ui \
     schematic-window.ui \
-    ../Z-Hub/Dialogs/message-dialog.ui
+	../Z-Hub/Dialogs/message_dialog.ui
 
 DISTFILES += \
     ../Z-Hub/pthread/lib/pthreadVC2.lib \

@@ -17,7 +17,7 @@
 #include "../Z-Hub/parser-ext.h"
 #include "Client/client.h"
 #include "schematic-window.h"
-#include "../Z-Hub/Dialogs/set-server-dialog.h"
+#include "../Z-Hub/Dialogs/set_server_dialog.h"
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {
