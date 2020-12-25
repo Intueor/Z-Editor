@@ -467,6 +467,8 @@ private:
 	/// Проверка на включённость в состав групп в выборке.
 	static bool TestSelectedForNesting(GraphicsGroupItem* p_GraphicsGroupItemExclude = nullptr);
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения из поиска.
+	/// Работа с диалогом пакетного переименования файлов.
+	static void BacthRenameDialogProcedures();
 
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.

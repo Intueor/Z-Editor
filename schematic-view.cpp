@@ -3,11 +3,12 @@
 #include <QGraphicsSceneEvent>
 #include <QBoxLayout>
 #include <QGraphicsProxyWidget>
+#include "../Z-Hub/z-hub-defs.h"
+#include "z-editor-defs.h"
 #include "schematic-view.h"
 #include "schematic-window.h"
-#include "z-editor-defs.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
-#include "../Z-Hub/z-hub-defs.h"
+#include "Dialogs/batch_rename_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
@@ -2615,6 +2616,18 @@ void SchematicView::CreateGroupFromSelected()
 	UpdateLinksZPos();
 }
 
+// Работа с диалогом пакетного переименования файлов.
+void SchematicView::BacthRenameDialogProcedures()
+{
+	Batch_Rename_Dialog* p_Batch_Rename_Dialog = new Batch_Rename_Dialog();
+	//
+	if(p_Batch_Rename_Dialog->exec() == DIALOGS_ACCEPT)
+	{
+
+	}
+	p_Batch_Rename_Dialog->deleteLater();
+}
+
 // Обработчик события отпусканеия мыши на элементе.
 void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -2640,6 +2653,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	{
 		QAction* p_SelectedMenuItem;
 		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
+
 		PSchElementName oPSchElementName;
 		char m_chName[SCH_OBJ_NAME_STR_LEN];
 		//
@@ -2655,7 +2669,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 		{
 			if(p_SelectedMenuItem->data() == MENU_RENAME_SELECTED)
 			{
-
+				BacthRenameDialogProcedures();
 			}
 			if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
 			{
@@ -3340,7 +3354,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 		{
 			if(p_SelectedMenuItem->data() == MENU_RENAME_SELECTED)
 			{
-
+				BacthRenameDialogProcedures();
 			}
 			if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
 			{
