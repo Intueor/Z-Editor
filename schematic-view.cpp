@@ -3228,9 +3228,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			}
 			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 50);
 			SchematicWindow::p_SafeMenu->addSection(strCaption)->setDisabled(true);
-
-
-
 			// МЕНЮ.
 			if(bSingleSelected) // При выборе одной группы.
 			{
@@ -3241,11 +3238,6 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPortsG))->setData(MENU_PORTS); // |->Меню портов.
 				if(bGroupIsFree) // Если не в группе...
 						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromG)->setData(MENU_CREATE_GROUP); // |->Создать группу.
-				if(bSingleGroupSelected && bGroupIsFree) // Если выбрана одна группа и текущий элемент свободен...
-						SchematicWindow::p_SafeMenu->
-								addAction(QString(QString(m_chMenuAddFreeG) +
-											  " [" + QString(p_GraphicsGroupItemFirstSelected->oPSchGroupBaseInt.m_chName) + "]"))->
-								setData(MENU_ADD); // |->Добавить в группу.
 				if(!bGroupIsFree) // Если есть в составе группы...
 					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetachG))->setData(MENU_DETACH); // |-> Отсоединить.
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackgroundG))->setData(MENU_CHANGE_BKG); // |-> Сменить цвет подложки.

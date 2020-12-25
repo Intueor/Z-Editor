@@ -171,7 +171,6 @@ const char m_chMenuCreateFromG[] =		"Создать группу для груп
 #define MENU_ADD						6
 const char m_chMenuAddFreeS[] =			"Добавить выбранное в группу";
 const char m_chMenuAddFreeE[] =			"Добавить элемент в группу";
-const char m_chMenuAddFreeG[] =			"Добавить группу в группу";
 //										ЦВЕТ.
 #define MENU_CHANGE_BKG					7
 const char m_chMenuBackgroundS[] =		"Изменить цвет фона выбранного";
