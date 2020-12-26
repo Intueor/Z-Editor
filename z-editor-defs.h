@@ -134,6 +134,8 @@
 #define RENAME_TYPE_EMPTY				1
 #define RENAME_TYPE_UID					2
 #define RENAME_TYPE_DIGITS				3
+//
+#define SCH_SETTINGS_TYPE_MASK			0b11110011
 
 //== КОНСТАНТЫ.
 // Многократно используемые строки.
@@ -145,14 +147,16 @@ const char m_chLogDestination[] = "Destination ";
 // Тексты.
 const char m_chStatusConnected[] = "Соединён";
 const char m_chMsgServerPassword[] = "Пароль сервера.";
-const char m_chNewElement[] = "Элемент";
-const char m_chNewBroadcaster[] = "Транслятор";
-const char m_chNewReceiver[] = "Приёмник";
+const char m_chNewElement[] = "Новый элемент";
+const char m_chNewBroadcaster[] = "Новый транслятор";
+const char m_chNewReceiver[] = "Новый приёмник";
 const char m_chNewGroup[] = "Группа";
 const char m_chPortTooltip[] = "Порт: ";
 const char m_chSelection[] = "Выборка";
 const char m_chNumOrPseudo[] = "Номер или псевдоним порта ";
 const char m_chPreElementName[] = "Элемент: ";
+const char m_chPreBroadcasterName[] = "Транслятор: ";
+const char m_chPreReceiverName[] = "Приёмник: ";
 const char m_chPreGroupName[] = "Группа: ";
 const char m_chPreObjectName[] = "Объект: ";
 //
@@ -161,30 +165,40 @@ const char m_chPreObjectName[] = "Объект: ";
 #define MENU_DELETE						1
 const char m_chMenuDeleteS[] =			"Удалить выбранное";
 const char m_chMenuDeleteE[] =			"Удалить элемент";
+const char m_chMenuDeleteB[] =			"Удалить транслятор";
+const char m_chMenuDeleteR[] =			"Удалить приёмник";
 const char m_chMenuDeleteG[] =			"Удалить группу";
 const char m_chMenuDeleteL[] =			"Удалить линк";
 //										ПОРТЫ.
 #define MENU_PORTS						2
 const char m_chMenuPortsS[] =			"Порты выбранного";
 const char m_chMenuPortsE[] =			"Порты элемента";
+const char m_chMenuPortsB[] =			"Порты транслятора";
+const char m_chMenuPortsR[] =			"Порты приёмника";
 const char m_chMenuPortsG[] =			"Порты внутри группы";
 #define MENU_SRC_PORT					3
 const char m_chMenuPortSrc[] =			"Порт источника ";
 #define MENU_DST_PORT					4
-const char m_chMenuPortDst[] =			"Порт приёмника ";
+const char m_chMenuPortDst[] =			"Порт цели ";
 //										СОЗДАНИЕ ГРУППЫ.
 #define MENU_CREATE_GROUP				5
 const char m_chMenuCreateFromS[] =		"Создать группу для выбранного";
 const char m_chMenuCreateFromE[] =		"Создать группу для элемента";
+const char m_chMenuCreateFromB[] =		"Создать группу для транслятора";
+const char m_chMenuCreateFromR[] =		"Создать группу для приёмника";
 const char m_chMenuCreateFromG[] =		"Создать группу для группы";
 //										ДОБАВЛЕНИЕ В ГРУППУ.
 #define MENU_ADD						6
 const char m_chMenuAddFreeS[] =			"Добавить выбранное в группу";
 const char m_chMenuAddFreeE[] =			"Добавить элемент в группу";
+const char m_chMenuAddFreeB[] =			"Добавить транслятор в группу";
+const char m_chMenuAddFreeR[] =			"Добавить приёмник в группу";
 //										ЦВЕТ.
 #define MENU_CHANGE_BKG					7
 const char m_chMenuBackgroundS[] =		"Изменить цвет фона выбранного";
 const char m_chMenuBackgroundE[] =		"Изменить цвет фона элемента";
+const char m_chMenuBackgroundB[] =		"Изменить цвет фона транслятора";
+const char m_chMenuBackgroundR[] =		"Изменить цвет фона приёмника";
 const char m_chMenuBackgroundG[] =		"Изменить цвет фона группы";
 //										РАСФОРМИРОВАТЬ.
 #define MENU_DISBAND					8
@@ -194,25 +208,29 @@ const char m_chMenuDisbandG[] =			"Расформировать группу";
 #define MENU_DETACH						9
 const char m_chMenuDetachS[] =			"Отсоединить выбранное от групп";
 const char m_chMenuDetachE[] =			"Отсоединить элемент от группы";
+const char m_chMenuDetachB[] =			"Отсоединить транслятор от группы";
+const char m_chMenuDetachR[] =			"Отсоединить приёмник от группы";
 const char m_chMenuDetachG[] =			"Отсоединить группу от группы";
 //										СОЗДАТЬ.
 #define MENU_CREATE_ELEMENT				10
 const char m_chMenuCreateElement[] =	"Создать элемент";
 #define MENU_CREATE_BROADCASTER			11
-const char m_chMenuCreateBroadcaster[] ="Создать элемент-транслятор";
+const char m_chMenuCreateBroadcaster[] ="Создать транслятор";
 #define MENU_CREATE_RECEIVER			12
-const char m_chMenuCreateReceiver[] =	"Создать элемент-приёмник";
+const char m_chMenuCreateReceiver[] =	"Создать приёмник";
 #define MENU_ADD_ELEMENT				13
 const char m_chMenuAddElement[] =		"Создать элемент в группе";
 #define MENU_ADD_BROADCASTER			14
-const char m_chMenuAddBroadcaster[] =	"Создать элемент-транслятор в группе";
+const char m_chMenuAddBroadcaster[] =	"Создать транслятор в группе";
 #define MENU_ADD_RECEIVER				15
-const char m_chMenuAddReceiver[] =		"Создать элемент-приёмник в группе";
+const char m_chMenuAddReceiver[] =		"Создать приёмник в группе";
 //										ПЕРЕИМЕНОВАТЬ.
 #define MENU_RENAME_SELECTED			16
 const char m_chMenuRenameS[] =			"Переименовать выборку";
 #define MENU_RENAME_EG					17
 const char m_chMenuRenameE[] =			"Переименовать элемент";
+const char m_chMenuRenameB[] =			"Переименовать транслятор";
+const char m_chMenuRenameR[] =			"Переименовать приёмник";
 const char m_chMenuRenameG[] =			"Переименовать группу";
 //
 // <== ПРОЧИЕ МЕНЮ ==>

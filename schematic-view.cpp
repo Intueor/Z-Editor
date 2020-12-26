@@ -246,7 +246,7 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chName, QPointF
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = pntMapped.y();
 	if(uchSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 125;
-	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 175;
+	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 225;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 100;
 	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.uchSettingsBits = uchSettings;
@@ -2473,8 +2473,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			}
 			else bSingleSelected = true; // Иначе - одиночный выбор.
 			if(bSingleSelected)
-				strCaption = QString("Выбрано: ") + QString(m_chNewElement) +
-							 " [" + QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "]";
+				strCaption = QString("Выбрано: [" + QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "]");
 			else
 				strCaption = m_chSelection;
 			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strCaption) + 34);
@@ -2482,20 +2481,62 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			// МЕНЮ.
 			if(bSingleSelected) // При выборе одного элемента.
 			{
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameE))->setData(MENU_RENAME_EG); // |->Переименовать элемент\группу.
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDeleteE))->setData(MENU_DELETE); // |->Удалить.
+				const char* pc_chVarRename;
+				const char* pc_chVarDelete;
+				const char* pc_chVarPorts;
+				const char* pc_chVarCreateGroup;
+				const char* pc_chVarAdd;
+				const char* pc_chVarDetach;
+				const char* pc_chVarChangeBkg;
+				//
+				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+				{
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+					   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+					{
+						pc_chVarRename = m_chMenuRenameR;
+						pc_chVarDelete = m_chMenuDeleteR;
+						pc_chVarPorts = m_chMenuPortsR;
+						pc_chVarCreateGroup = m_chMenuCreateFromR;
+						pc_chVarAdd = m_chMenuAddFreeR;
+						pc_chVarDetach = m_chMenuDetachR;
+						pc_chVarChangeBkg = m_chMenuBackgroundR;
+					}
+					else
+					{
+						pc_chVarRename = m_chMenuRenameB;
+						pc_chVarDelete = m_chMenuDeleteB;
+						pc_chVarPorts = m_chMenuPortsB;
+						pc_chVarCreateGroup = m_chMenuCreateFromB;
+						pc_chVarAdd = m_chMenuAddFreeB;
+						pc_chVarDetach = m_chMenuDetachB;
+						pc_chVarChangeBkg = m_chMenuBackgroundB;
+					}
+				}
+				else
+				{
+					pc_chVarRename = m_chMenuRenameE;
+					pc_chVarDelete = m_chMenuDeleteE;
+					pc_chVarPorts = m_chMenuPortsE;
+					pc_chVarCreateGroup = m_chMenuCreateFromE;
+					pc_chVarAdd = m_chMenuAddFreeE;
+					pc_chVarDetach = m_chMenuDetachE;
+					pc_chVarChangeBkg = m_chMenuBackgroundE;
+				}
+				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarRename))->setData(MENU_RENAME_EG); // |->Переименовать элемент\группу.
+				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarDelete))->setData(MENU_DELETE); // |->Удалить.
 				if(bPortsPresent) // Если есть порты...
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPortsE))->setData(MENU_PORTS); // |->Меню портов.
+					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarPorts))->setData(MENU_PORTS); // |->Меню портов.
 				if(bElementIsFree) // Если не в группе...
-						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromE)->setData(MENU_CREATE_GROUP); // |->Создать группу.
+						SchematicWindow::p_SafeMenu->addAction(pc_chVarCreateGroup)->setData(MENU_CREATE_GROUP); // |->Создать группу.
 				if(bSingleGroupSelected && bElementIsFree) // Если выбрана одна группа и текущий элемент свободен...
 						SchematicWindow::p_SafeMenu->
-								addAction(QString(QString(m_chMenuAddFreeE) +
+								addAction(QString(QString(pc_chVarAdd) +
 											  " [" + QString(p_GraphicsGroupItemFirstSelected->oPSchGroupBaseInt.m_chName) + "]"))->
 								setData(MENU_ADD); // |->Добавить в группу.
 				if(!bElementIsFree) // Если есть в составе группы...
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetachE))->setData(MENU_DETACH); // |-> Отсоединить.
-				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackgroundE))->setData(MENU_CHANGE_BKG); // |-> Сменить цвет подложки.
+					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarDetach))->setData(MENU_DETACH); // |-> Отсоединить.
+				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarChangeBkg))->setData(MENU_CHANGE_BKG); // |-> Сменить цвет подложки.
 			}
 			else // При множественной выборке.
 			{
@@ -2641,10 +2682,37 @@ void SchematicView::BacthRenameDialogProcedures()
 	const EGPointersVariant* p_EGPointersVariant;
 	PSchElementName oPSchElementName;
 	PSchGroupName oPSchGroupName;
+	unsigned char uchType;
 	//
 	if(SchematicWindow::vp_SelectedGroups.isEmpty())
 	{
-		memcpy(m_chName, m_chPreElementName, sizeof(m_chPreElementName));
+		// Проверка на однотипность.
+		uchType = SchematicWindow::vp_SelectedElements.at(0)->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits;
+		ResetBits(uchType, SCH_SETTINGS_TYPE_MASK);
+		for(int iF = 1; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+		{
+			GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
+			unsigned char uchTypeInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits;
+			//
+			ResetBits(uchTypeInt, SCH_SETTINGS_TYPE_MASK);
+			if(uchType != uchTypeInt) goto gO;
+		}
+		// Выдержан один тип - установка.
+		if(uchType & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		{
+			if(uchType & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			{
+				memcpy(m_chName, m_chPreReceiverName, sizeof(m_chPreReceiverName));
+			}
+			else
+			{
+				memcpy(m_chName, m_chPreBroadcasterName, sizeof(m_chPreBroadcasterName));
+			}
+		}
+		else
+		{
+			memcpy(m_chName, m_chPreElementName, sizeof(m_chPreElementName));
+		}
 	}
 	else if(SchematicWindow::vp_SelectedElements.isEmpty())
 	{
@@ -2652,13 +2720,12 @@ void SchematicView::BacthRenameDialogProcedures()
 	}
 	else
 	{
-		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
+gO:		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
 	}
 	Batch_Rename_Dialog* p_Batch_Rename_Dialog = new Batch_Rename_Dialog(m_chName, SCH_OBJ_NAME_STR_LEN);
 	//
 	if(p_Batch_Rename_Dialog->exec() == DIALOGS_ACCEPT)
 	{
-		unsigned char uchType;
 		QString strName = m_chName;
 		QString strResult;
 		QString strNum;
@@ -2911,11 +2978,11 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 					oQPolygonFForTriangle.append(QPointF(dbR + (pntTrT.x() * dbR) - dbDecr, dbR + (pntTrT.y() * dbR)));
 					oQPolygonFForTriangle.append(QPointF(dbR + (pntTrL.x() * dbR) - dbDecr, dbR + (pntTrL.y() * dbR)));
 					p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
-					p_Painter->drawText(QRectF((dbR / 3.0f) + 5.0f, 0,
+					p_Painter->drawText(QRectF((dbR / 4.0f) + 5.0f, dbR / 4.0f,
 											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
-											   (dbR / 1.5f) -
+											   (dbR / 2.0f) -
 											   (dbDecr * 2.0f) - 10.f,
-											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 10.0f),
+											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW),
 										strName, oQTextOption);
 				}
 			}
@@ -3328,10 +3395,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			bool bNoSelElements = SchematicWindow::vp_SelectedElements.isEmpty();
 			bool bPortsPresent = CheckPortsInSelection();
 			bool bGroupIsFree = p_GraphicsGroupItem->p_GraphicsGroupItemRel == nullptr;
-			bool bSingleGroupSelected = SchematicWindow::vp_SelectedGroups.count() == 1;
-			GraphicsGroupItem* p_GraphicsGroupItemFirstSelected = nullptr;
 			//
-			if(bSingleGroupSelected) p_GraphicsGroupItemFirstSelected = SchematicWindow::vp_SelectedGroups.at(0);
 			if(!(bNoSelElements && SchematicWindow::vp_SelectedGroups.isEmpty()))
 			{ // Если где-то есть выбранные...
 				if((SchematicWindow::vp_SelectedGroups.count() == 1) && bNoSelElements)
@@ -3347,8 +3411,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			else bSingleSelected = true; // Иначе - одиночный выбор.
 			if(bSingleSelected)
 			{
-				strCaption = QString("Выбрано: ") + QString(m_chNewGroup) +
-							 " [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]";
+				strCaption = QString("Выбрано: [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]");
 			}
 			else
 			{
@@ -3380,13 +3443,11 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				if(bGroupIsFree)  // Если не в группе...
 					if(!TestSelectedForNesting()) // И выборка не в группе...
 						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromS)->setData(MENU_CREATE_GROUP); // |->Создать группу.
-				if(bSingleGroupSelected) // Если выбрана одна группа...
-					if((!TestSelectedForNesting(p_GraphicsGroupItemFirstSelected) // Если всё свободно (группу, куда добавляем - не провер.)...
-						&& bGroupIsFree)) // И текущая группа свободна...
-						SchematicWindow::p_SafeMenu->
-								addAction(QString(QString(m_chMenuAddFreeS) +
-											  " [" + QString(p_GraphicsGroupItemFirstSelected->oPSchGroupBaseInt.m_chName) + "]"))->
-								setData(MENU_ADD); // |->Добавить в группу.
+				if(!TestSelectedForNesting(p_GraphicsGroupItem)) // Если всё свободно (группу, куда добавляем - не провер.)...
+					SchematicWindow::p_SafeMenu->
+							addAction(QString(QString(m_chMenuAddFreeS) +
+											  " [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]"))->
+							setData(MENU_ADD); // |->Добавить в группу.
 				if((!bGroupIsFree) || TestSelectedForNesting()) // Если выборка и\или элемент есть в составе группы...
 					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetachS))->setData(MENU_DETACH); // |-> Отсоединить.
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackgroundS))->setData(MENU_CHANGE_BKG); // |-> Сменить цвет подложки.
