@@ -9,6 +9,7 @@
 #include "schematic-window.h"
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 #include "Dialogs/batch_rename_dialog.h"
+#include "ui_batch_rename_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
@@ -223,30 +224,32 @@ void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 }
 
 // Создание нового элемента и подготовка отсылки параметров.
-GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPointF pntMapped, unsigned long long ullIDGroup)
+GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chName, QPointF pntMapped, unsigned long long ullIDGroup,
+														 unsigned char uchSettings)
 {
 	PSchElementBase oPSchElementBase;
 	unsigned char uchR = rand() % 255;
 	unsigned char uchG = rand() % 255;
 	unsigned char uchB = rand() % 255;
 	unsigned char uchA = 255;
-	QString strName = QString(p_chNameBase);
+	QString strName = QString(p_chName);
 	GraphicsElementItem* p_GraphicsElementItem;
 	//
 	memset(&oPSchElementBase, 0, sizeof(oPSchElementBase));
 	oPSchElementBase.oPSchElementVars.ullIDGroup = ullIDGroup;
 	oPSchElementBase.bRequestGroupUpdate = (ullIDGroup != 0);
 	oPSchElementBase.oPSchElementVars.ullIDInt = GenerateID();
-	strName += ": " + QString::number(oPSchElementBase.oPSchElementVars.ullIDInt);
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchElementBase.m_chName,
 				 (unsigned int)strName.toStdString().size() + 1);
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = pntMapped.y();
-	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 275;
-	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 75;
+	if(uchSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 125;
+	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 175;
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 100;
 	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.uchSettingsBits = uchSettings;
 	p_GraphicsElementItem = new GraphicsElementItem(&oPSchElementBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->setZValue(oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos);
@@ -258,12 +261,13 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chNameBase, QPo
 }
 
 // Создание нового элемента в группе и подготовка отсылки параметров.
-void SchematicView::CreateNewElementInGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, QPointF pntMapped)
+void SchematicView::CreateNewElementInGroupAPFS(char* p_chName, GraphicsGroupItem* p_GraphicsGroupItem,
+												QPointF pntMapped, unsigned char uchSettings)
 {
 	GraphicsElementItem* p_GraphicsElementItem;
 	//
-	p_GraphicsElementItem = CreateNewElementAPFS((char*)m_chNewElement, pntMapped,
-												 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
+	p_GraphicsElementItem = CreateNewElementAPFS(p_chName, pntMapped,
+												 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt, uchSettings);
 	p_GraphicsGroupItem->vp_ConnectedElements.append(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsGroupItemRel = p_GraphicsGroupItem;
 	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDGroup =
@@ -336,6 +340,8 @@ void SchematicView::mousePressEvent(QMouseEvent* p_Event)
 		if(p_QGraphicsItem) goto gEx;
 		SchematicWindow::p_SafeMenu = new SafeMenu;
 		SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateElement)->setData(MENU_CREATE_ELEMENT);
+		SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateBroadcaster)->setData(MENU_CREATE_BROADCASTER);
+		SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateReceiver)->setData(MENU_CREATE_RECEIVER);
 		bFieldMenuReady = true;
 	}
 gEx:if(!lp_QGraphicsItemsHided.isEmpty())
@@ -526,6 +532,18 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 			if(p_SelectedMenuItem->data() == MENU_CREATE_ELEMENT)
 			{
 				CreateNewElementAPFS((char*)m_chNewElement, pntMouseClickMapped);
+				MainWindow::p_Client->SendBufferToServer();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_CREATE_BROADCASTER)
+			{
+				CreateNewElementAPFS((char*)m_chNewBroadcaster, pntMouseClickMapped, 0,
+									 SCH_SETTINGS_ELEMENT_BIT_EXTENDED);
+				MainWindow::p_Client->SendBufferToServer();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_CREATE_RECEIVER)
+			{
+				CreateNewElementAPFS((char*)m_chNewReceiver, pntMouseClickMapped, 0,
+									 SCH_SETTINGS_ELEMENT_BIT_EXTENDED | SCH_SETTINGS_ELEMENT_BIT_RECEIVER);
 				MainWindow::p_Client->SendBufferToServer();
 			}
 		}
@@ -2455,7 +2473,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 			}
 			else bSingleSelected = true; // Иначе - одиночный выбор.
 			if(bSingleSelected)
-				strCaption = QString("Выбрано: ") + QString(m_chElement) +
+				strCaption = QString("Выбрано: ") + QString(m_chNewElement) +
 							 " [" + QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "]";
 			else
 				strCaption = m_chSelection;
@@ -2582,7 +2600,6 @@ void SchematicView::CreateGroupFromSelected()
 	//
 	memset(&oPSchGroupBase, 0, sizeof(oPSchGroupBase));
 	oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
-	strName += ": " + QString::number(oPSchGroupBase.oPSchGroupVars.ullIDInt);
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
 	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
@@ -2619,11 +2636,106 @@ void SchematicView::CreateGroupFromSelected()
 // Работа с диалогом пакетного переименования файлов.
 void SchematicView::BacthRenameDialogProcedures()
 {
-	Batch_Rename_Dialog* p_Batch_Rename_Dialog = new Batch_Rename_Dialog();
+	char m_chName[SCH_OBJ_NAME_STR_LEN];
+	QVector<EGPointersVariant> v_EGPointersVariants;
+	const EGPointersVariant* p_EGPointersVariant;
+	PSchElementName oPSchElementName;
+	PSchGroupName oPSchGroupName;
+	//
+	if(SchematicWindow::vp_SelectedGroups.isEmpty())
+	{
+		memcpy(m_chName, m_chPreElementName, sizeof(m_chPreElementName));
+	}
+	else if(SchematicWindow::vp_SelectedElements.isEmpty())
+	{
+		memcpy(m_chName, m_chPreGroupName, sizeof(m_chPreGroupName));
+	}
+	else
+	{
+		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
+	}
+	Batch_Rename_Dialog* p_Batch_Rename_Dialog = new Batch_Rename_Dialog(m_chName, SCH_OBJ_NAME_STR_LEN);
 	//
 	if(p_Batch_Rename_Dialog->exec() == DIALOGS_ACCEPT)
 	{
-
+		unsigned char uchType;
+		QString strName = m_chName;
+		QString strResult;
+		QString strNum;
+		//
+		SortObjectsByZPos(SchematicWindow::vp_SelectedElements, nullptr,
+						  SchematicWindow::vp_SelectedGroups, nullptr,
+						  &v_EGPointersVariants);
+		if(!p_Batch_Rename_Dialog->p_ui->Empty_radioButton->isChecked()) // Хоть что-то делаем...
+		{
+			if(p_Batch_Rename_Dialog->p_ui->Classic_radioButton->isChecked()) uchType = RENAME_TYPE_CLASSIC;
+			else if(p_Batch_Rename_Dialog->p_ui->FromUID_radioButton->isChecked()) uchType = RENAME_TYPE_UID;
+			else uchType = RENAME_TYPE_DIGITS;
+		}
+		else uchType = RENAME_TYPE_EMPTY;
+		for(int iF = 0; iF != v_EGPointersVariants.count(); iF++)
+		{
+			p_EGPointersVariant = &v_EGPointersVariants.at(iF);
+			switch(uchType)
+			{
+				case RENAME_TYPE_CLASSIC:
+				{
+					strResult = strName + strNum.setNum(iF + 1);
+					break;
+				}
+				case RENAME_TYPE_EMPTY:
+				{
+					strResult = strName;
+					break;
+				}
+				case RENAME_TYPE_UID:
+				{
+					if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
+					{
+						strResult = strName +
+									strNum.setNum(p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt);
+					}
+					else
+					{
+						strResult = strName +
+									strNum.setNum(p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt);
+					}
+					break;
+				}
+				case RENAME_TYPE_DIGITS:
+				{
+					strResult = strName +
+								strNum.setNum(iF).rightJustified(p_Batch_Rename_Dialog->p_ui->spinBox->value(), '0');
+					break;
+				}
+			}
+			memcpy(m_chName, (char*)strResult.toStdString().c_str(), strResult.toStdString().size());
+			//
+			if(p_EGPointersVariant->p_GraphicsElementItem != nullptr)
+			{
+				memset(&oPSchElementName, 0, sizeof(oPSchElementName));
+				CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
+				CopyStrArray(m_chName, p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
+				oPSchElementName.ullIDInt = p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
+															  sizeof(oPSchElementName));
+				if(p_EGPointersVariant->p_GraphicsElementItem->p_QGroupBox)
+				{
+					p_EGPointersVariant->p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
+				}
+			}
+			else
+			{
+				memset(&oPSchGroupName, 0, sizeof(oPSchGroupName));
+				CopyStrArray(m_chName, oPSchGroupName.m_chName, SCH_OBJ_NAME_STR_LEN);
+				CopyStrArray(m_chName, p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
+				oPSchGroupName.ullIDInt = p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
+															  sizeof(oPSchGroupName));
+				p_EGPointersVariant->p_GraphicsGroupItem->p_QLabel->setText(oPSchGroupName.m_chName);
+			}
+		}
+		SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 	}
 	p_Batch_Rename_Dialog->deleteLater();
 }
@@ -2653,7 +2765,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	{
 		QAction* p_SelectedMenuItem;
 		Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
-
 		PSchElementName oPSchElementName;
 		char m_chName[SCH_OBJ_NAME_STR_LEN];
 		//
@@ -2748,6 +2859,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			// Подготовка имени.
 			oQTextOption.setAlignment(Qt::AlignCenter);
+			oQTextOption.setWrapMode(QTextOption::NoWrap);
 			QString strName = QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "\n";
 			strU.fill(qchF, strName.length() + 2);
 			strName += strU;
@@ -3235,7 +3347,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			else bSingleSelected = true; // Иначе - одиночный выбор.
 			if(bSingleSelected)
 			{
-				strCaption = QString("Выбрано: ") + QString(m_chGroup) +
+				strCaption = QString("Выбрано: ") + QString(m_chNewGroup) +
 							 " [" + QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName) + "]";
 			}
 			else
@@ -3281,6 +3393,8 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			}
 			// В любом варианте.
 			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddBroadcaster))->setData(MENU_ADD_BROADCASTER);
+			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddReceiver))->setData(MENU_ADD_RECEIVER);
 			bGroupMenuReady = true;
 		}
 	}
@@ -3395,7 +3509,17 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_ADD_ELEMENT)
 			{
-				CreateNewElementInGroupAPFS(p_GraphicsGroupItem, p_GraphicsGroupItem->mapToScene(p_Event->pos()));
+				CreateNewElementInGroupAPFS((char*)m_chNewElement, p_GraphicsGroupItem, p_GraphicsGroupItem->mapToScene(p_Event->pos()));
+			}
+			else if(p_SelectedMenuItem->data() == MENU_ADD_BROADCASTER)
+			{
+				CreateNewElementInGroupAPFS((char*)m_chNewBroadcaster, p_GraphicsGroupItem, p_GraphicsGroupItem->mapToScene(p_Event->pos()),
+											SCH_SETTINGS_ELEMENT_BIT_EXTENDED);
+			}
+			else if(p_SelectedMenuItem->data() == MENU_ADD_RECEIVER)
+			{
+				CreateNewElementInGroupAPFS((char*)m_chNewReceiver, p_GraphicsGroupItem, p_GraphicsGroupItem->mapToScene(p_Event->pos()),
+											SCH_SETTINGS_ELEMENT_BIT_EXTENDED | SCH_SETTINGS_ELEMENT_BIT_RECEIVER);
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BKG)
 			{

@@ -90,15 +90,20 @@ public:
 	/// Удаление выбранного и подготовка отправки по запросу.
 	static void DeleteSelectedAPFS();
 	/// Создание нового элемента и подготовка отсылки параметров.
-	static GraphicsElementItem* CreateNewElementAPFS(char* p_chNameBase, QPointF pntMapped, unsigned long long ullIDGroup = 0);
-							///< \param[in] p_chNameBase Указатель на строку с базой нового имени.
+	static GraphicsElementItem* CreateNewElementAPFS(char* p_chName, QPointF pntMapped,
+													 unsigned long long ullIDGroup = 0, unsigned char uchSettings = 0);
+							///< \param[in] p_chName Указатель на строку именем.
 							///< \param[in] pntMapped Координаты.
 							///< \param[in] ullIDGroup ИД группы (привязка и сопутствующие операции - в CreateNewElementInGroupAPFS).
+							///< \param[in] uchSettings Установки типа, минимизации, занятости (по протоколу).
 							///< \return Указатель на новый графический элемент.
 	/// Создание нового элемента в группе и подготовка отсылки параметров.
-	static void CreateNewElementInGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem, QPointF pntMapped);
+	static void CreateNewElementInGroupAPFS(char* p_chName, GraphicsGroupItem* p_GraphicsGroupItem,
+											QPointF pntMapped, unsigned char uchSettings = 0);
+							///< \param[in] p_chName Указатель на строку именем.
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] pntMapped Координаты.
+							///< \param[in] uchSettings Установки типа, минимизации, занятости (по протоколу).
 	/// Обновление Z-позиции линков.
 	static void UpdateLinksZPos();
 	/// Замена линка.
