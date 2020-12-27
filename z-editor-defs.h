@@ -151,6 +151,7 @@ const char m_chNewElement[] = "Новый элемент";
 const char m_chNewBroadcaster[] = "Новый транслятор";
 const char m_chNewReceiver[] = "Новый приёмник";
 const char m_chNewGroup[] = "Группа";
+const char m_chNewLink[] = "Линк";
 const char m_chPortTooltip[] = "Порт: ";
 const char m_chSelection[] = "Выборка";
 const char m_chNumOrPseudo[] = "Номер или псевдоним порта ";

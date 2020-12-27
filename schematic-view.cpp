@@ -2317,6 +2317,9 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 		unsigned char uchMinStatus = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
 									 SCH_SETTINGS_EG_BIT_MIN;
 		//
+		if(uchMinStatus == 0) SetElementTooltip(p_GraphicsElementItem);
+		else p_GraphicsElementItem->setToolTip("");
+		//
 		bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем текущее значение выбраности.
 		if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem)) // Если не было выбрано - добавляем для массовых действий.
 		{
@@ -3279,6 +3282,8 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 {
 	bool bGroupMinStatus = (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) != 0;
 	//
+	if(bGroupMinStatus) p_GraphicsGroupItem->setToolTip(QString(m_chPreGroupName) + p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName);
+	else p_GraphicsGroupItem->setToolTip("");
 	SetHidingStatus(p_GraphicsGroupItem, bNextHiding);
 	if(bGroupMinStatus)
 	{
@@ -3336,6 +3341,26 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 	}
 }
 
+// Установка тултипа в зависимости от типа элемента.
+void SchematicView::SetElementTooltip(GraphicsElementItem* p_GraphicsElementItem)
+{
+	if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+			p_GraphicsElementItem->setToolTip(QString(m_chPreReceiverName) + p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
+		}
+		else
+		{
+			p_GraphicsElementItem->setToolTip(QString(m_chPreBroadcasterName) + p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
+		}
+	}
+	else
+	{
+		p_GraphicsElementItem->setToolTip(QString(m_chPreElementName) + p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
+	}
+}
+
 // Расстановка размеров, статусов групп и их содержания после загрузки.
 void SchematicView::AfterLoadingPlacement()
 {
@@ -3387,10 +3412,14 @@ void SchematicView::AfterLoadingPlacement()
 			{
 				p_GraphicsElementItem->p_QGroupBox->show();
 			}
+			p_GraphicsElementItem->setToolTip("");
+		}
+		else
+		{
+			SetElementTooltip(p_GraphicsElementItem);
 		}
 	}
 }
-
 
 // Обработчик события нажатия мыши на группу.
 void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
@@ -4321,7 +4350,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 			QString strCaptionDst = QString(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
 			QString strPortSrc = QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort);
 			QString strPortDst = QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort);
-			QString strName = QString(m_chLink + QString(" [") + strCaptionSrc + QString(" <> ") + strCaptionDst + QString("]"));
+			QString strName = QString(m_chNewLink + QString(" [") + strCaptionSrc + QString(" => ") + strCaptionDst + QString("]"));
 			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strName) + 50);
 			// Линк.
 			SchematicWindow::p_SafeMenu->addSection(strName)->setDisabled(true);
