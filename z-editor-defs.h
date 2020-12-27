@@ -84,6 +84,8 @@
 //
 #define ELEMENT_MIN_X					40
 #define ELEMENT_MIN_Y					30
+#define BROADCASTER_MIN					80
+#define RECEIVER_MIN					50
 //
 #define C_CONF_PATH							"../Z-Editor/settings/client.xml"
 #define CLIENT_REQUEST_UNDEFINED			2

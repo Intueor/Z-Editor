@@ -246,7 +246,7 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chName, QPointF
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = pntMapped.y();
-	if(uchSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 125;
+	if(uchSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 150;
 	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 225;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 100;
 	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
@@ -2380,6 +2380,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 				{
 					UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel);
 				}
+				else SchematicWindow::p_QGraphicsScene->update();
 			}
 		}
 		//
@@ -2919,6 +2920,10 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 					{
 						p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
 					}
+					else
+					{
+						PrepareNameWithExtPort(p_GraphicsElementItem);
+					}
 					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 				}
 				p_Set_Proposed_String_Dialog->deleteLater();
@@ -2997,15 +3002,10 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 		{
 			QTextOption oQTextOption;
-			QString strU;
-			QChar qchF = 0x00AF;
 			double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			// Подготовка имени.
 			oQTextOption.setAlignment(Qt::AlignCenter);
 			oQTextOption.setWrapMode(QTextOption::NoWrap);
-			QString strName = QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName) + "\n";
-			strU.fill(qchF, strName.length() + 2);
-			strName += strU;
 			//
 			if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 			{
@@ -3023,10 +3023,10 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 				else
 				{
 					p_Painter->drawEllipse(QPointF(dbR, dbR), dbR, dbR);
-					p_Painter->drawText(QRectF(5.0f, 0,
-											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 10.0f,
+					p_Painter->drawText(QRectF(14.0f, 0,
+											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 28.0f,
 											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW + 10.0f),
-										strName, oQTextOption);
+										p_GraphicsElementItem->strPreparedName, oQTextOption);
 				}
 			}
 			else
@@ -3054,12 +3054,12 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 					oQPolygonFForTriangle.append(QPointF(dbR + (pntTrT.x() * dbR) - dbDecr, dbR + (pntTrT.y() * dbR)));
 					oQPolygonFForTriangle.append(QPointF(dbR + (pntTrL.x() * dbR) - dbDecr, dbR + (pntTrL.y() * dbR)));
 					p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
-					p_Painter->drawText(QRectF((dbR / 4.0f) + 5.0f, dbR / 4.0f,
+					p_Painter->drawText(QRectF((dbR / 4.0f) + 10.0f, dbR / 3.0f,
 											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
 											   (dbR / 2.0f) -
-											   (dbDecr * 2.0f) - 10.f,
-											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW),
-										strName, oQTextOption);
+											   (dbDecr * 2.0f) - 20.f,
+											   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 1.333f),
+										p_GraphicsElementItem->strPreparedName, oQTextOption);
 				}
 			}
 		}
@@ -3141,6 +3141,22 @@ void SchematicView::SetGroupPalette(GraphicsGroupItem* p_GraphicsGroupItem)
 	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
 }
 
+// Подготовка имени внешнего порта.
+void SchematicView::PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElementItem)
+{
+	QChar qchF = 0x00AF;
+	QString strName = p_GraphicsElementItem->oPSchElementBaseInt.m_chName;
+	QString strU;
+	//
+	p_GraphicsElementItem->
+			strPreparedName = QString("[" +
+								  p_GraphicsElementItem->strPreparedName.setNum(
+									  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ushiExtPort) +
+								  "]\n") + QString(strName + "\n");
+	strU.fill(qchF, strName.length() + 2);
+	p_GraphicsElementItem->strPreparedName += strU;
+}
+
 // Обработчик конструктора элемента.
 void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase)
 {
@@ -3211,6 +3227,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 						(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION),
 						(dbR + (pntTrR.y() * dbR)) - 3.0f);
 		}
+		PrepareNameWithExtPort(p_GraphicsElementItem);
 	}
 	else
 	{
@@ -4854,6 +4871,7 @@ void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsS
 void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
 {
 	DbPoint oDbPointPos;
+	DbPoint oDbPointMinimals;
 	//
 	if((p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY)
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
@@ -4862,14 +4880,33 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	}
 	oDbPointPos.dbX = p_GraphicsScalerItem->pos().x();
 	oDbPointPos.dbY = p_GraphicsScalerItem->pos().y();
-	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event);; // Даём мышке уйти.
+	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event); // Даём мышке уйти.
+	if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		{
+			oDbPointMinimals.dbX = RECEIVER_MIN;
+			oDbPointMinimals.dbY = RECEIVER_MIN;
+		}
+		else
+		{
+			oDbPointMinimals.dbX = BROADCASTER_MIN;
+			oDbPointMinimals.dbY = BROADCASTER_MIN;
+		}
+	}
+	else
+	{
+		oDbPointMinimals.dbX = ELEMENT_MIN_X;
+		oDbPointMinimals.dbY = ELEMENT_MIN_Y;
+	}
 	if(p_Event->scenePos().x() <
-	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX + ELEMENT_MIN_X)
+	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX + oDbPointMinimals.dbX)
 	{
 		p_GraphicsScalerItem->setX(oDbPointPos.dbX);
 	}
 	if(p_Event->scenePos().y() <
-	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY + ELEMENT_MIN_Y)
+	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY + oDbPointMinimals.dbY)
 	{
 		p_GraphicsScalerItem->setY(oDbPointPos.dbY);
 	}

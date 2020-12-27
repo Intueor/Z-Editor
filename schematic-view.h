@@ -494,6 +494,9 @@ private:
 	/// Установка тултипа в зависимости от типа элемента.
 	static void SetElementTooltip(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+	/// Подготовка имени внешнего порта.
+	static void PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.

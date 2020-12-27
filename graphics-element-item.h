@@ -67,6 +67,7 @@ public:
 	GraphicsScalerItem* p_GraphicsScalerItem; ///< Указатель на графический объект скалера.
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
 	bool bPortsForMin; ///< true - при наличии портов на элементе (проверяется при минимизации).
+	QString strPreparedName; ///< Строка с подготовленным для отображения названием объекта.
 };
 
 #endif // GRAPHICSELEMENTITEM_H
