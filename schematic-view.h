@@ -474,7 +474,23 @@ private:
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения из поиска.
 	/// Работа с диалогом пакетного переименования файлов.
 	static void BacthRenameDialogProcedures();
-
+	/// Вызов диалога смены цвета.
+	static unsigned int GetColor(unsigned int uiLastColor);
+							///< \param[in] uiLastColor Начальный цвет.
+							///< \return Цвет.
+	/// Задание цвета выборке и подготовка отправки на сервер.
+	static void ChangeColorOfSelectedAPFS(unsigned int uiNewColor);
+							///< \param[in] uiLastColor Цвет.
+	/// Определение типа палитры подложки.
+	static bool CheckBkgPaletteType(unsigned int uiColor);
+							///< \param[in] uiColor Цвет.
+							///< \return true - при позитивной палитре.
+	/// Установка стиля элемента в зависимости от типа палитры.
+	static void SetElementPalette(GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+	/// Установка стиля группы в зависимости от типа палитры.
+	static void SetGroupPalette(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.

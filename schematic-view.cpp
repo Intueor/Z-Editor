@@ -3,6 +3,7 @@
 #include <QGraphicsSceneEvent>
 #include <QBoxLayout>
 #include <QGraphicsProxyWidget>
+#include <QColorDialog>
 #include "../Z-Hub/z-hub-defs.h"
 #include "z-editor-defs.h"
 #include "schematic-view.h"
@@ -2807,6 +2808,54 @@ gO:		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
 	p_Batch_Rename_Dialog->deleteLater();
 }
 
+// Вызов диалога смены цвета.
+unsigned int SchematicView::GetColor(unsigned int uiLastColor)
+{
+	QColorDialog* p_QColorDialog = new QColorDialog();
+	QIcon oQIcon(":/icons/z-icon.ico");
+	//
+	p_QColorDialog->setProperty("windowIcon", oQIcon);
+	p_QColorDialog->setOption(QColorDialog::ShowAlphaChannel);
+	p_QColorDialog->setCurrentColor(QColor::fromRgba(uiLastColor));
+	p_QColorDialog->exec();
+	p_QColorDialog->deleteLater();
+	return p_QColorDialog->currentColor().rgba();
+}
+
+// Задание цвета выборке и подготовка отправки на сервер.
+void SchematicView::ChangeColorOfSelectedAPFS(unsigned int uiNewColor)
+{
+	PSchElementColor oPSchElementColor;
+	PSchGroupColor oPSchGroupColor;
+	//
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
+	{
+		GraphicsElementItem* p_GraphicsElementItemInt = SchematicWindow::vp_SelectedElements.at(iF);
+		//
+		p_GraphicsElementItemInt->oPSchElementBaseInt.uiObjectBkgColor = uiNewColor;
+		p_GraphicsElementItemInt->oQBrush.setColor(QColor::fromRgba(uiNewColor));
+		p_GraphicsElementItemInt->bIsPositivePalette = CheckBkgPaletteType(uiNewColor);
+		SetElementPalette(p_GraphicsElementItemInt);
+		oPSchElementColor.ullIDInt = p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+		oPSchElementColor.uiObjectBkgColor = p_GraphicsElementItemInt->oPSchElementBaseInt.uiObjectBkgColor;
+		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_COLOR, (char*)&oPSchElementColor,
+													   sizeof(oPSchElementColor));
+	}
+	for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
+	{
+		GraphicsGroupItem* p_GraphicsGroupItemInt = SchematicWindow::vp_SelectedGroups.at(iF);
+		//
+		p_GraphicsGroupItemInt->oPSchGroupBaseInt.uiObjectBkgColor = uiNewColor;
+		p_GraphicsGroupItemInt->oQBrush.setColor(QColor::fromRgba(uiNewColor));
+		p_GraphicsGroupItemInt->bIsPositivePalette = CheckBkgPaletteType(uiNewColor);
+		SetGroupPalette(p_GraphicsGroupItemInt);
+		oPSchGroupColor.ullIDInt = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+		oPSchGroupColor.uiObjectBkgColor = p_GraphicsGroupItemInt->oPSchGroupBaseInt.uiObjectBkgColor;
+		MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_COLOR, (char*)&oPSchGroupColor,
+													   sizeof(oPSchGroupColor));
+	}
+}
+
 // Обработчик события отпусканеия мыши на элементе.
 void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -2859,7 +2908,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 					CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
 					CopyStrArray(m_chName, p_GraphicsElementItem->oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 					oPSchElementName.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
+					MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
 																  sizeof(oPSchElementName));
 					if(p_GraphicsElementItem->p_QGroupBox)
 					{
@@ -2891,7 +2940,29 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BKG)
 			{
-
+				PSchElementColor oPSchElementColor;
+				unsigned int uiColor, uiNewColor;
+				//
+				uiColor = p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor;
+				uiNewColor = GetColor(uiColor);
+				if((SchematicWindow::vp_SelectedElements.count() == 1) && (SchematicWindow::vp_SelectedGroups.isEmpty()))
+				{ // Один элемент.
+					if(uiNewColor != uiColor) // Если что-то изменилось...
+					{
+						p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor = uiNewColor;
+						p_GraphicsElementItem->oQBrush.setColor(QColor::fromRgba(uiNewColor));
+						p_GraphicsElementItem->bIsPositivePalette = CheckBkgPaletteType(uiNewColor);
+						SetElementPalette(p_GraphicsElementItem);
+						oPSchElementColor.ullIDInt = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+						oPSchElementColor.uiObjectBkgColor = p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor;
+						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_COLOR, (char*)&oPSchElementColor,
+																	   sizeof(oPSchElementColor));
+					}
+				}
+				else
+				{ // Выборка.
+					ChangeColorOfSelectedAPFS(uiNewColor);
+				}
 			}
 		}
 		TempDeselectElement(p_GraphicsElementItem);
@@ -2912,11 +2983,11 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		p_Painter->setBrush(p_GraphicsElementItem->oQBrush);
 		if(p_GraphicsElementItem->bIsPositivePalette)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
+			p_Painter->setPen(SchematicWindow::oQPenBlack);
 		}
 		else
 		{
-			p_Painter->setPen(SchematicWindow::oQPenBlack);
+			p_Painter->setPen(SchematicWindow::oQPenWhite);
 		}
 		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 		{
@@ -3009,12 +3080,65 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 	}
 }
 
+// Определение типа палитры подложки.
+bool SchematicView::CheckBkgPaletteType(unsigned int uiColor)
+{
+	int iR, iG, iB, iA;
+	QColor oQColorBkg;
+	//
+	oQColorBkg = QColor::fromRgba(uiColor);
+	oQColorBkg.getRgb(&iR, &iG, &iB, &iA);
+	return ((iR + iG + iB) / 3) > 100;
+}
+
+// Установка стиля элемента в зависимости от типа палитры.
+void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem)
+{
+	if(p_GraphicsElementItem->bIsPositivePalette)
+	{
+		if(p_GraphicsElementItem->p_QGroupBox)
+		{
+			p_GraphicsElementItem->p_QGroupBox->
+					setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
+								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
+								  "left: 4px; padding-top: 0px; }");
+		}
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+	}
+	else
+	{
+		if(p_GraphicsElementItem->p_QGroupBox)
+		{
+			p_GraphicsElementItem->p_QGroupBox->
+					setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
+								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
+								  "left: 4px; padding-top: 0px; }");
+		}
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+	}
+	if(p_GraphicsElementItem->p_QGroupBox)
+	{
+		p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
+	}
+}
+
+// Установка стиля группы в зависимости от типа палитры.
+void SchematicView::SetGroupPalette(GraphicsGroupItem* p_GraphicsGroupItem)
+{
+	if(p_GraphicsGroupItem->bIsPositivePalette)
+	{
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+	}
+	else
+	{
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+	}
+	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
+}
+
 // Обработчик конструктора элемента.
 void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase)
 {
-	int iR, iG, iB;
-	QColor oQColorBkg;
-	//
 	p_GraphicsElementItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsElementItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_ELEMENT);
 	p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
@@ -3024,6 +3148,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsElementItem->bSelected = false;
 	p_GraphicsElementItem->bPortsForMin = false;
+	p_GraphicsElementItem->bIsPositivePalette = CheckBkgPaletteType(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
 	// Группировщик для стандартного элемента.
 	if(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED))
 	{
@@ -3033,26 +3158,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		p_GraphicsElementItem->p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
 		p_GraphicsElementItem->p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
 		p_GraphicsElementItem->p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
-		oQColorBkg = QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
-		oQColorBkg.getRgb(&iR, &iG, &iB);
-		if(((iR + iG + iB) / 3) > 128)
-		{
-			p_GraphicsElementItem->p_QGroupBox->
-					setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
-								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
-								  "left: 4px; padding-top: 0px; }");
-			p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
-			p_GraphicsElementItem->bIsPositivePalette = false;
-		}
-		else
-		{
-			p_GraphicsElementItem->p_QGroupBox->
-					setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
-								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
-								  "left: 4px; padding-top: 0px; }");
-			p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
-			p_GraphicsElementItem->bIsPositivePalette = true;
-		}
+		SetElementPalette(p_GraphicsElementItem);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget =
 				MainWindow::p_SchematicWindow->GetSchematicView()->scene()->
 				addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
@@ -3063,7 +3169,6 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
 		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
-		p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
 		if(((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) != 0) |
 		   bLoading)
 		{
@@ -3431,6 +3536,11 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromG)->setData(MENU_CREATE_GROUP); // |->Создать группу.
 				if(!bGroupIsFree) // Если есть в составе группы...
 					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetachG))->setData(MENU_DETACH); // |-> Отсоединить.
+				// В любом варианте.
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddBroadcaster))->setData(MENU_ADD_BROADCASTER);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddReceiver))->setData(MENU_ADD_RECEIVER);
+				//
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackgroundG))->setData(MENU_CHANGE_BKG); // |-> Сменить цвет подложки.
 			}
 			else // При множественной выборке.
@@ -3450,12 +3560,13 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 							setData(MENU_ADD); // |->Добавить в группу.
 				if((!bGroupIsFree) || TestSelectedForNesting()) // Если выборка и\или элемент есть в составе группы...
 					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDetachS))->setData(MENU_DETACH); // |-> Отсоединить.
+				// В любом варианте.
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddBroadcaster))->setData(MENU_ADD_BROADCASTER);
+				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddReceiver))->setData(MENU_ADD_RECEIVER);
+				//
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuBackgroundS))->setData(MENU_CHANGE_BKG); // |-> Сменить цвет подложки.
 			}
-			// В любом варианте.
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddElement))->setData(MENU_ADD_ELEMENT);
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddBroadcaster))->setData(MENU_ADD_BROADCASTER);
-			SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuAddReceiver))->setData(MENU_ADD_RECEIVER);
 			bGroupMenuReady = true;
 		}
 	}
@@ -3541,7 +3652,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 					CopyStrArray(m_chName, oPSchGroupName.m_chName, SCH_OBJ_NAME_STR_LEN);
 					CopyStrArray(m_chName, p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 					oPSchGroupName.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
+					MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
 																  sizeof(oPSchGroupName));
 					p_GraphicsGroupItem->p_QLabel->setText(oPSchGroupName.m_chName);
 					SchematicWindow::p_MainWindow->p_SchematicWindow->update();
@@ -3584,7 +3695,29 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CHANGE_BKG)
 			{
-
+				PSchGroupColor oPSchGroupColor;
+				unsigned int uiColor, uiNewColor;
+				//
+				uiColor = p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor;
+				uiNewColor = GetColor(uiColor);
+				if((SchematicWindow::vp_SelectedGroups.count() == 1) && (SchematicWindow::vp_SelectedElements.isEmpty()))
+				{ // Один группа.
+					if(uiNewColor != uiColor) // Если что-то изменилось...
+					{
+						p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor = uiNewColor;
+						p_GraphicsGroupItem->oQBrush.setColor(QColor::fromRgba(uiNewColor));
+						p_GraphicsGroupItem->bIsPositivePalette = CheckBkgPaletteType(uiNewColor);
+						SetGroupPalette(p_GraphicsGroupItem);
+						oPSchGroupColor.ullIDInt = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
+						oPSchGroupColor.uiObjectBkgColor = p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor;
+						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_COLOR, (char*)&oPSchGroupColor,
+																	   sizeof(oPSchGroupColor));
+					}
+				}
+				else
+				{ // Выборка.
+					ChangeColorOfSelectedAPFS(uiNewColor);
+				}
 			}
 		}
 		TempDeselectGroup(p_GraphicsGroupItem);
@@ -3605,11 +3738,11 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 		p_Painter->setBrush(p_GraphicsGroupItem->oQBrush);
 		if(p_GraphicsGroupItem->bIsPositivePalette)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
+			p_Painter->setPen(SchematicWindow::oQPenBlack);
 		}
 		else
 		{
-			p_Painter->setPen(SchematicWindow::oQPenBlack);
+			p_Painter->setPen(SchematicWindow::oQPenWhite);
 		}
 		if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
 		{
@@ -3636,9 +3769,6 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 // Обработчик конструктора группы.
 void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupBase* p_PSchGroupBase)
 {
-	int iR, iG, iB, iA;
-	QColor oQColorBkg;
-	//
 	p_GraphicsGroupItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsGroupItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_GROUP);
 	p_GraphicsGroupItem->p_GraphicsGroupItemRel = nullptr;
@@ -3648,19 +3778,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->setCursor(Qt::CursorShape::PointingHandCursor);
 	p_GraphicsGroupItem->bSelected = false;
 	p_GraphicsGroupItem->bPortsForMin = false;
-	//
-	oQColorBkg = QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor);
-	oQColorBkg.getRgb(&iR, &iG, &iB, &iA);
-	if(((iR + iG + iB) / 3) > 128)
-	{
-		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
-		p_GraphicsGroupItem->bIsPositivePalette = false;
-	}
-	else
-	{
-		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
-		p_GraphicsGroupItem->bIsPositivePalette = true;
-	}
+	p_GraphicsGroupItem->bIsPositivePalette = CheckBkgPaletteType(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor);
 	//
 	p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
 								p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
@@ -3683,7 +3801,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget = MainWindow::p_SchematicWindow->oScene.addWidget(p_GraphicsGroupItem->p_QLabel);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsGroupItem);
-	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
+	SetGroupPalette(p_GraphicsGroupItem);
 	if(bLoading) p_GraphicsGroupItem->p_QLabel->hide();
 	//
 	SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits &
@@ -4878,11 +4996,11 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 	{
 		if(p_GraphicsScalerItem->p_ParentInt->bIsPositivePalette)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
+			p_Painter->setPen(SchematicWindow::oQPenBlack);
 		}
 		else
 		{
-			p_Painter->setPen(SchematicWindow::oQPenBlack);
+			p_Painter->setPen(SchematicWindow::oQPenWhite);
 		}
 		p_Painter->setBrush(p_GraphicsScalerItem->p_ParentInt->oQBrush);
 		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
