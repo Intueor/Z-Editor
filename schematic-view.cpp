@@ -2813,13 +2813,15 @@ unsigned int SchematicView::GetColor(unsigned int uiLastColor)
 {
 	QColorDialog* p_QColorDialog = new QColorDialog();
 	QIcon oQIcon(":/icons/z-icon.ico");
+	int iResult;
 	//
 	p_QColorDialog->setProperty("windowIcon", oQIcon);
 	p_QColorDialog->setOption(QColorDialog::ShowAlphaChannel);
 	p_QColorDialog->setCurrentColor(QColor::fromRgba(uiLastColor));
-	p_QColorDialog->exec();
+	iResult = p_QColorDialog->exec();
 	p_QColorDialog->deleteLater();
-	return p_QColorDialog->currentColor().rgba();
+	if(iResult == QColorDialog::DialogCode::Accepted) return p_QColorDialog->currentColor().rgba();
+	else return uiLastColor;
 }
 
 // Задание цвета выборке и подготовка отправки на сервер.
