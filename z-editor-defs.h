@@ -157,6 +157,7 @@ const char m_chNewLink[] = "Линк";
 const char m_chPortTooltip[] = "Порт: ";
 const char m_chSelection[] = "Выборка";
 const char m_chNumOrPseudo[] = "Номер или псевдоним порта ";
+const char m_chNumOrPseudoExt[] = "Номер или псевдоним внешнего порта";
 const char m_chPreElementName[] = "Элемент: ";
 const char m_chPreBroadcasterName[] = "Транслятор: ";
 const char m_chPreReceiverName[] = "Приёмник: ";
@@ -183,54 +184,57 @@ const char m_chMenuPortsG[] =			"Порты внутри группы";
 const char m_chMenuPortSrc[] =			"Порт источника ";
 #define MENU_DST_PORT					4
 const char m_chMenuPortDst[] =			"Порт цели ";
+#define MENU_EXTPORT					5
+const char m_chMenuExtPortB[] =			"Внешний порт транслятора";
+const char m_chMenuExtPortR[] =			"Внешний порт приёмника";
 //										СОЗДАНИЕ ГРУППЫ.
-#define MENU_CREATE_GROUP				5
+#define MENU_CREATE_GROUP				6
 const char m_chMenuCreateFromS[] =		"Создать группу для выбранного";
 const char m_chMenuCreateFromE[] =		"Создать группу для элемента";
 const char m_chMenuCreateFromB[] =		"Создать группу для транслятора";
 const char m_chMenuCreateFromR[] =		"Создать группу для приёмника";
 const char m_chMenuCreateFromG[] =		"Создать группу для группы";
 //										ДОБАВЛЕНИЕ В ГРУППУ.
-#define MENU_ADD						6
+#define MENU_ADD						7
 const char m_chMenuAddFreeS[] =			"Добавить выбранное в группу";
 const char m_chMenuAddFreeE[] =			"Добавить элемент в группу";
 const char m_chMenuAddFreeB[] =			"Добавить транслятор в группу";
 const char m_chMenuAddFreeR[] =			"Добавить приёмник в группу";
 //										ЦВЕТ.
-#define MENU_CHANGE_BKG					7
+#define MENU_CHANGE_BKG					8
 const char m_chMenuBackgroundS[] =		"Изменить цвет фона выбранного";
 const char m_chMenuBackgroundE[] =		"Изменить цвет фона элемента";
 const char m_chMenuBackgroundB[] =		"Изменить цвет фона транслятора";
 const char m_chMenuBackgroundR[] =		"Изменить цвет фона приёмника";
 const char m_chMenuBackgroundG[] =		"Изменить цвет фона группы";
 //										РАСФОРМИРОВАТЬ.
-#define MENU_DISBAND					8
+#define MENU_DISBAND					9
 const char m_chMenuDisbandS[] =			"Расформировать выбранные группы";
 const char m_chMenuDisbandG[] =			"Расформировать группу";
 //										ОТСОЕДИНИТЬ.
-#define MENU_DETACH						9
+#define MENU_DETACH						10
 const char m_chMenuDetachS[] =			"Отсоединить выбранное от групп";
 const char m_chMenuDetachE[] =			"Отсоединить элемент от группы";
 const char m_chMenuDetachB[] =			"Отсоединить транслятор от группы";
 const char m_chMenuDetachR[] =			"Отсоединить приёмник от группы";
 const char m_chMenuDetachG[] =			"Отсоединить группу от группы";
 //										СОЗДАТЬ.
-#define MENU_CREATE_ELEMENT				10
+#define MENU_CREATE_ELEMENT				11
 const char m_chMenuCreateElement[] =	"Создать элемент";
-#define MENU_CREATE_BROADCASTER			11
+#define MENU_CREATE_BROADCASTER			12
 const char m_chMenuCreateBroadcaster[] ="Создать транслятор";
-#define MENU_CREATE_RECEIVER			12
+#define MENU_CREATE_RECEIVER			13
 const char m_chMenuCreateReceiver[] =	"Создать приёмник";
-#define MENU_ADD_ELEMENT				13
+#define MENU_ADD_ELEMENT				14
 const char m_chMenuAddElement[] =		"Создать элемент в группе";
-#define MENU_ADD_BROADCASTER			14
+#define MENU_ADD_BROADCASTER			15
 const char m_chMenuAddBroadcaster[] =	"Создать транслятор в группе";
-#define MENU_ADD_RECEIVER				15
+#define MENU_ADD_RECEIVER				16
 const char m_chMenuAddReceiver[] =		"Создать приёмник в группе";
 //										ПЕРЕИМЕНОВАТЬ.
-#define MENU_RENAME_SELECTED			16
+#define MENU_RENAME_SELECTED			17
 const char m_chMenuRenameS[] =			"Переименовать выборку";
-#define MENU_RENAME_EG					17
+#define MENU_RENAME_EG					18
 const char m_chMenuRenameE[] =			"Переименовать элемент";
 const char m_chMenuRenameB[] =			"Переименовать транслятор";
 const char m_chMenuRenameR[] =			"Переименовать приёмник";
@@ -238,13 +242,13 @@ const char m_chMenuRenameG[] =			"Переименовать группу";
 //
 // <== ПРОЧИЕ МЕНЮ ==>
 //										МЕНЮ ПОРТОВ.
-#define MENU_SELECTED_PORT				18
+#define MENU_SELECTED_PORT				19
 const char m_chMenuSelectedPort[] =		"Выбранный порт ";
 //										МЕНЮ СЕРВЕРА.
-#define MENU_SET_PASSWORD				19
+#define MENU_SET_PASSWORD				20
 const char m_chMenuSetPassword[] =		"Задать пароль";
-#define MENU_SET_AS_DEFAULT				20
+#define MENU_SET_AS_DEFAULT				21
 const char m_chMenuSetAsDefault[] =		"Установить как текущий";
-#define MENU_DELETE_ITEM				21
+#define MENU_DELETE_ITEM				22
 const char m_chMenuDeleteItem[] =		"Удалить выбранный";
 #endif // ZEDITORDEFS_H

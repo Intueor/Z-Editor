@@ -2489,6 +2489,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				const char* pc_chVarRename;
 				const char* pc_chVarDelete;
 				const char* pc_chVarPorts;
+				const char* pc_chVarExtPort;
 				const char* pc_chVarCreateGroup;
 				const char* pc_chVarAdd;
 				const char* pc_chVarDetach;
@@ -2502,6 +2503,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 						pc_chVarRename = m_chMenuRenameR;
 						pc_chVarDelete = m_chMenuDeleteR;
 						pc_chVarPorts = m_chMenuPortsR;
+						pc_chVarExtPort = m_chMenuExtPortR;
 						pc_chVarCreateGroup = m_chMenuCreateFromR;
 						pc_chVarAdd = m_chMenuAddFreeR;
 						pc_chVarDetach = m_chMenuDetachR;
@@ -2512,6 +2514,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 						pc_chVarRename = m_chMenuRenameB;
 						pc_chVarDelete = m_chMenuDeleteB;
 						pc_chVarPorts = m_chMenuPortsB;
+						pc_chVarExtPort = m_chMenuExtPortB;
 						pc_chVarCreateGroup = m_chMenuCreateFromB;
 						pc_chVarAdd = m_chMenuAddFreeB;
 						pc_chVarDetach = m_chMenuDetachB;
@@ -2532,6 +2535,10 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarDelete))->setData(MENU_DELETE); // |->Удалить.
 				if(bPortsPresent) // Если есть порты...
 					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarPorts))->setData(MENU_PORTS); // |->Меню портов.
+				if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+				{
+					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarExtPort))->setData(MENU_EXTPORT); // |->Меню внешнего порта.
+				}
 				if(bElementIsFree) // Если не в группе...
 						SchematicWindow::p_SafeMenu->addAction(pc_chVarCreateGroup)->setData(MENU_CREATE_GROUP); // |->Создать группу.
 				if(bSingleGroupSelected && bElementIsFree) // Если выбрана одна группа и текущий элемент свободен...
@@ -2935,6 +2942,24 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			else if(p_SelectedMenuItem->data() == MENU_PORTS)
 			{
 
+			}
+			else if(p_SelectedMenuItem->data() == MENU_EXTPORT)
+			{
+				char m_chPortNumber[PORT_NUMBER_STR_LEN];
+				Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog =
+						new Set_Proposed_String_Dialog((char*)QString(m_chNumOrPseudoExt).toStdString().c_str(),
+													   m_chPortNumber, PORT_NUMBER_STR_LEN);
+				//
+				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
+				{
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ushiExtPort = QString(m_chPortNumber).toUShort();
+					PrepareNameWithExtPort(p_GraphicsElementItem);
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_EXTPORT;
+					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_VARS,
+																  (char*)&p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars,
+																  sizeof(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars));
+				}
+				p_Set_Proposed_String_Dialog->deleteLater();
 			}
 			else if(p_SelectedMenuItem->data() == MENU_CREATE_GROUP)
 			{
