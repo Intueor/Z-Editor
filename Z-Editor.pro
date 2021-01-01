@@ -7,7 +7,7 @@ TARGET = Z-Editor
 TEMPLATE = app
 
 unix {
-QMAKE_CXXFLAGS += -fno-strict-aliasing -Wno-implicit-fallthrough
+QMAKE_CXXFLAGS += -fno-strict-aliasing -Wno-implicit-fallthrough -std=gnu++11
 }
 
 CONFIG += console
