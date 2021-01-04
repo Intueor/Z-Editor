@@ -4200,6 +4200,9 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 	//
 	if(!bLoading)
 	{
+		bool bLT;
+		bool bRB;
+		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
 		if(oC.oDbPointPairPortsCoords.dbSrc.dbX >= oC.oDbPointPairPortsCoords.dbDst.dbX)
@@ -4228,19 +4231,34 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		oC.oDbPointPairPortsCoords.dbDst.dbX -= oDbPointMid.dbX;
 		oC.oDbPointPairPortsCoords.dbDst.dbY -= oDbPointMid.dbY;
 		p_Painter->setPen(SchematicWindow::oQPenBlackTransparent);
+		bLT = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0);
+		bRB = (oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
 		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
-		if(((oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0)) ||
-		   ((oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0)))
+		if(bLT || bRB)
 		{
+			DbPoint oDbPointLT;
+			DbPoint oDbPointRB;
 			// Рисование с левого верхнего угла в правый нижний.
+			oDbPointLT.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointLT.dbY = 0;
+			oDbPointRB.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointRB.dbY = oC.oDbPointWH.dbY;
 			oQPainterPath.moveTo(0, 0);
-			oQPainterPath.lineTo(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY);
+			oQPainterPath.cubicTo(oDbPointLT.dbX, oDbPointLT.dbY, oDbPointRB.dbX, oDbPointRB.dbY,
+								  oC.oDbPointWH.dbX, oC.oDbPointWH.dbY);
 		}
 		else // Иначе...
 		{
+			DbPoint oDbPointLB;
+			DbPoint oDbPointRT;
 			// Рисование с левого нижнего угла в правый верхний.
+			oDbPointLB.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointLB.dbY = oC.oDbPointWH.dbY;
+			oDbPointRT.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointRT.dbY = 0;
 			oQPainterPath.moveTo(0, oC.oDbPointWH.dbY);
-			oQPainterPath.lineTo(oC.oDbPointWH.dbX, 0);
+			oQPainterPath.cubicTo(oDbPointLB.dbX, oDbPointLB.dbY, oDbPointRT.dbX, oDbPointRT.dbY,
+								  oC.oDbPointWH.dbX, 0);
 		}
 		oQPainterPathStroker.setCapStyle(Qt::RoundCap);
 		oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
