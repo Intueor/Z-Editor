@@ -19,7 +19,8 @@ GraphicsLinkItem::~GraphicsLinkItem()
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsLinkItem::boundingRect() const
 {
-	return SchematicView::CalcLinkLineWidthHeight((GraphicsLinkItem*)this).oQRectF;
+	DbPoint oDbPoint = SchematicView::CalcLinkLineWidthHeight((GraphicsLinkItem*)this).oDbPointWH;
+	return QRectF(0, 0, oDbPoint.dbX, oDbPoint.dbY);
 }
 
 // Переопределение функции рисования линка.

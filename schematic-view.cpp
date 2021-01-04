@@ -4201,47 +4201,46 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 	if(!bLoading)
 	{
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
-		oC.oQRectF.setWidth(oC.oQRectF.width() - 1);
-		oC.oQRectF.setHeight(oC.oQRectF.height() - 1);
 		// Нахождение центральной точки между источником и приёмником.
-		if(oC.oDbPointPair.dbSrc.dbX >= oC.oDbPointPair.dbDst.dbX)
+		if(oC.oDbPointPairPortsCoords.dbSrc.dbX >= oC.oDbPointPairPortsCoords.dbDst.dbX)
 		{
-			oDbPointMid.dbX = oC.oDbPointPair.dbDst.dbX + ((oC.oDbPointPair.dbSrc.dbX - oC.oDbPointPair.dbDst.dbX) / 2);
+			oDbPointMid.dbX =
+					oC.oDbPointPairPortsCoords.dbDst.dbX + ((oC.oDbPointPairPortsCoords.dbSrc.dbX - oC.oDbPointPairPortsCoords.dbDst.dbX) / 2);
 		}
 		else
 		{
-			oDbPointMid.dbX = oC.oDbPointPair.dbSrc.dbX + ((oC.oDbPointPair.dbDst.dbX - oC.oDbPointPair.dbSrc.dbX) / 2);
+			oDbPointMid.dbX =
+					oC.oDbPointPairPortsCoords.dbSrc.dbX + ((oC.oDbPointPairPortsCoords.dbDst.dbX - oC.oDbPointPairPortsCoords.dbSrc.dbX) / 2);
 		}
-		if(oC.oDbPointPair.dbSrc.dbY >= oC.oDbPointPair.dbDst.dbY)
+		if(oC.oDbPointPairPortsCoords.dbSrc.dbY >= oC.oDbPointPairPortsCoords.dbDst.dbY)
 		{
-			oDbPointMid.dbY = oC.oDbPointPair.dbDst.dbY + ((oC.oDbPointPair.dbSrc.dbY - oC.oDbPointPair.dbDst.dbY) / 2);
+			oDbPointMid.dbY =
+					oC.oDbPointPairPortsCoords.dbDst.dbY + ((oC.oDbPointPairPortsCoords.dbSrc.dbY - oC.oDbPointPairPortsCoords.dbDst.dbY) / 2);
 		}
 		else
 		{
-			oDbPointMid.dbY = oC.oDbPointPair.dbSrc.dbY + ((oC.oDbPointPair.dbDst.dbY - oC.oDbPointPair.dbSrc.dbY) / 2);
+			oDbPointMid.dbY =
+					oC.oDbPointPairPortsCoords.dbSrc.dbY + ((oC.oDbPointPairPortsCoords.dbDst.dbY - oC.oDbPointPairPortsCoords.dbSrc.dbY) / 2);
 		}
 		// Сдвиг в координаты вокруг центральной точки.
-		oC.oDbPointPair.dbSrc.dbX -= oDbPointMid.dbX;
-		oC.oDbPointPair.dbSrc.dbY -= oDbPointMid.dbY;
-		oC.oDbPointPair.dbDst.dbX -= oDbPointMid.dbX;
-		oC.oDbPointPair.dbDst.dbY -= oDbPointMid.dbY;
+		oC.oDbPointPairPortsCoords.dbSrc.dbX -= oDbPointMid.dbX;
+		oC.oDbPointPairPortsCoords.dbSrc.dbY -= oDbPointMid.dbY;
+		oC.oDbPointPairPortsCoords.dbDst.dbX -= oDbPointMid.dbX;
+		oC.oDbPointPairPortsCoords.dbDst.dbY -= oDbPointMid.dbY;
 		p_Painter->setPen(SchematicWindow::oQPenBlackTransparent);
 		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
-		if(((oC.oDbPointPair.dbSrc.dbX <= 0) && (oC.oDbPointPair.dbSrc.dbY <= 0)) ||
-		   ((oC.oDbPointPair.dbSrc.dbX >= 0) && (oC.oDbPointPair.dbSrc.dbY >= 0)))
+		if(((oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0)) ||
+		   ((oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0)))
 		{
 			// Рисование с левого верхнего угла в правый нижний.
-			oQPainterPath.moveTo(oC.oQRectF.x(), oC.oQRectF.y());
-//			oQPainterPath.cubicTo((oC.oQRectF.width() + 1) / 4.0f, oC.oQRectF.y(),
-//								  (oC.oQRectF.width() + 1) / 1.75f, oC.oQRectF.height() + 1,
-//								  oC.oQRectF.width() + 1, oC.oQRectF.height() + 1);
-			oQPainterPath.lineTo(oC.oQRectF.width() + 1, oC.oQRectF.height() + 1);
+			oQPainterPath.moveTo(0, 0);
+			oQPainterPath.lineTo(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY);
 		}
 		else // Иначе...
 		{
 			// Рисование с левого нижнего угла в правый верхний.
-			oQPainterPath.moveTo(oC.oQRectF.x(), oC.oQRectF.height() + 1);
-			oQPainterPath.lineTo(oC.oQRectF.width() + 1, oC.oQRectF.y());
+			oQPainterPath.moveTo(0, oC.oDbPointWH.dbY);
+			oQPainterPath.lineTo(oC.oDbPointWH.dbX, 0);
 		}
 		oQPainterPathStroker.setCapStyle(Qt::RoundCap);
 		oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
@@ -4325,25 +4324,23 @@ SchematicView::CalcPortHelper SchematicView::CalcLinkLineWidthHeight(GraphicsLin
 {
 	CalcPortHelper oRes;
 	//
-	oRes.oQRectF.setX(0);
-	oRes.oQRectF.setY(0);
-	oRes.oDbPointPair = CalcPortsCoords(p_GraphicsLinkItem);
+	oRes.oDbPointPairPortsCoords = CalcPortsCoords(p_GraphicsLinkItem);
 	//
-	if(oRes.oDbPointPair.dbSrc.dbX >= oRes.oDbPointPair.dbDst.dbX) // Если X ист. больше X приёмника...
+	if(oRes.oDbPointPairPortsCoords.dbSrc.dbX >= oRes.oDbPointPairPortsCoords.dbDst.dbX) // Если X ист. больше X приёмника...
 	{
-		oRes.oQRectF.setWidth(oRes.oDbPointPair.dbSrc.dbX - oRes.oDbPointPair.dbDst.dbX);
+		oRes.oDbPointWH.dbX = oRes.oDbPointPairPortsCoords.dbSrc.dbX - oRes.oDbPointPairPortsCoords.dbDst.dbX;
 	}
 	else // Если X источника меньше X приёмника...
 	{
-		oRes.oQRectF.setWidth(oRes.oDbPointPair.dbDst.dbX - oRes.oDbPointPair.dbSrc.dbX);
+		oRes.oDbPointWH.dbX = oRes.oDbPointPairPortsCoords.dbDst.dbX - oRes.oDbPointPairPortsCoords.dbSrc.dbX;
 	}
-	if(oRes.oDbPointPair.dbSrc.dbY >= oRes.oDbPointPair.dbDst.dbY) // Если Y ист. больше Y приёмника...
+	if(oRes.oDbPointPairPortsCoords.dbSrc.dbY >= oRes.oDbPointPairPortsCoords.dbDst.dbY) // Если Y ист. больше Y приёмника...
 	{
-		oRes.oQRectF.setHeight(oRes.oDbPointPair.dbSrc.dbY - oRes.oDbPointPair.dbDst.dbY);
+		oRes.oDbPointWH.dbY = oRes.oDbPointPairPortsCoords.dbSrc.dbY - oRes.oDbPointPairPortsCoords.dbDst.dbY;
 	}
 	else // Если Y источника меньше Y приёмника...
 	{
-		oRes.oQRectF.setHeight(oRes.oDbPointPair.dbDst.dbY - oRes.oDbPointPair.dbSrc.dbY);
+		oRes.oDbPointWH.dbY = oRes.oDbPointPairPortsCoords.dbDst.dbY - oRes.oDbPointPairPortsCoords.dbSrc.dbY;
 	}
 	return oRes;
 }

@@ -31,8 +31,8 @@ public:
 	};
 	struct CalcPortHelper
 	{
-		QRectF oQRectF;
-		DbPointPair oDbPointPair;
+		DbPoint oDbPointWH;
+		DbPointPair oDbPointPairPortsCoords;
 	};
 	struct EGPointersVariant
 	{
