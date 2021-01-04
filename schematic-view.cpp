@@ -74,36 +74,39 @@ QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
 QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
 
 //== МАКРОСЫ.
-#define TempSelectGroup(group)			bool _bForceSelected = false;\
-										if(!group->bSelected)\
-										{\
-											SchematicWindow::vp_SelectedGroups.append(group);\
-											_bForceSelected = true;\
-											group->bSelected = true;\
+#define TempSelectGroup(group)			bool _bForceSelected = false;									\
+										if(!group->bSelected)											\
+										{																\
+											SchematicWindow::vp_SelectedGroups.append(group);			\
+											_bForceSelected = true;										\
+											group->bSelected = true;									\
 										}
-#define TempDeselectGroup(group)		if(_bForceSelected)\
-										{\
-											SchematicWindow::vp_SelectedGroups.removeOne(group);\
-											group->bSelected = false;\
+#define TempDeselectGroup(group)		if(_bForceSelected)												\
+										{																\
+											SchematicWindow::vp_SelectedGroups.removeOne(group);		\
+											group->bSelected = false;									\
 										}
-#define TempSelectElement(element)		bool _bForceSelected = false;\
-										if(!element->bSelected)\
-										{\
-											SchematicWindow::vp_SelectedElements.append(element);\
-											_bForceSelected = true;\
-											element->bSelected = true;\
+#define TempSelectElement(element)		bool _bForceSelected = false;									\
+										if(!element->bSelected)											\
+										{																\
+											SchematicWindow::vp_SelectedElements.append(element);		\
+											_bForceSelected = true;										\
+											element->bSelected = true;									\
 										}
-#define TempDeselectElement(element)	if(_bForceSelected)\
-										{\
-											SchematicWindow::vp_SelectedElements.removeOne(element);\
-											element->bSelected = false;\
+#define TempDeselectElement(element)	if(_bForceSelected)												\
+										{																\
+											SchematicWindow::vp_SelectedElements.removeOne(element);	\
+											element->bSelected = false;									\
 										}
 #define GetDiagPointOnCircle(radius)	(radius + (dbSqrtFromTwoDivByTwo * radius))
 #define SetHidingStatus(object,status)	{if(status) object->hide(); else object->show();}
 #define IsExtended(object)				(object & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 #define IsReceiver(object)				(object & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
 #define IsMinimized(object)				(object & SCH_SETTINGS_EG_BIT_MIN)
-#define ElementSettings					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits
+#define IsBusy(object)					(object & SCH_SETTINGS_EG_BIT_BUSY)
+#define p_ElementSettings				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits
+#define p_GroupSettings					p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits
+#define p_PortSettings					p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс виджета обзора.
@@ -250,7 +253,7 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chName, QPointF
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = pntMapped.y();
-	if(uchSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 150;
+	if(IsReceiver(uchSettings)) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 150;
 	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 225;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 100;
 	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
@@ -430,7 +433,7 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 					{
 						if(p_GraphicsElementItem->isVisible())
 						{
-							if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+							if(IsExtended(p_ElementSettings))
 							{
 								QPainterPath oQPainterPathShape = p_GraphicsElementItem->shape();
 								oQPainterPathShape.translate(QPointF(
@@ -445,7 +448,7 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 							}
 							else
 							{
-								if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+								if(IsMinimized(p_ElementSettings))
 								{
 									if((p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX > oQPointTL.x()) &
 									   (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY > oQPointTL.y()) &
@@ -487,7 +490,7 @@ gNE:QGraphicsView::mouseReleaseEvent(p_Event);
 						//
 						if(p_GraphicsGroupItem->isVisible())
 						{
-							if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+							if(IsMinimized(p_GroupSettings))
 							{
 								oDbPointWH.dbX = dbMinGroupD;
 								oDbPointWH.dbY = dbMinGroupD;
@@ -993,19 +996,18 @@ gS:	TrySendBufferToServer;
 }
 
 // Пересчёт позиции граф. порта к краям элемента.
-DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPos)
+DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItem, DbPoint oDbPortPos)
 {
 	DbPoint oDbFromRB;
 	DbPoint oDbCenter;
 	//
-	oDbCenter.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+	oDbCenter.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 	//
-	if(IsExtended(p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
+	if(IsExtended(p_ElementSettings))
 	{
 		double dbR = oDbCenter.dbX;// Радиус.z
 		//
-		if(p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_ElementSettings))
 		{
 			// ==== Круг ====
 			double dbL;
@@ -1024,12 +1026,12 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 		{
 			// ==== Треугольник ====
 			// Вычисление возможными средствами, нужна консультация математика для корректного решения.
-			double dbDecr = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION;
+			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION;
 			QPainterPath oQPainterPathLineToCenter;
 			QPainterPath oQPainterPathFromCenterToEdge;
 			double bdRShift = dbR - dbDecr; // Центр фигуры для треугольника.
 			//
-			oQPainterPathFromCenterToEdge = p_GraphicsElementItemNew->shape();
+			oQPainterPathFromCenterToEdge = p_GraphicsElementItem->shape();
 			// Выносим точку порта за пределы треугольника без существенной потери точности.
 			while(oQPainterPathFromCenterToEdge.contains(QPointF(oDbPortPos.dbX, oDbPortPos.dbY)))
 			{
@@ -1082,9 +1084,9 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 	else
 	{
 		// ==== Прямоугольник ====
-		oDbFromRB.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - oDbPortPos.dbX;
-		oDbFromRB.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - oDbPortPos.dbY;
-		oDbCenter.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
+		oDbFromRB.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - oDbPortPos.dbX;
+		oDbFromRB.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - oDbPortPos.dbY;
+		oDbCenter.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
 		// -= Снаружи к краям =-.
 		bool bXInside = false;
 		bool bYInside = false;
@@ -1094,9 +1096,9 @@ DbPoint SchematicView::BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew,
 			oDbPortPos.dbX = 0; // Установка на левый край.
 			goto gY;
 		}
-		if(oDbPortPos.dbX >= p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+		if(oDbPortPos.dbX >= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
 		{
-			oDbPortPos.dbX = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
+			oDbPortPos.dbX = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
 		}
 		else
 		{
@@ -1107,9 +1109,9 @@ gY:		if(oDbPortPos.dbY <= 0)
 			oDbPortPos.dbY = 0;
 			goto gI;
 		}
-		if(oDbPortPos.dbY >= p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+		if(oDbPortPos.dbY >= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
 		{
-			oDbPortPos.dbY = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
+			oDbPortPos.dbY = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;
 		}
 		else
 		{
@@ -1139,12 +1141,12 @@ gI:		if(bXInside && bYInside) // Если внутри...
 				if(oDbFromRB.dbX < oDbFromRB.dbY) // Если к правому ближе, чем к нижнему...
 				{
 					oDbPortPos.dbX =
-							p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW; // Прилипли к правому.
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW; // Прилипли к правому.
 				}
 				else
 				{
 					oDbPortPos.dbY =
-							p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;// Прилипли к нижнему.
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;// Прилипли к нижнему.
 				}
 			}
 			else if(bToLeft & !bToTop) // Если у левого нижнего края...
@@ -1156,7 +1158,7 @@ gI:		if(bXInside && bYInside) // Если внутри...
 				else
 				{
 					oDbPortPos.dbY =
-							p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;// Прилипли к нижнему.
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH;// Прилипли к нижнему.
 				}
 			}
 			else if(!bToLeft & bToTop) // Если у правого верхнего края...
@@ -1164,7 +1166,7 @@ gI:		if(bXInside && bYInside) // Если внутри...
 				if(oDbFromRB.dbX < oDbPortPos.dbY) // Если к правому ближе, чем к верхнему...
 				{
 					oDbPortPos.dbX =
-							p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;// Прилипли к правому.
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;// Прилипли к правому.
 				}
 				else
 				{
@@ -1178,28 +1180,28 @@ gI:		if(bXInside && bYInside) // Если внутри...
 
 // Замена линка.
 bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
-								GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc, DbPoint oDbPortPos, bool bFromElement)
+								GraphicsElementItem* p_GraphicsElementItem, bool bIsSrc, DbPoint oDbPortPos, bool bFromElement)
 {
 	PSchLinkBase oPSchLinkBase;
 	GraphicsLinkItem* p_GraphicsLinkItemNew;
 	//
 	if(bIsSrc)
 	{
-		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst;
 		//
-		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos = BindToEdge(p_GraphicsElementItemNew, oDbPortPos);
+		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos = BindToEdge(p_GraphicsElementItem, oDbPortPos);
 		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos =
 				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos;
 	}
 	else
 	{
 		oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc;
-		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsElementItemNew->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+		oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
 		//
 		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos =
 				p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos;
-		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos = BindToEdge(p_GraphicsElementItemNew, oDbPortPos);
+		oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos = BindToEdge(p_GraphicsElementItem, oDbPortPos);
 	}
 	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort;
 	oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort;
@@ -1365,7 +1367,7 @@ void SchematicView::UpdateGroupFrameByContentRecursivelyUpstream(GraphicsGroupIt
 		// Получаем крайние точки следующей группы в группе.
 		oDbPointLeftTopTemp.dbX = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
 		oDbPointLeftTopTemp.dbY = p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
-		if(p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+		if(IsMinimized(p_GraphicsGroupItemInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits))
 		{
 			oDbPointRightBottomTemp.dbX = oDbPointLeftTopTemp.dbX + dbMinGroupD;
 			oDbPointRightBottomTemp.dbY = oDbPointLeftTopTemp.dbY + dbMinGroupD;
@@ -1443,7 +1445,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 				{
 					oDbPointPortCurrent = p_GraphicsPortItemInt->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos;
 				}
-				if(IsExtended(ElementSettings))
+				if(IsExtended(p_ElementSettings))
 				{
 					double dbRadiusLast = dbDiameterLast / 2.0f;
 					double dbDiameterNow = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW;
@@ -1528,7 +1530,7 @@ void SchematicView::UpdateSelectedInElement(GraphicsElementItem* p_GraphicsEleme
 				}
 			}
 		}
-		if(!IsExtended(ElementSettings))
+		if(!IsExtended(p_ElementSettings))
 		{
 			WidgetsThrAccess::p_ConnGraphicsElementItem = p_GraphicsElementItem;
 			ThrUiAccessET(MainWindow::p_WidgetsThrAccess, ElementGroupBoxSizeSet);
@@ -2309,14 +2311,14 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	bool bLastSt;
 	//
 	SchematicWindow::ResetMenu();
-	if(ElementSettings & SCH_SETTINGS_EG_BIT_BUSY
+	if(IsBusy(p_ElementSettings)
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return; //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 	}
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
-		unsigned char uchMinStatus = ElementSettings & SCH_SETTINGS_EG_BIT_MIN;
+		unsigned char uchMinStatus = IsMinimized(p_ElementSettings);
 		//
 		if(uchMinStatus == 0) SetElementTooltip(p_GraphicsElementItem);
 		else p_GraphicsElementItem->setToolTip("");
@@ -2331,7 +2333,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 		{
 			GraphicsElementItem* p_GraphicsElementItemCurrent = SchematicWindow::vp_SelectedElements.at(iF);
 			//
-			if((p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) ==
+			if(IsMinimized(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits) ==
 			   uchMinStatus)
 			{
 				QList<QGraphicsItem*> lp_Items = p_GraphicsElementItemCurrent->childItems();
@@ -2360,14 +2362,13 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 							p_GraphicsPortItemInt->oDbPAlterMinPos.dbX = p_GraphicsPortItemInt->pos().x();
 							p_GraphicsPortItemInt->oDbPAlterMinPos.dbY = p_GraphicsPortItemInt->pos().y();
 							SetPortToPos(p_GraphicsPortItemInt, oDbPoint);
-							SetHidingStatus(p_GraphicsPortItemInt, p_GraphicsElementItemCurrent->oPSchElementBaseInt.
-											oPSchElementVars.oSchEGGraph.uchSettingsBits &
-											SCH_SETTINGS_EG_BIT_MIN);
+							SetHidingStatus(p_GraphicsPortItemInt, IsMinimized(p_GraphicsElementItemCurrent->oPSchElementBaseInt.
+											oPSchElementVars.oSchEGGraph.uchSettingsBits));
 						}
 					}
 				}
 				p_GraphicsElementItemCurrent->bPortsForMin = bPortsPresent;
-				if(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+				if(IsMinimized(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 				{
 					p_GraphicsElementItemCurrent->p_GraphicsScalerItem->hide();
 					if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->hide();
@@ -2394,8 +2395,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		// Создание нового порта.
-		if((p_Event->modifiers() == Qt::AltModifier) &&
-		   !(ElementSettings & SCH_SETTINGS_EG_BIT_MIN))
+		if((p_Event->modifiers() == Qt::AltModifier) && (!IsMinimized(p_ElementSettings)))
 		{
 			PSchLinkBase oPSchLinkBase;
 			DbPoint oDbPointInitialClick;
@@ -2496,9 +2496,9 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				const char* pc_chVarDetach;
 				const char* pc_chVarChangeBkg;
 				//
-				if(IsExtended(ElementSettings))
+				if(IsExtended(p_ElementSettings))
 				{
-					if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+					if(IsReceiver(p_ElementSettings))
 					{
 						pc_chVarRename = m_chMenuRenameR;
 						pc_chVarDelete = m_chMenuDeleteR;
@@ -2535,7 +2535,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarDelete))->setData(MENU_DELETE); // |->Удалить.
 				if(bPortsPresent) // Если есть порты...
 					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarPorts))->setData(MENU_PORTS); // |->Меню портов.
-				if(IsExtended(ElementSettings))
+				if(IsExtended(p_ElementSettings))
 				{
 					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarExtPort))->setData(MENU_EXTPORT); // |->Меню внешнего порта.
 				}
@@ -2609,7 +2609,7 @@ void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_Graphics
 		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseMoveEvent(p_Event);
 		return;
 	}
-	else if(ElementSettings & SCH_SETTINGS_EG_BIT_BUSY) return;
+	else if(IsBusy(p_ElementSettings)) return;
 	oQPointFInit = p_GraphicsElementItem->pos();
 	p_GraphicsElementItem->OBMouseMoveEvent(p_Event);
 	oQPointFRes = p_GraphicsElementItem->pos();
@@ -2704,7 +2704,7 @@ void SchematicView::BacthRenameDialogProcedures()
 		for(int iF = 1; iF != SchematicWindow::vp_SelectedElements.count(); iF++)
 		{
 			GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_SelectedElements.at(iF);
-			unsigned char uchTypeInt = ElementSettings;
+			unsigned char uchTypeInt = p_ElementSettings;
 			//
 			ResetBits(uchTypeInt, SCH_SETTINGS_TYPE_MASK);
 			if(uchType != uchTypeInt) goto gO;
@@ -2712,7 +2712,7 @@ void SchematicView::BacthRenameDialogProcedures()
 		// Выдержан один тип - установка.
 		if(IsExtended(uchType))
 		{
-			if(uchType & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			if(IsReceiver(uchType))
 			{
 				memcpy(m_chName, m_chPreReceiverName, sizeof(m_chPreReceiverName));
 			}
@@ -2884,7 +2884,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 		p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
 		return;
 	}
-	else if(ElementSettings & SCH_SETTINGS_EG_BIT_BUSY) return;
+	else if(IsBusy(p_ElementSettings)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		ReleaseOccupiedAPFS();
@@ -2914,9 +2914,9 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
 			{
 				QString strNameType;
-				if(IsExtended(ElementSettings))
+				if(IsExtended(p_ElementSettings))
 				{
-					if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+					if(IsReceiver(p_ElementSettings))
 					{
 						strNameType = "Имя приёмника";
 					}
@@ -3040,7 +3040,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		{
 			p_Painter->setPen(SchematicWindow::oQPenWhite);
 		}
-		if(IsExtended(ElementSettings))
+		if(IsExtended(p_ElementSettings))
 		{
 			QTextOption oQTextOption;
 			double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
@@ -3048,9 +3048,9 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 			oQTextOption.setAlignment(Qt::AlignCenter);
 			oQTextOption.setWrapMode(QTextOption::NoWrap);
 			//
-			if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			if(IsReceiver(p_ElementSettings))
 			{
-				if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+				if(IsMinimized(p_ElementSettings))
 				{
 					p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), dbMinCircleR, dbMinCircleR);
 					if(p_GraphicsElementItem->bPortsForMin)
@@ -3074,7 +3074,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 				QPolygonF oQPolygonFForTriangle;
 				double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION;
 				//
-				if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+				if(IsMinimized(p_ElementSettings))
 				{
 					oQPolygonFForTriangle.append(pntMinTrR);
 					oQPolygonFForTriangle.append(pntMinTrT);
@@ -3104,7 +3104,7 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		}
 		else
 		{
-			if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_ElementSettings))
 			{
 				p_Painter->drawRect(QRectF(0, 0, dbMinElementD, dbMinElementD));
 				if(p_GraphicsElementItem->bPortsForMin)
@@ -3210,7 +3210,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->bPortsForMin = false;
 	p_GraphicsElementItem->bIsPositivePalette = CheckBkgPaletteType(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
 	// Группировщик для стандартного элемента.
-	if(!IsExtended(ElementSettings))
+	if(!IsExtended(p_ElementSettings))
 	{
 		p_GraphicsElementItem->p_QGroupBox = new QGroupBox();
 		QVBoxLayout* p_QVBoxLayout = new QVBoxLayout;
@@ -3229,8 +3229,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
 		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
-		if(((ElementSettings & SCH_SETTINGS_EG_BIT_MIN) != 0) |
-		   bLoading)
+		if(IsMinimized(p_ElementSettings) | bLoading)
 		{
 			p_GraphicsElementItem->p_QGroupBox->hide(); // Если минимизировано - скрываем.
 		}
@@ -3250,11 +3249,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	// Добавление скалера.
 	p_GraphicsElementItem->p_GraphicsScalerItem = new GraphicsScalerItem(p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsScalerItem->setParentItem(p_GraphicsElementItem);
-	if(IsExtended(ElementSettings))
+	if(IsExtended(p_ElementSettings))
 	{
 		double dbR = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 		//
-		if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_ElementSettings))
 		{
 			double dbX = GetDiagPointOnCircle(dbR);
 			p_GraphicsElementItem->p_GraphicsScalerItem->setPos(dbX, dbX);
@@ -3274,7 +3273,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 				setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
 					   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
 	}
-	if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+	if(IsMinimized(p_ElementSettings))
 	{
 		p_GraphicsElementItem->p_GraphicsScalerItem->hide();  // Если минимизировано - скрываем.
 	}
@@ -3282,7 +3281,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 	// Статус блокирования.
-	SetElementBlockingPattern(p_GraphicsElementItem, ElementSettings & SCH_SETTINGS_EG_BIT_BUSY);
+	SetElementBlockingPattern(p_GraphicsElementItem, IsBusy(p_ElementSettings));
 }
 
 // Установка портов групп после смены статуса минимизации.
@@ -3300,7 +3299,7 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		oDbPointLastGroupPos.dbY = OVERMAX_NUMBER;
 		while(p_GraphicsGroupItem)
 		{
-			if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_GroupSettings))
 			{
 				oDbPointLastGroupPos.dbX = p_GraphicsGroupItem->pos().x();
 				oDbPointLastGroupPos.dbY = p_GraphicsGroupItem->pos().y();
@@ -3310,8 +3309,7 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		}
 		if(oDbPointLastGroupPos.dbX == OVERMAX_NUMBER)
 		{
-			if(p_GraphicsPortItemCurrent->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-			   SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_GraphicsPortItemCurrent->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 			{
 				oDbPointCorr.dbX = p_GraphicsPortItemCurrent->oDbPMinPos.dbX;
 				oDbPointCorr.dbY = p_GraphicsPortItemCurrent->oDbPMinPos.dbY;
@@ -3334,7 +3332,7 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 // Рекурсивные операции по минимизации группы.
 void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding, bool bHiderFound)
 {
-	bool bGroupMinStatus = (p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) != 0;
+	bool bGroupMinStatus = IsMinimized(p_GroupSettings);
 	//
 	if(bGroupMinStatus) p_GraphicsGroupItem->setToolTip(QString(m_chPreGroupName) + p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName);
 	else p_GraphicsGroupItem->setToolTip("");
@@ -3398,9 +3396,9 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 // Установка тултипа в зависимости от типа элемента.
 void SchematicView::SetElementTooltip(GraphicsElementItem* p_GraphicsElementItem)
 {
-	if(IsExtended(ElementSettings))
+	if(IsExtended(p_ElementSettings))
 	{
-		if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_ElementSettings))
 		{
 			p_GraphicsElementItem->setToolTip(QString(m_chPreReceiverName) + p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
 		}
@@ -3425,7 +3423,7 @@ void SchematicView::AfterLoadingPlacement()
 	for(int iF = 0; iF != SchematicWindow::vp_Groups.count(); iF++)
 	{
 		p_GraphicsGroupItemCurrent = SchematicWindow::vp_Groups.at(iF);
-		if(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+		if(IsMinimized(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits))
 		{
 			p_GraphicsGroupItemCurrent->p_QLabel->hide();
 		}
@@ -3460,7 +3458,7 @@ void SchematicView::AfterLoadingPlacement()
 	{
 		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		//
-		if(!(ElementSettings & SCH_SETTINGS_EG_BIT_MIN))
+		if(!IsMinimized(p_ElementSettings))
 		{
 			if(p_GraphicsElementItem->p_QGroupBox)
 			{
@@ -3481,15 +3479,13 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 	bool bLastSt;
 	//
 	SchematicWindow::ResetMenu();
-	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY
-	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	if(IsBusy(p_GroupSettings) || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{ //Если группа блокирована занятостью, смещением выборки или главным окном - отказ.
 		return;
 	}
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
-		unsigned char uchMinStatus = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits &
-									 SCH_SETTINGS_EG_BIT_MIN; // Бит минимизации управляющей группы.
+		unsigned char uchMinStatus = IsMinimized(p_GroupSettings); // Бит минимизации управляющей группы.
 		uchMinStatus ^= SCH_SETTINGS_EG_BIT_MIN; // Действие над битом для управляющей группы (переключение).
 		GraphicsGroupItem* p_GraphicsGroupItemCurrent;
 		GraphicsGroupItem* p_GraphicsGroupItemRoot;
@@ -3505,10 +3501,10 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 		for(int iF = 0; iF != SchematicWindow::vp_SelectedGroups.count(); iF++)
 		{
 			p_GraphicsGroupItemCurrent = SchematicWindow::vp_SelectedGroups.at(iF);
-			if((p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN) !=
+			if(IsMinimized(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits) !=
 			   uchMinStatus) // Если бит минимизации текущей группы не равен переключённому биту для управляющей...
 			{
-				if(uchMinStatus & SCH_SETTINGS_EG_BIT_MIN) // Если новый статус - вкл. - установка бита.
+				if(IsMinimized(uchMinStatus)) // Если новый статус - вкл. - установка бита.
 				{
 					SetBits(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits,
 							SCH_SETTINGS_EG_BIT_MIN);
@@ -3665,8 +3661,7 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 	QPointF oQPointFInit;
 	QPointF oQPointFRes;
 	//
-	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY
-	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier || bRMBPressed)
+	if(IsBusy(p_GroupSettings) || MainWindow::bBlockingGraphics ||p_Event->modifiers() == Qt::ShiftModifier || bRMBPressed)
 	{
 		return;
 	}
@@ -3695,8 +3690,7 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 // Обработчик события отпусканеия мыши на группе.
 void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY
-	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	if(IsBusy(p_GroupSettings) || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
 	}
@@ -3829,7 +3823,7 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 		{
 			p_Painter->setPen(SchematicWindow::oQPenWhite);
 		}
-		if(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+		if(IsMinimized(p_GroupSettings))
 		{
 			p_Painter->drawRect(QRectF(0, 0, dbMinGroupD, dbMinGroupD));
 			p_Painter->drawLine(QPointF(dbMinGroupR, 0), QPointF(dbMinGroupR, dbMinGroupD));
@@ -3889,8 +3883,7 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	SetGroupPalette(p_GraphicsGroupItem);
 	if(bLoading) p_GraphicsGroupItem->p_QLabel->hide();
 	//
-	SetGroupBlockingPattern(p_GraphicsGroupItem, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits &
-							SCH_SETTINGS_EG_BIT_BUSY);
+	SetGroupBlockingPattern(p_GraphicsGroupItem, IsBusy(p_GroupSettings));
 }
 
 // Рекурсивное удаление пустых групп.
@@ -3922,17 +3915,17 @@ void SchematicView::GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_Gra
 }
 
 // Обработчик функции возврата вместилища рамки.
-QRectF SchematicView::FrameBoundingHandler(const GraphicsFrameItem* pc_GraphicsFrameItem)
+QRectF SchematicView::FrameBoundingHandler(const GraphicsFrameItem* p_GraphicsFrameItem)
 {
 	QRectF oQRectFResult;
 	//
-	if(pc_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
+	if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 	{
-		oQRectFResult = ElementBoundingHandler(pc_GraphicsFrameItem->p_ElementParentInt);
+		oQRectFResult = ElementBoundingHandler(p_GraphicsFrameItem->p_ElementParentInt);
 	}
-	else if(pc_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
+	else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 	{
-		oQRectFResult = GroupBoundingHandler(pc_GraphicsFrameItem->p_GroupParentInt);
+		oQRectFResult = GroupBoundingHandler(p_GraphicsFrameItem->p_GroupParentInt);
 	}
 	else
 	{
@@ -3948,11 +3941,11 @@ QRectF SchematicView::FrameBoundingHandler(const GraphicsFrameItem* pc_GraphicsF
 // Обработчик функции возврата вместилища элемента и его видов.
 QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* p_GraphicsElementItem)
 {
-	if(IsExtended(ElementSettings))
+	if(IsExtended(p_ElementSettings))
 	{
-		if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_ElementSettings))
 		{
-			if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_ElementSettings))
 			{
 				return QRectF(0, 0, dbMinCircleD, dbMinCircleD);
 			}
@@ -3965,7 +3958,7 @@ QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* p_Graphi
 		}
 		else
 		{
-			if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_ElementSettings))
 			{
 				return QRectF(pntMinTrL.x(), pntMinTrT.y(), pntMinTrR.x(), pntMinTrR.y());
 			}
@@ -3978,7 +3971,7 @@ QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* p_Graphi
 			}
 		}
 	}
-	if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+	if(IsMinimized(p_ElementSettings))
 	{
 		return QRectF(0, 0, dbMinElementD, dbMinElementD);
 	}
@@ -3995,11 +3988,11 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* p_Gra
 {
 	QPainterPath oQPainterPath;
 	//
-	if(IsExtended(ElementSettings))
+	if(IsExtended(p_ElementSettings))
 	{
-		if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_ElementSettings))
 		{
-			if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_ElementSettings))
 			{
 				oQPainterPath.addEllipse(0.0f, 0.0f, dbMinCircleD, dbMinCircleD);
 			}
@@ -4016,7 +4009,7 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* p_Gra
 			double dbHalfW = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 			double dbDecr = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / TRIANGLE_DECR_PROPORTION;
 			//
-			if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_ElementSettings))
 			{
 				oQPolygon.append(pntMinTrR);
 				oQPolygon.append(pntMinTrT);
@@ -4037,7 +4030,7 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* p_Gra
 	}
 	else
 	{
-		if(ElementSettings & SCH_SETTINGS_EG_BIT_MIN)
+		if(IsMinimized(p_ElementSettings))
 		{
 			oQPainterPath.addRect(0, 0, dbMinElementD, dbMinElementD);
 		}
@@ -4052,16 +4045,16 @@ QPainterPath SchematicView::ElementShapeHandler(const GraphicsElementItem* p_Gra
 }
 
 // Обработчик функции возврата вместилища группы.
-QRectF SchematicView::GroupBoundingHandler(const GraphicsGroupItem* pc_GraphicsGroupItem)
+QRectF SchematicView::GroupBoundingHandler(const GraphicsGroupItem* p_GraphicsGroupItem)
 {
-	if(pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	if(IsMinimized(p_GroupSettings))
 	{
 		return QRectF(0, 0, dbMinGroupD, dbMinGroupD);
 	}
 	else
 	{
-		return QRectF(0, 0, pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
-					  pc_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH);
+		return QRectF(0, 0, p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW,
+					  p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbH);
 	}
 }
 
@@ -4080,17 +4073,14 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 		if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 		{
 			p_Painter->setPen(SchematicWindow::oQPenElementFrameFlash);
-			if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-			   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+			if(IsExtended(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 			{
-				if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-				   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+				if(IsReceiver(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 				{
 					double dbR = p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2;
 					double dbROutside = dbR + dbFrameDimIncSubCorr;
 					//
-					if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-					   SCH_SETTINGS_EG_BIT_MIN)
+					if(IsMinimized(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 					{
 						p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR),
 											   dbMinCircleRPlusFrameDimIncSubCorr, dbMinCircleRPlusFrameDimIncSubCorr);
@@ -4110,8 +4100,7 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 									TRIANGLE_DECR_PROPORTION;
 					double dbHalfWOutside = dbHalfW + dbFrameDimIncTwiceSubCorr;
 					//
-					if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-					   SCH_SETTINGS_EG_BIT_MIN)
+					if(IsMinimized(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 					{
 						oQPolygonFForTriangle.append(pntMinFrameTrR);
 						oQPolygonFForTriangle.append(pntMinFrameTrT);
@@ -4132,8 +4121,7 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 			}
 			else
 			{
-				if(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-				   SCH_SETTINGS_EG_BIT_MIN)
+				if(IsMinimized(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 				{
 					p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusHalfCorr, dbFrameDimIncNegPlusHalfCorr,
 											   dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr, dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr));
@@ -4153,7 +4141,7 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 		else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 		{
 			p_Painter->setPen(SchematicWindow::oQPenGroupFrameFlash);
-			if(p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+			if(IsMinimized(p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits))
 			{
 				p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusCorr, dbFrameDimIncNegPlusCorr,
 										   dbMinGroupD + dbFrameDimIncTwiceSubDoubleCorr,
@@ -4244,6 +4232,9 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		{
 			// Рисование с левого верхнего угла в правый нижний.
 			oQPainterPath.moveTo(oC.oQRectF.x(), oC.oQRectF.y());
+//			oQPainterPath.cubicTo((oC.oQRectF.width() + 1) / 4.0f, oC.oQRectF.y(),
+//								  (oC.oQRectF.width() + 1) / 1.75f, oC.oQRectF.height() + 1,
+//								  oC.oQRectF.width() + 1, oC.oQRectF.height() + 1);
 			oQPainterPath.lineTo(oC.oQRectF.width() + 1, oC.oQRectF.height() + 1);
 		}
 		else // Иначе...
@@ -4370,7 +4361,7 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 		return;
 	}
 	bPortFromElement = p_GraphicsLinkItemNew != nullptr;
-	if((p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) & (!bPortFromElement)) return;
+	if(IsBusy(p_PortSettings) & (!bPortFromElement)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		oDbPointPortInitialClick.dbX = p_GraphicsPortItem->pos().x(); // Исходный X.
@@ -4434,7 +4425,7 @@ void SchematicView::PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortIt
 	{
 		return;
 	}
-	if((p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) & (!bPortFromElement)) return;
+	if(IsBusy(p_PortSettings) & (!bPortFromElement)) return;
 	//
 	p_GraphicsPortItem->OBMouseMoveEvent(p_Event); // Даём мышке уйти.
 	if(bLMBPressed)
@@ -4471,7 +4462,7 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 	if(bPortFromElement) bLMBPressed = true;
 	bLMBPressedOverride = bLMBPressed;
 	if(DoubleButtonsReleaseControl()) return;
-	if((p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) & (!bPortFromElement)) return;
+	if(IsBusy(p_PortSettings) & (!bPortFromElement)) return;
 	if(bLMBPressedOverride)
 	{
 		if(bPortAltPressed) // Если жали Alt...
@@ -4492,7 +4483,7 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 					{
 						//
 						p_GraphicsElementItem = (GraphicsElementItem*) p_QGraphicsItem;
-						if(ElementSettings & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+						if(IsExtended(p_ElementSettings))
 						{
 							QPointF oQPointFAtElement;
 							//
@@ -4551,7 +4542,7 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 			if(p_GraphicsElementItemFounded) // Если есть найденный верхний рабочий...
 			{
 				// Поиск ошибки пользователя.
-				if(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+				if(IsMinimized(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 				{ // Если была попытка добавить к свёрнутому...
 					if(bPortFromElement)
 					{ // Если идёт с нового...
@@ -4677,7 +4668,7 @@ gF:		ReleaseOccupiedAPFS();
 	{
 		if(p_GraphicsElementItemFounded)
 		{
-			if(!(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN))
+			if(!IsMinimized(p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 			{
 				oDbMappedToElement.dbX = oDbMapped.dbX -
 										 p_GraphicsElementItemFounded->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX;
@@ -4830,9 +4821,9 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 	p_GraphicsPortItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, p_GraphicsPortItem);
 	p_GraphicsPortItem->p_GraphicsFrameItem->hide();
 	// Установка минимизированной позиции порта в зависимости от типа элемента.
-	if(IsExtended(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits))
+	if(IsExtended(p_PortSettings))
 	{
-		if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_PortSettings))
 		{
 			p_GraphicsPortItem->oDbPMinPos.dbX = dbMinCircleR;
 			p_GraphicsPortItem->oDbPMinPos.dbY = dbMinCircleR;
@@ -4849,7 +4840,7 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 		p_GraphicsPortItem->oDbPMinPos.dbY = dbMinElementR;
 	}
 	// Установка текущего и запасного положения порта в зависимости от статуса свёрнутости.
-	if(p_GraphicsPortItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	if(IsMinimized(p_PortSettings))
 	{
 		p_GraphicsPortItem->oDbPAlterMinPos.dbX = dbX;
 		p_GraphicsPortItem->oDbPAlterMinPos.dbY = dbY;
@@ -4887,7 +4878,7 @@ void SchematicView::PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortI
 // Обработчик события нажатия мыши на скалер.
 void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	if((p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) ||
+	if(IsBusy(p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits) ||
 	   MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
@@ -4909,7 +4900,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	DbPoint oDbPointPos;
 	DbPoint oDbPointMinimals;
 	//
-	if((p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY)
+	if(IsBusy(p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits)
 	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
@@ -4919,8 +4910,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event); // Даём мышке уйти.
 	if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 	{
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 		{
 			oDbPointMinimals.dbX = RECEIVER_MIN;
 			oDbPointMinimals.dbY = RECEIVER_MIN;
@@ -4963,8 +4953,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	}
 	if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 	{
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 		{
 			double dbPR =
 					GetDiagPointOnCircle(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2);
@@ -4986,7 +4975,7 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 // Обработчик события отпусканеия мыши на скалере.
 void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
 {
-	if((p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits & SCH_SETTINGS_EG_BIT_BUSY) || MainWindow::bBlockingGraphics)
+	if(IsBusy(p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits) || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
@@ -5026,8 +5015,7 @@ QRectF SchematicView::ScalerBoundingHandler(const GraphicsScalerItem* p_Graphics
 	//
 	if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 	{
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-		   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 		{
 			oQRectF.setX(-SCALER_CIR_DIM);
 			oQRectF.setY(-SCALER_CIR_DIM);
@@ -5073,11 +5061,9 @@ QPainterPath SchematicView::ScalerShapeHandler(const GraphicsScalerItem* p_Graph
 {
 	QPainterPath oQPainterPath;
 	//
-	if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-	   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 	{
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-			SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+		if(IsReceiver(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 		{
 			return CalcCicrleScalerPath(p_GraphicsScalerItem);
 		}
@@ -5107,11 +5093,9 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 			p_Painter->setPen(SchematicWindow::oQPenWhite);
 		}
 		p_Painter->setBrush(p_GraphicsScalerItem->p_ParentInt->oQBrush);
-		if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-		   SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+		if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 		{
-			if(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
-			   SCH_SETTINGS_ELEMENT_BIT_RECEIVER)
+			if(IsReceiver(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 			{
 				p_Painter->drawPath(CalcCicrleScalerPath(p_GraphicsScalerItem));
 			}

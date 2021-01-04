@@ -107,17 +107,17 @@ public:
 	/// Обновление Z-позиции линков.
 	static void UpdateLinksZPos();
 	/// Замена линка.
-	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItemNew, bool bIsSrc,
+	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItem, bool bIsSrc,
 							DbPoint oDbPortPos, bool bFromElement);
 							///< \param[in] p_GraphicsLinkItem Указатель на старый линк.
-							///< \param[in] p_GraphicsElementItemNew Указатель на элемент, на который будет создан новый линк.
+							///< \param[in] p_GraphicsElementItem Указатель на элемент, на который будет создан новый линк.
 							///< \param[in] bIsSrc При true - новый элемент будет источником.
 							///< \param[in] oDbPortPos Координаты порта в коорд. элемента на момент обращения.
 							///< \param[in] bFromElement Флаг запроса работы с портом от элемента (при создании нового линка).
 							///< \return true при удаче.
 	/// Пересчёт позиции граф. порта к краям элемента.
-	static DbPoint BindToEdge(GraphicsElementItem* p_GraphicsElementItemNew, DbPoint oDbPortPos);
-							///< \param[in] p_GraphicsElementItemNew Указатель на элемент.
+	static DbPoint BindToEdge(GraphicsElementItem* p_GraphicsElementItem, DbPoint oDbPortPos);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] oDbPortPos Позиция порта в коорд. элемента.
 							///< \return Позиция порта на крае элемента в координатах элемента.
 	/// Получение длины строки выбранным шрифтом в пикселях.
@@ -283,12 +283,12 @@ public:
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] p_Event Указатель на событие.
 	/// Обработчик функции возврата вместилища элемента и его видов.
-	static QRectF ElementBoundingHandler(const GraphicsElementItem* pc_GraphicsElementItem);
-							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+	static QRectF ElementBoundingHandler(const GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \return Прямоугольник по размеру элемента.
 	/// Обработчик функции возврата формы элемента и его видов.
-	static QPainterPath ElementShapeHandler(const GraphicsElementItem* pc_GraphicsElementItem);
-							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+	static QPainterPath ElementShapeHandler(const GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \return Форма элемента.
 	/// Обработчик функции рисования элемента.
 	static void ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter);
@@ -314,8 +314,8 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] p_Event Указатель на событие.
 	/// Обработчик функции возврата вместилища группы.
-	static QRectF GroupBoundingHandler(const GraphicsGroupItem* pc_GraphicsGroupItem);
-							///< \param[in] pc_GraphicsGroupItem Указатель на группу.
+	static QRectF GroupBoundingHandler(const GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \return Прямоугольник по размеру группы.
 	/// Обработчик функции рисования группы.
 	static void GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QPainter* p_Painter);
@@ -331,8 +331,8 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] bRemoveFromSelectedVec При true - удаление удаляемых групп из вектора выбранных (выз. из отсоедин.).
 	/// Обработчик функции возврата вместилища рамки.
-	static QRectF FrameBoundingHandler(const GraphicsFrameItem* pc_GraphicsFrameItem);
-							///< \param[in] GraphicsFrameItem Указатель на фрейм.
+	static QRectF FrameBoundingHandler(const GraphicsFrameItem* p_GraphicsFrameItem);
+							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
 							///< \return Прямоугольник по размеру рамки.
 	/// Обработчик функции рисования фрейма.
 	static void FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QPainter* p_Painter);
@@ -409,20 +409,20 @@ public:
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Event Указатель на событие.
 	/// Обработчик функции возврата вместилища скалера и его видов.
-	static QRectF ScalerBoundingHandler(const GraphicsScalerItem* pc_GraphicsScalerItem);
-							///< \param[in] pc_GraphicsElementItem Указатель на скалер.
+	static QRectF ScalerBoundingHandler(const GraphicsScalerItem* p_GraphicsScalerItem);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \return Прямоугольник по размеру элемента.
 	/// Обработчик функции рисования скалера.
 	static void ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Painter Указатель на отрисовщик.
 	/// Вычисление формы скалера окружности.
-	static QPainterPath CalcCicrleScalerPath(const GraphicsScalerItem* pc_GraphicsScalerItem);
-							///< \param[in] pc_GraphicsScalerItem Указатель на скалер.
+	static QPainterPath CalcCicrleScalerPath(const GraphicsScalerItem* p_GraphicsScalerItem);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \return Форма скалера.
 	/// Обработчик функции возврата формы скалера и его видов.
-	static QPainterPath ScalerShapeHandler(const GraphicsScalerItem* pc_GraphicsScalerItem);
-							///< \param[in] pc_GraphicsScalerItem Указатель на скалер.
+	static QPainterPath ScalerShapeHandler(const GraphicsScalerItem* p_GraphicsScalerItem);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \return Форма скалера.
 	/// Обработчик конструктора скалера.
 	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
@@ -493,10 +493,10 @@ private:
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 	/// Установка тултипа в зависимости от типа элемента.
 	static void SetElementTooltip(GraphicsElementItem* p_GraphicsElementItem);
-							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 	/// Подготовка имени внешнего порта.
 	static void PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElementItem);
-							///< \param[in] pc_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
