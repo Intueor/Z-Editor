@@ -4,6 +4,7 @@
 #include <QBoxLayout>
 #include <QGraphicsProxyWidget>
 #include <QColorDialog>
+#include <QTimer>
 #include "../Z-Hub/z-hub-defs.h"
 #include "z-editor-defs.h"
 #include "schematic-view.h"
@@ -29,6 +30,9 @@ Qt::BrushStyle SchematicView::iLStyle, SchematicView::iDStyle, SchematicView::iG
 unsigned char SchematicView::uchElementSelectionFlashCounter = 1;
 unsigned char SchematicView::uchGroupSelectionFlashCounter = 1;
 unsigned char SchematicView::uchPortSelectionFlashCounter = 1;
+QTimer SchematicView::oQTimerSelectionFlashing;
+qreal SchematicView::dbObjectZPos;
+GraphicsFrameItem* SchematicView::p_GraphicsFrameItemForPortFlash = nullptr;
 int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
 int SchematicView::iYInt = SCH_INTERNAL_POS_UNCHANGED;
 CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
@@ -191,6 +195,8 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	//
 	srand(time(NULL));
 	setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+	connect(&oQTimerSelectionFlashing, SIGNAL(timeout()), this, SLOT(UpdateSelectionFlash()));
+	oQTimerSelectionFlashing.start(6);
 }
 
 // Деструктор.
@@ -260,9 +266,9 @@ void SchematicView::UpdateSelectionFlash()
 		{
 			SchematicWindow::vp_SelectedGroups.at(iE)->p_GraphicsFrameItem->update();
 		}
-		if(SchematicWindow::p_GraphicsFrameItemForPortFlash)
+		if(p_GraphicsFrameItemForPortFlash)
 		{
-			SchematicWindow::p_GraphicsFrameItemForPortFlash->update();
+			p_GraphicsFrameItemForPortFlash->update();
 			uchC = (sinf((float)(uchPortSelectionFlashCounter) / 81.169f)) * 255;
 			oQPenPortFrameFlash.setColor(QColor(uchC, uchC, uchC));
 		}
@@ -356,8 +362,8 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chName, QPointF
 	oPSchElementBase.oPSchElementVars.ullIDInt = GenerateID();
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchElementBase.m_chName,
 				 (unsigned int)strName.toStdString().size() + 1);
-	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
-	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
+	dbObjectZPos += SCH_NEXT_Z_SHIFT;
+	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = pntMapped.y();
 	if(IsReceiver(uchSettings)) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 150;
@@ -914,9 +920,9 @@ void SchematicView::DetachSelectedAPFS()
 	for(int iF = 0; iF != vp_SelectedGroupedElements.count(); iF++)
 	{
 		p_GraphicsElementItem = vp_SelectedGroupedElements.at(iF);
-		p_GraphicsElementItem->setZValue(SchematicWindow::dbObjectZPos); // Наверх на сцене.
-		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos; // Наверх в сп.
-		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT; // На следующую позицию.
+		p_GraphicsElementItem->setZValue(dbObjectZPos); // Наверх на сцене.
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = dbObjectZPos; // Наверх в сп.
+		dbObjectZPos += SCH_NEXT_Z_SHIFT; // На следующую позицию.
 		p_GraphicsElementItem->update(); // Применение изменений для сцены.
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits =
 				SCH_CHANGES_ELEMENT_BIT_GROUP | SCH_CHANGES_ELEMENT_BIT_ZPOS;
@@ -1375,9 +1381,9 @@ void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool 
 	//
 	if(bToTop)
 	{
-		p_Element->setZValue(SchematicWindow::dbObjectZPos);
-		p_Element->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+		p_Element->setZValue(dbObjectZPos);
+		p_Element->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
+		dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		p_Element->update();
 	}
 	if(bSend)
@@ -2005,9 +2011,9 @@ void SchematicView::PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGro
 	while(!avp_GraphicsGroupItemsBranch.isEmpty()) // Заранее подмнимаем ветку группы, что в фокусе.
 	{
 		GraphicsGroupItem* p_GraphicsGroupItemHelper = avp_GraphicsGroupItemsBranch.constLast();
-		p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-		p_GraphicsGroupItemHelper->setZValue(SchematicWindow::dbObjectZPos);
-		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+		p_GraphicsGroupItemHelper->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
+		p_GraphicsGroupItemHelper->setZValue(dbObjectZPos);
+		dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		avp_GraphicsGroupItemsBranch.removeAt(avp_GraphicsGroupItemsBranch.count() - 1);
 	}
 }
@@ -2142,9 +2148,9 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
 	if(bToTop)
 	{
-		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-		p_GraphicsGroupItem->setZValue(SchematicWindow::dbObjectZPos);
-		SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
+		p_GraphicsGroupItem->setZValue(dbObjectZPos);
+		dbObjectZPos += SCH_NEXT_Z_SHIFT;
 		p_GraphicsGroupItem->update();
 	}
 	if(bSend)
@@ -2541,7 +2547,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mousePressEvent(p_Event);
 			p_GraphicsElementItem->OBMousePressEvent(p_Event);
 			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem->show(); // Зажигаем рамку.
-			SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem;
+			p_GraphicsFrameItemForPortFlash = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem;
 			return;
 		}
 		//==== РАБОТА С ВЫБОРКОЙ. ====
@@ -2761,8 +2767,8 @@ void SchematicView::CreateGroupFromSelected()
 	memset(&oPSchGroupBase, 0, sizeof(oPSchGroupBase));
 	oPSchGroupBase.oPSchGroupVars.ullIDInt = GenerateID();
 	CopyStrArray((char*)strName.toStdString().c_str(), oPSchGroupBase.m_chName, SCH_OBJ_NAME_STR_LEN);
-	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos = SchematicWindow::dbObjectZPos;
-	SchematicWindow::dbObjectZPos += SCH_NEXT_Z_SHIFT;
+	oPSchGroupBase.oPSchGroupVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
+	dbObjectZPos += SCH_NEXT_Z_SHIFT;
 	oPSchGroupBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 	p_GraphicsGroupItem = new GraphicsGroupItem(&oPSchGroupBase);
 	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsGroupItem);
@@ -3346,9 +3352,9 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
 								  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
 	p_GraphicsElementItem->setZValue(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos);
-	if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
+	if(dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
 	{
-		SchematicWindow::dbObjectZPos =
+		dbObjectZPos =
 				p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	p_GraphicsElementItem->oQBrush.setColor(
@@ -3969,9 +3975,9 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
 								p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
 	p_GraphicsGroupItem->setZValue(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos);
-	if(SchematicWindow::dbObjectZPos <= p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos)
+	if(dbObjectZPos <= p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos)
 	{
-		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+		dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	p_GraphicsGroupItem->
 			oQBrush.setColor(QColor::fromRgba(p_GraphicsGroupItem->oPSchGroupBaseInt.uiObjectBkgColor));
@@ -4809,7 +4815,7 @@ gF:		ReleaseOccupiedAPFS();
 		bPortMenuReady = false;
 		//================= ВЫПОЛНЕНИЕ ПУНКТОВ МЕНЮ. =================//
 		p_GraphicsPortItem->p_GraphicsFrameItem->show();
-		SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsPortItem->p_GraphicsFrameItem;
+		p_GraphicsFrameItemForPortFlash = p_GraphicsPortItem->p_GraphicsFrameItem;
 		bPortMenuInExecution = true; // Ухищрения для того, чтобы не сработала глушилка мигания по уходу ховера с порта.
 		p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
 		bPortMenuInExecution = false;
@@ -4878,7 +4884,7 @@ gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
 			if(p_Set_Proposed_String_Dialog) p_Set_Proposed_String_Dialog->deleteLater();
 		}
 		p_GraphicsPortItem->p_GraphicsFrameItem->hide();
-		SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
+		p_GraphicsFrameItemForPortFlash = nullptr;
 		bPortMenuExecuted = true;
 	}
 	TrySendBufferToServer;
@@ -4982,7 +4988,7 @@ void SchematicView::PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortI
 	if(!bPortMenuExecuted)
 	{
 		p_GraphicsPortItem->p_GraphicsFrameItem->show(); // Зажигаем рамку.
-		SchematicWindow::p_GraphicsFrameItemForPortFlash = p_GraphicsPortItem->p_GraphicsFrameItem;
+		p_GraphicsFrameItemForPortFlash = p_GraphicsPortItem->p_GraphicsFrameItem;
 	}
 	else bPortMenuExecuted = false;
 }
@@ -4993,7 +4999,7 @@ void SchematicView::PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortI
 	if(!bPortMenuInExecution)
 	{
 		p_GraphicsPortItem->p_GraphicsFrameItem->hide(); // Гасим рамку.
-		SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
+		p_GraphicsFrameItemForPortFlash = nullptr;
 	}
 }
 

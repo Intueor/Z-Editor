@@ -2,7 +2,6 @@
 #include "schematic-window.h"
 #include "ui_schematic-window.h"
 #include <math.h>
-#include <QTimer>
 #include <QGraphicsSceneEvent>
 
 //== МАКРОСЫ.
@@ -16,7 +15,6 @@ Ui::SchematicWindow* SchematicWindow::p_ui = new Ui::SchematicWindow;
 const char* SchematicWindow::cp_chUISettingsName = E_SCHEMATICWINDOW_UI_CONF_PATH;
 QSettings* SchematicWindow::p_UISettings = nullptr;
 MainWindow* SchematicWindow::p_MainWindow = nullptr;
-QTimer SchematicWindow::oQTimerSelectionFlashing;
 bool SchematicWindow::bRefClose = false;
 QVector<GraphicsElementItem*> SchematicWindow::vp_SelectedElements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_SelectedGroups;
@@ -27,12 +25,10 @@ QVector<GraphicsPortItem*> SchematicWindow::vp_Ports;
 QVector<GraphicsElementItem*> SchematicWindow::vp_LonelyElements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_LonelyGroups;
 QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
-qreal SchematicWindow::dbObjectZPos;
 SafeMenu* SchematicWindow::p_SafeMenu = nullptr;
 GraphicsElementItem* SchematicWindow::p_GraphicsElementItem = nullptr;
 bool SchematicWindow::bCleaningSceneNow = true;
 SchematicView* SchematicWindow::p_SchematicView = nullptr;
-GraphicsFrameItem* SchematicWindow::p_GraphicsFrameItemForPortFlash = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс окна обзора.
@@ -70,9 +66,6 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	p_ui->oSchematicView->setScene(&oScene);
 	p_ui->oSchematicView->SetSchematicViewFrameChangedCB(SchematicViewFrameChangedCallback);
 	p_ui->oSchematicView->setBackgroundBrush(QBrush(SchBackgroundActive, Qt::SolidPattern));
-	//
-	connect(&oQTimerSelectionFlashing, SIGNAL(timeout()), this, SLOT(SchematicView::UpdateSelectionFlash()));
-	oQTimerSelectionFlashing.start(6);
 }
 
 // Деструктор.

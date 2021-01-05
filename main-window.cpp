@@ -317,7 +317,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					{
 						MSleep(INTERFACE_RESPONSE_MS);
 					}
-					SchematicWindow::dbObjectZPos = 1;
+					SchematicView::dbObjectZPos = 1;
 					RemoteUpdateSchViewAndSendRFrame();
 					p_SchematicWindow->p_SchematicView->bLoading = true;
 					LOG_P_0(LOG_CAT_I, "Loading...");
@@ -1864,9 +1864,9 @@ gFn:if(a_SchElementVars.oSchEGGraph.uchChangesBits & SCH_CHANGES_ELEMENT_BIT_ZPO
 		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos =
 				a_SchElementVars.oSchEGGraph.dbObjectZPos;
 		SchematicView::UpdateSelectedInElement(p_GraphicsElementItem, SCH_UPDATE_ELEMENT_ZPOS | SCH_UPDATE_MAIN);
-		if(SchematicWindow::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
+		if(SchematicView::dbObjectZPos <= p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos)
 		{
-			SchematicWindow::dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos +
+			SchematicView::dbObjectZPos = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.dbObjectZPos +
 					SCH_NEXT_Z_SHIFT;
 		}
 	}
@@ -1931,7 +1931,7 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] z-pos.");
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = a_SchGroupVars.oSchEGGraph.dbObjectZPos;
 		SchematicView::UpdateSelectedInGroup(p_GraphicsGroupItem, SCH_UPDATE_GROUP_ZPOS | SCH_UPDATE_MAIN);
-		SchematicWindow::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
+		SchematicView::dbObjectZPos = p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos + SCH_NEXT_Z_SHIFT;
 	}
 	// Группа (return на выход).
 	if(a_SchGroupVars.oSchEGGraph.uchChangesBits & SCH_CHANGES_GROUP_BIT_GROUP)

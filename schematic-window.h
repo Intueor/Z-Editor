@@ -63,10 +63,8 @@ public:
 	static QVector<GraphicsPortItem*> vp_Ports; ///< Вектор с указателями на граф. порты.
 	static QVector<GraphicsElementItem*> vp_LonelyElements; ///< Вектор с указателями на граф. элементы, ожидающие группу.
 	static QVector<GraphicsGroupItem*> vp_LonelyGroups; ///< Вектор с указателями на граф. группы, ожидающие группу.
-	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static SafeMenu* p_SafeMenu; ///< Указатель на меню для общего пользования граф. классами.
 	static bool bCleaningSceneNow; ///< Сцена заблокирована.
-	static GraphicsFrameItem* p_GraphicsFrameItemForPortFlash; ///< Указатель на рамку порта под курсором для мигания или nullptr.
 
 public slots:
 	/// Обновление сцены.
@@ -80,7 +78,6 @@ private:
 	static Ui::SchematicWindow *p_ui; ///< Указатель на UI.
 	static const char* cp_chUISettingsName; ///< Указатель на имя файла с установками UI.
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
-	static QTimer oQTimerSelectionFlashing; ///< Таймер мерцания выбранных элементов.
 	static bool bRefClose; ///< Признак закрытия окна снаружи.
 	static GraphicsElementItem* p_GraphicsElementItem; ///< Указатель на графический элемент для передачи в виджет.
 };

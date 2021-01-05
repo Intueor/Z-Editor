@@ -507,6 +507,7 @@ private:
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
+	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 
 private:
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
@@ -525,6 +526,8 @@ private:
 	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
 	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
 	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
+	static QTimer oQTimerSelectionFlashing; ///< Таймер мерцания выбранных элементов.
+	static GraphicsFrameItem* p_GraphicsFrameItemForPortFlash; ///< Указатель на рамку порта под курсором для мигания или nullptr.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.
