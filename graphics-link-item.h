@@ -27,10 +27,6 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-protected:
-	/// Переопределение функции шага событий линка.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
 public:
 	PSchLinkBase oPSchLinkBaseInt; ///< Внутренний объект структуры с параметрами линка.
 	GraphicsPortItem* p_GraphicsPortItemSrc; ///< Внутренний указатель на граф. объект структуры с параметрами порта источника.

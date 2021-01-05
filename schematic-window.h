@@ -12,6 +12,7 @@
 #include "main-window.h"
 #include "schematic-view.h"
 #include "graphics-element-item.h"
+#include "graphics-background-item.h"
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {

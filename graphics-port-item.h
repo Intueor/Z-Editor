@@ -16,12 +16,10 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
 							///< \param[in] bIsSrc Признак порта на источнике.
 							///< \param[in] p_Parent Указатель на родителя.
-	/// Деструктор.
-	~GraphicsPortItem();
 	/// Переопределение функции сообщения о вмещающем прямоугольнике.
 	QRectF boundingRect() const override;
 							///< \return Вмещающий прямоугольник.
-	/// Переопределение функции рисования элемента.
+	/// Переопределение функции рисования порта.
 	void paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget) override;
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
@@ -50,11 +48,6 @@ public:
 	/// Для внешнего вызова базового метода.
 	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
-protected:
-	/// Переопределение функции шага событий элемента.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
-
 public:
 	PSchLinkVars* p_PSchLinkVarsInt; ///< Внутренняя ссылка на объект структуры с параметрами соотв. линка.
 	GraphicsElementItem* p_ParentInt; ///< Внутренний указатель на родителя.

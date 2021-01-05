@@ -1,9 +1,6 @@
 //== ВКЛЮЧЕНИЯ.
-#include <QGraphicsProxyWidget>
-#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-group-item.h"
-#include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графической группы.
@@ -33,12 +30,6 @@ void GraphicsGroupItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsIte
 	p_Widget = p_Widget;
 	//
 	SchematicView::GroupPaintHandler(this, p_Painter);
-}
-
-// Переопределение функции шага событий группы.
-void GraphicsGroupItem::advance(int iStep)
-{
-	iStep = iStep; // Заглушка.
 }
 
 // Переопределение функции обработки нажатия мыши.

@@ -32,9 +32,3 @@ void GraphicsLinkItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem
 	//
 	SchematicView::LinkPaintHandler(this, p_Painter);
 }
-
-// Переопределение функции шага событий линка.
-void GraphicsLinkItem::advance(int iStep)
-{
-	iStep = iStep; // Заглушка.
-}

@@ -1,5 +1,4 @@
 //== ВКЛЮЧЕНИЯ.
-#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-scaler-item.h"
 
@@ -31,12 +30,6 @@ void GraphicsScalerItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsIt
 	p_Widget = p_Widget;
 	//
 	SchematicView::ScalerPaintHandler(this, p_Painter);
-}
-
-// Переопределение функции шага событий скалера.
-void GraphicsScalerItem::advance(int iStep)
-{
-	iStep = iStep; // Заглушка.
 }
 
 // Переопределение функции обработки нажатия мыши.

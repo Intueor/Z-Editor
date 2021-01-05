@@ -1,10 +1,6 @@
 //== ВКЛЮЧЕНИЯ.
-#include <QApplication>
-#include <QGraphicsSceneEvent>
-#include <QFontMetrics>
 #include "main-window.h"
 #include "graphics-port-item.h"
-#include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс графического отображения порта.
@@ -12,12 +8,6 @@
 GraphicsPortItem::GraphicsPortItem(GraphicsLinkItem* p_GraphicsLinkItem, bool bSrc, GraphicsElementItem* p_Parent)
 {
 	SchematicView::PortConstructorHandler(this, p_GraphicsLinkItem, bSrc, p_Parent);
-}
-
-// Деструктор.
-GraphicsPortItem::~GraphicsPortItem()
-{
-
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.
@@ -34,12 +24,6 @@ void GraphicsPortItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem
 	p_Widget = p_Widget;
 	//
 	SchematicView::PortPaintHandler(this, p_Painter);
-}
-
-// Переопределение функции шага событий порта.
-void GraphicsPortItem::advance(int iStep)
-{
-	iStep = iStep; // Заглушка.
 }
 
 // Переопределение функции обработки нажатия мыши.

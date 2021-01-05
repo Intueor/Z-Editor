@@ -1,6 +1,4 @@
 //== ВКЛЮЧЕНИЯ.
-#include <QApplication>
-#include <QGraphicsSceneEvent>
 #include "main-window.h"
 #include "graphics-element-item.h"
 
@@ -40,12 +38,6 @@ void GraphicsElementItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsI
 	p_Widget = p_Widget;
 	//
 	SchematicView::ElementPaintHandler(this, p_Painter);
-}
-
-// Переопределение функции шага событий элемента.
-void GraphicsElementItem::advance(int iStep)
-{
-	iStep = iStep; // Заглушка.
 }
 
 // Переопределение функции обработки нажатия мыши.

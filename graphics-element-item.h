@@ -6,7 +6,6 @@
 #include <QGroupBox>
 #include "graphics-group-item.h"
 #include "graphics-port-item.h"
-#include "graphics-link-item.h"
 #include "graphics-frame-item.h"
 #include "graphics-scaler-item.h"
 #include "../Z-Hub/Server/protocol.h"
@@ -50,10 +49,6 @@ public:
 	/// Для внешнего вызова базового метода.
 	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
-protected:
-	/// Переопределение функции шага событий элемента.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
 public:
 	PSchElementBase oPSchElementBaseInt; ///< Внутренний объект структуры с параметрами элемента.
 	QBrush oQBrush; ///< Кисть для элемента.

@@ -16,6 +16,7 @@ class GraphicsLinkItem;
 class GraphicsPortItem;
 class GraphicsFrameItem;
 class GraphicsScalerItem;
+class GraphicsBackgrounsdItem;
 
 //== КЛАССЫ.
 /// Класс виджета обзора.

@@ -41,11 +41,6 @@ public:
 	/// Для внешнего вызова базового метода.
 	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
-protected:
-	/// Переопределение функции шага событий элемента.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
-
 public:
 	GraphicsElementItem* p_ParentInt; ///< Внутренний указатель на родителя.
 	SchEGGraph* p_SchEGGraph; ///< Указтель на граф. представление элемента.

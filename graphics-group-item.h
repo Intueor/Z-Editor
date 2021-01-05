@@ -58,11 +58,6 @@ public:
 	/// Для внешнего вызова базового метода.
 	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
-protected:
-	/// Переопределение функции шага событий группы.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
-
 public:
 	PSchGroupBase oPSchGroupBaseInt; ///< Внутренний объект структуры с параметрами группы.
 	QBrush oQBrush; ///< Кисть для группы.

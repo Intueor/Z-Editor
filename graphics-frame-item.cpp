@@ -1,7 +1,6 @@
 //== ВКЛЮЧЕНИЯ.
 #include "main-window.h"
 #include "graphics-frame-item.h"
-#include "z-editor-defs.h"
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс отображения фрейма.
@@ -28,8 +27,3 @@ void GraphicsFrameItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsIte
 	SchematicView::FramePaintHandler(this, p_Painter);
 }
 
-// Переопределение функции шага событий фрейма.
-void GraphicsFrameItem::advance(int iStep)
-{
-	iStep = iStep; // Заглушка.
-}

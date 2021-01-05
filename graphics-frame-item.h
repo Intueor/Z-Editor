@@ -25,11 +25,6 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-
-protected:
-	/// Переопределение функции шага событий элемента.
-	void advance(int iStep) override;
-							///< \param[in] iStep Текущий шаг сцены.
 public:
 	GraphicsElementItem* p_ElementParentInt; ///< Внутренний указатель на родитель-элемент.
 	GraphicsGroupItem* p_GroupParentInt; ///< Внутренний указатель на родитель-элемент.
