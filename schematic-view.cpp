@@ -1335,7 +1335,7 @@ bool SchematicView::ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem,
 	MainWindow::p_Client->AddPocketToOutputBufferC(
 				PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
 	TrySendBufferToServer;
-	MainWindow::p_This->RemoteUpdateSchView();
+	emit MainWindow::p_This->RemoteUpdateSchView();
 	return true;
 }
 
@@ -1379,6 +1379,7 @@ void SchematicView::ElementToTopOrBusyAPFS(GraphicsElementItem* p_Element, bool 
 	PSchElementVars oPSchElementVars;
 	EGPointersVariant oEGPointersVariant;
 	//
+	oPSchElementVars.oSchEGGraph.uchSettingsBits = 0;
 	if(bToTop)
 	{
 		p_Element->setZValue(dbObjectZPos);
@@ -1423,6 +1424,10 @@ void SchematicView::UpdateGroupFrameByContentRecursivelyUpstream(GraphicsGroupIt
 	GraphicsElementItem* p_GraphicsElementItem;
 	GraphicsGroupItem* p_GraphicsGroupItemInt;
 	QRectF oQRectFTemp;
+	oDbPointLeftTop.dbX = 0;
+	oDbPointLeftTop.dbY = 0;
+	oDbPointRightBottom.dbX = 0;
+	oDbPointRightBottom.dbY = 0;
 	// ЭЛЕМЕНТЫ.
 	if(!p_GraphicsGroupItem->vp_ConnectedElements.isEmpty())
 	{
@@ -1814,6 +1819,8 @@ void SchematicView::ReleaseOccupiedAPFS()
 	PSchElementVars oPSchElementVars;
 	PSchGroupVars oPSchGroupVars;
 	//
+	oPSchElementVars.oSchEGGraph.uchSettingsBits = 0;
+	oPSchGroupVars.oSchEGGraph.uchSettingsBits = 0;
 	for(int iF = 0; iF != v_OccupiedByClient.count(); iF++)
 	{
 		EGPointersVariant oEGPointersVariant = v_OccupiedByClient.at(iF);
@@ -1977,7 +1984,7 @@ void SchematicView::SortObjectsByZPos(QVector<GraphicsElementItem*>& avp_Element
 	// Сортировка.
 	while(!v_PointersVariants.isEmpty())
 	{
-		int iVariant;
+		int iVariant = 0;
 		qreal dbZ = OVERMAX_NUMBER;
 		for(int iF = 0; iF < v_PointersVariants.count(); iF++)
 		{
@@ -2146,6 +2153,7 @@ void SchematicView::GroupsBranchToTopAPFSRecursively(GraphicsGroupItem* p_Graphi
 	const EGPointersVariant* p_EGPointersVariant;
 	//
 	if(p_GraphicsGroupItem == p_GraphicsGroupItemExclude) return;
+	oPSchGroupVars.oSchEGGraph.uchSettingsBits = 0;
 	if(bToTop)
 	{
 		p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
@@ -2543,7 +2551,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			}
 			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 			UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
-			MainWindow::p_This->RemoteUpdateSchView();
+			emit MainWindow::p_This->RemoteUpdateSchView();
 			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mousePressEvent(p_Event);
 			p_GraphicsElementItem->OBMousePressEvent(p_Event);
 			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem->show(); // Зажигаем рамку.
@@ -2909,8 +2917,7 @@ gO:		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
 				CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
 				CopyStrArray(m_chName, p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 				oPSchElementName.ullIDInt = p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName,
-															  sizeof(oPSchElementName));
+				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName, sizeof(oPSchElementName));
 				if(p_EGPointersVariant->p_GraphicsElementItem->p_QGroupBox)
 				{
 					p_EGPointersVariant->p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
@@ -2922,8 +2929,7 @@ gO:		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
 				CopyStrArray(m_chName, oPSchGroupName.m_chName, SCH_OBJ_NAME_STR_LEN);
 				CopyStrArray(m_chName, p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 				oPSchGroupName.ullIDInt = p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName,
-															  sizeof(oPSchGroupName));
+				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName, sizeof(oPSchGroupName));
 				p_EGPointersVariant->p_GraphicsGroupItem->p_QLabel->setText(oPSchGroupName.m_chName);
 			}
 		}
@@ -3342,7 +3348,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
 		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
-		if(IsMinimized(p_ElementSettings) | bLoading)
+		if((IsMinimized(p_ElementSettings) != 0) | bLoading)
 		{
 			p_GraphicsElementItem->p_QGroupBox->hide(); // Если минимизировано - скрываем.
 		}
@@ -3988,7 +3994,11 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 	p_GraphicsGroupItem->p_QLabel = new QLabel(QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName));
 	p_GraphicsGroupItem->p_QLabel->setAttribute(Qt::WA_TranslucentBackground);
 	p_GraphicsGroupItem->p_QLabel->setCursor(Qt::CursorShape::PointingHandCursor);
+#ifndef WIN32
 	p_GraphicsGroupItem->p_QLabel->move(3, 0);
+#else
+	p_GraphicsGroupItem->p_QLabel->move(4, 2);
+#endif
 	p_GraphicsGroupItem->p_QLabel->setFixedWidth(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget = MainWindow::p_SchematicWindow->oScene.addWidget(p_GraphicsGroupItem->p_QLabel);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
@@ -4663,9 +4673,12 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 					p_QGraphicsItemFounded = p_QGraphicsItem;
 				}
 			}
-			if(p_QGraphicsItemFounded->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_ELEMENT) // Если найденное самое верхнее - элемент...
+			if(p_QGraphicsItemFounded)
 			{
-				p_GraphicsElementItemFounded = (GraphicsElementItem*) p_QGraphicsItemFounded; // Его в найденный рабочий.
+				if(p_QGraphicsItemFounded->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_ELEMENT) // Если найденное самое верхнее - элемент...
+				{
+					p_GraphicsElementItemFounded = (GraphicsElementItem*) p_QGraphicsItemFounded; // Его в найденный рабочий.
+				}
 			}
 			if(p_GraphicsElementItemFounded) // Если есть найденный верхний рабочий...
 			{
