@@ -244,6 +244,10 @@ public:
 	/// Установка указателя кэлбэка изменения окна обзора.
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
 								///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
+public slots:
+	/// Обновление от таймера мерцания выбранных элементов.
+	static void UpdateSelectionFlash();
+
 protected:
 	/// Переопределение функции обработки событий колёсика.
 	void wheelEvent(QWheelEvent* p_Event);
@@ -494,11 +498,33 @@ private:
 	/// Подготовка имени внешнего порта.
 	static void PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+	/// Установка временного стиля кистей общего пользования.
+	static void SetTempBrushesStyle(Qt::BrushStyle iStyle);
+							///< \param[in] iStyle Стиль.
+	/// Отмена временного стиля кистей общего пользования.
+	static void RestoreBrushesStyles();
+
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 
 private:
+	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
+	static QBrush oQBrushLight; ///< Белая кисть общего пользования.
+	static QBrush oQBrushGray; ///< Серая карандаш общего пользования.
+	static QPen oQPenWhite; ///< Белый карандаш общего пользования.
+	static QPen oQPenBlack; ///< Чёрный карандаш общего пользования.
+	static QPen oQPenWhiteTransparent; ///< Белый полупрозрачный карандаш общего пользования.
+	static QPen oQPenBlackTransparent; ///< Чёрный полупрозрачный карандаш общего пользования.
+	static QPen oQPenElementFrameFlash; ///< Карандаш мерцания рамки элемента общего пользования.
+	static QPen oQPenGroupFrameFlash; ///< Карандаш мерцания рамки группы общего пользования.
+	static QPen oQPenPortFrameFlash; ///< Карандаш мерцания рамки порта общего пользования.
+	static QPen oQPenSelectionDash; ///< Карандаш прямоугольной выборки, линии.
+	static QPen oQPenSelectionDot; ///< Карандаш прямоугольной выборки, точки.
+	static Qt::BrushStyle iLStyle, iDStyle, iGStyle; ///< Внутренние переменные для хранения основных стилей кистей при замене на временные.
+	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
+	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
+	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.

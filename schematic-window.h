@@ -42,11 +42,6 @@ public:
 	/// Получение указателя на окно обзора.
 	static SchematicView* GetSchematicView();
 							///< \return Указатель на окно обзора.
-	/// Установка временного стиля кистей общего пользования.
-	static void SetTempBrushesStyle(Qt::BrushStyle iStyle);
-							///< \param[in] iStyle Стиль.
-	/// Отмена временного стиля кистей общего пользования.
-	static void RestoreBrushesStyles();
 	/// Закрытие и сброс меню.
 	static void ResetMenu();
 
@@ -60,18 +55,6 @@ public:
 	QGraphicsScene oScene; ///< Объект сцены.
 	static QGraphicsScene* p_QGraphicsScene; ///< Статический указатель на используемый нестатический объект сцены.
 	static SchematicView* p_SchematicView; ///< Статический указатель на объект схематического вида.
-	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
-	static QBrush oQBrushLight; ///< Белая кисть общего пользования.
-	static QBrush oQBrushGray; ///< Серая карандаш общего пользования.
-	static QPen oQPenWhite; ///< Белый карандаш общего пользования.
-	static QPen oQPenBlack; ///< Чёрный карандаш общего пользования.
-	static QPen oQPenWhiteTransparent; ///< Белый полупрозрачный карандаш общего пользования.
-	static QPen oQPenBlackTransparent; ///< Чёрный полупрозрачный карандаш общего пользования.
-	static QPen oQPenElementFrameFlash; ///< Карандаш мерцания рамки элемента общего пользования.
-	static QPen oQPenGroupFrameFlash; ///< Карандаш мерцания рамки группы общего пользования.
-	static QPen oQPenPortFrameFlash; ///< Карандаш мерцания рамки порта общего пользования.
-	static QPen oQPenSelectionDash; ///< Карандаш прямоугольной выборки, линии.
-	static QPen oQPenSelectionDot; ///< Карандаш прямоугольной выборки, точки.
 	static QVector<GraphicsElementItem*> vp_SelectedElements; ///< Вектор с указателями на выбранные граф. элементы.
 	static QVector<GraphicsGroupItem*> vp_SelectedGroups; ///< Вектор с указателями на выбранные граф. группы.
 	static QVector<GraphicsElementItem*> vp_Elements; ///< Вектор с указателями на граф. элементы.
@@ -88,8 +71,6 @@ public:
 public slots:
 	/// Обновление сцены.
 	static void UpdateScene();
-	/// Обновление от таймера мерцания выбранных элементов.
-	static void UpdateSelectionFlash();
 	/// Очистка сцены.
 	static void ClearScene();
 
@@ -102,10 +83,6 @@ private:
 	static QTimer oQTimerSelectionFlashing; ///< Таймер мерцания выбранных элементов.
 	static bool bRefClose; ///< Признак закрытия окна снаружи.
 	static GraphicsElementItem* p_GraphicsElementItem; ///< Указатель на графический элемент для передачи в виджет.
-	static Qt::BrushStyle iLStyle, iDStyle, iGStyle; ///< Внутренние переменные для хранения основных стилей кистей при замене на временные.
-	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
-	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
-	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
 };
 
 #endif // SCHEMATICWINDOW_H

@@ -13,6 +13,22 @@
 #include "ui_batch_rename_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
+QBrush SchematicView::oQBrushDark;
+QBrush SchematicView::oQBrushLight;
+QBrush SchematicView::oQBrushGray;
+QPen SchematicView::oQPenWhite;
+QPen SchematicView::oQPenBlack;
+QPen SchematicView::oQPenWhiteTransparent;
+QPen SchematicView::oQPenBlackTransparent;
+QPen SchematicView::oQPenElementFrameFlash;
+QPen SchematicView::oQPenGroupFrameFlash;
+QPen SchematicView::oQPenPortFrameFlash;
+QPen SchematicView::oQPenSelectionDash;
+QPen SchematicView::oQPenSelectionDot;
+Qt::BrushStyle SchematicView::iLStyle, SchematicView::iDStyle, SchematicView::iGStyle;
+unsigned char SchematicView::uchElementSelectionFlashCounter = 1;
+unsigned char SchematicView::uchGroupSelectionFlashCounter = 1;
+unsigned char SchematicView::uchPortSelectionFlashCounter = 1;
 int SchematicView::iXInt = SCH_INTERNAL_POS_UNCHANGED;
 int SchematicView::iYInt = SCH_INTERNAL_POS_UNCHANGED;
 CBSchematicViewFrameChanged SchematicView::pf_CBSchematicViewFrameChangedInt;
@@ -113,6 +129,21 @@ QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
 // Конструктор.
 SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 {
+	oQBrushLight.setColor(QColor(170, 170, 170, 255)); oQBrushLight.setStyle(Qt::SolidPattern);
+	oQBrushDark.setColor(QColor(64, 64, 64, 255)); oQBrushDark.setStyle(Qt::SolidPattern);
+	oQBrushGray.setColor(QColor(100, 100, 100, 255)); oQBrushGray.setStyle(Qt::SolidPattern);
+	oQPenWhite.setColor(Qt::white); oQPenWhite.setJoinStyle(Qt::MiterJoin);
+	oQPenBlack.setColor(Qt::black); oQPenBlack.setJoinStyle(Qt::MiterJoin);
+	oQPenWhiteTransparent.setColor(QColor(255, 255, 255, 96)); oQPenWhiteTransparent.setJoinStyle(Qt::MiterJoin);
+	oQPenBlackTransparent.setColor(QColor(0, 0, 0, 96)); oQPenBlackTransparent.setJoinStyle(Qt::MiterJoin);
+	oQPenElementFrameFlash.setColor(Qt::white); oQPenElementFrameFlash.setWidth(3.1f); oQPenElementFrameFlash.setJoinStyle(Qt::MiterJoin);
+	oQPenGroupFrameFlash.setColor(Qt::white); oQPenGroupFrameFlash.setWidth(3.1f); oQPenGroupFrameFlash.setJoinStyle(Qt::MiterJoin);
+	oQPenPortFrameFlash.setColor(Qt::white); oQPenPortFrameFlash.setWidth(3.1f); oQPenPortFrameFlash.setJoinStyle(Qt::MiterJoin);
+	oQPenSelectionDash.setColor(QColor(255, 255, 255, 255)); oQPenSelectionDash.setStyle(Qt::PenStyle::DashLine);
+	oQPenSelectionDash.setJoinStyle(Qt::MiterJoin);
+	oQPenSelectionDot.setColor(QColor(0, 5, 10, 255)); oQPenSelectionDot.setStyle(Qt::PenStyle::SolidLine);
+	oQPenSelectionDot.setJoinStyle(Qt::MiterJoin);
+	//
 	double dbTSDimSubCorr = SCALER_TR_DIM - SCALER_TR_DIM_CORR;
 	double dbFrameDimIncNeg = 0 - FRAME_DIM_INC;
 	double dbFrameDimIncCorrHalf = FRAME_DIM_INC_CORR / 2.0f;
@@ -166,6 +197,82 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 SchematicView::~SchematicView()
 {
 	SchematicWindow::ResetMenu();
+}
+
+
+// Установка временного стиля кистей общего пользования.
+void SchematicView::SetTempBrushesStyle(Qt::BrushStyle iStyle)
+{
+	iLStyle = oQBrushLight.style();
+	iGStyle = oQBrushGray.style();
+	iDStyle = oQBrushDark.style();
+	oQBrushLight.setStyle(iStyle);
+	oQBrushGray.setStyle(iStyle);
+	oQBrushDark.setStyle(iStyle);
+}
+
+// Отмена временного стиля кистей общего пользования.
+void SchematicView::RestoreBrushesStyles()
+{
+	oQBrushLight.setStyle(iLStyle);
+	oQBrushGray.setStyle(iLStyle);
+	oQBrushDark.setStyle(iDStyle);
+}
+
+// Обновление от таймера мерцания выбранных элементов.
+void SchematicView::UpdateSelectionFlash()
+{
+	unsigned char uchC;
+	int iC;
+	//
+	if(!MainWindow::bBlockingGraphics)
+	{
+#ifdef WIN32
+		bool bSelectionPresent = false;
+#endif
+		//
+		uchElementSelectionFlashCounter += 2;
+		uchGroupSelectionFlashCounter += 1;
+		uchPortSelectionFlashCounter += 3;
+		uchC = (sinf((float)(uchElementSelectionFlashCounter) / 81.169f)) * 255;
+		oQPenElementFrameFlash.setColor(QColor(uchC, uchC, uchC));
+		iC = SchematicWindow::vp_SelectedElements.count();
+#ifdef WIN32
+		if(iC > 0)
+		{
+			bSelectionPresent = true;
+		}
+#endif
+		for(int iE = 0; iE != iC; iE ++)
+		{
+			SchematicWindow::vp_SelectedElements.at(iE)->p_GraphicsFrameItem->update();
+		}
+		uchC = (sinf((float)(uchGroupSelectionFlashCounter) / 81.169f)) * 255;
+		oQPenGroupFrameFlash.setColor(QColor(uchC, uchC, uchC));
+		iC = SchematicWindow::vp_SelectedGroups.count();
+#ifdef WIN32
+		if(iC > 0)
+		{
+			bSelectionPresent = true;
+		}
+#endif
+		for(int iE = 0; iE != iC; iE ++)
+		{
+			SchematicWindow::vp_SelectedGroups.at(iE)->p_GraphicsFrameItem->update();
+		}
+		if(SchematicWindow::p_GraphicsFrameItemForPortFlash)
+		{
+			SchematicWindow::p_GraphicsFrameItemForPortFlash->update();
+			uchC = (sinf((float)(uchPortSelectionFlashCounter) / 81.169f)) * 255;
+			oQPenPortFrameFlash.setColor(QColor(uchC, uchC, uchC));
+		}
+#ifdef WIN32
+		if(bSelectionPresent | (p_GraphicsFrameItemForPortFlash != nullptr))
+		{
+			MainWindow::p_SchematicWindow->UpdateScene();
+		}
+#endif
+	}
 }
 
 // Установка указателя кэлбэка изменения окна обзора.
@@ -368,9 +475,9 @@ gEx:if(!lp_QGraphicsItemsHided.isEmpty())
 			bShiftAndLMBPressed = true;
 			setDragMode(DragMode::NoDrag);
 			viewport()->setCursor(Qt::CursorShape::CrossCursor);
-			p_QGraphicsRectItemSelectionDash = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDash);
+			p_QGraphicsRectItemSelectionDash = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, oQPenSelectionDash);
 			p_QGraphicsRectItemSelectionDash->setZValue(OVERMAX_NUMBER);
-			p_QGraphicsRectItemSelectionDot = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, SchematicWindow::oQPenSelectionDot);
+			p_QGraphicsRectItemSelectionDot = MainWindow::p_SchematicWindow->oScene.addRect(oQRectF, oQPenSelectionDot);
 			p_QGraphicsRectItemSelectionDot->setZValue(OVERMAX_NUMBER - 1);
 			MainWindow::p_SchematicWindow->oScene.update();
 		}
@@ -3034,11 +3141,11 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 		p_Painter->setBrush(p_GraphicsElementItem->oQBrush);
 		if(p_GraphicsElementItem->bIsPositivePalette)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenBlack);
+			p_Painter->setPen(oQPenBlack);
 		}
 		else
 		{
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
+			p_Painter->setPen(oQPenWhite);
 		}
 		if(IsExtended(p_ElementSettings))
 		{
@@ -3055,8 +3162,8 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 					p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), dbMinCircleR, dbMinCircleR);
 					if(p_GraphicsElementItem->bPortsForMin)
 					{
-						p_Painter->setBrush(SchematicWindow::oQBrushGray);
-						p_Painter->setPen(SchematicWindow::oQPenWhite);
+						p_Painter->setBrush(oQBrushGray);
+						p_Painter->setPen(oQPenWhite);
 						p_Painter->drawEllipse(QPointF(dbMinCircleR, dbMinCircleR), PORT_DIM, PORT_DIM);
 					}
 				}
@@ -3082,8 +3189,8 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 					p_Painter->drawConvexPolygon(oQPolygonFForTriangle);
 					if(p_GraphicsElementItem->bPortsForMin)
 					{
-						p_Painter->setBrush(SchematicWindow::oQBrushGray);
-						p_Painter->setPen(SchematicWindow::oQPenWhite);
+						p_Painter->setBrush(oQBrushGray);
+						p_Painter->setPen(oQPenWhite);
 						p_Painter->drawEllipse(QPointF(dbMinTriangleRSubMinTriangleDerc, dbMinTriangleR), PORT_DIM, PORT_DIM);
 					}
 				}
@@ -3109,8 +3216,8 @@ void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementIt
 				p_Painter->drawRect(QRectF(0, 0, dbMinElementD, dbMinElementD));
 				if(p_GraphicsElementItem->bPortsForMin)
 				{
-					p_Painter->setBrush(SchematicWindow::oQBrushGray);
-					p_Painter->setPen(SchematicWindow::oQPenWhite);
+					p_Painter->setBrush(oQBrushGray);
+					p_Painter->setPen(oQPenWhite);
 					p_Painter->drawEllipse(QPointF(dbMinElementR, dbMinElementR), PORT_DIM, PORT_DIM);
 				}
 			}
@@ -3817,11 +3924,11 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 		p_Painter->setBrush(p_GraphicsGroupItem->oQBrush);
 		if(p_GraphicsGroupItem->bIsPositivePalette)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenBlack);
+			p_Painter->setPen(oQPenBlack);
 		}
 		else
 		{
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
+			p_Painter->setPen(oQPenWhite);
 		}
 		if(IsMinimized(p_GroupSettings))
 		{
@@ -3830,8 +3937,8 @@ void SchematicView::GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QP
 			p_Painter->drawLine(QPointF(0, dbMinGroupR), QPointF(dbMinGroupD, dbMinGroupR));
 			if(p_GraphicsGroupItem->bPortsForMin)
 			{
-				p_Painter->setBrush(SchematicWindow::oQBrushGray);
-				p_Painter->setPen(SchematicWindow::oQPenWhite);
+				p_Painter->setBrush(oQBrushGray);
+				p_Painter->setPen(oQPenWhite);
 				p_Painter->drawEllipse(QPointF(dbMinGroupR, dbMinGroupR), PORT_DIM, PORT_DIM);
 			}
 		}
@@ -4072,7 +4179,7 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 		p_Painter->setBrush(Qt::NoBrush);
 		if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_ELEMENT)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenElementFrameFlash);
+			p_Painter->setPen(oQPenElementFrameFlash);
 			if(IsExtended(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 			{
 				if(IsReceiver(p_GraphicsFrameItem->p_ElementParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
@@ -4140,7 +4247,7 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 		}
 		else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_GROUP)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenGroupFrameFlash);
+			p_Painter->setPen(oQPenGroupFrameFlash);
 			if(IsMinimized(p_GraphicsFrameItem->p_GroupParentInt->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits))
 			{
 				p_Painter->drawRect(QRectF(dbFrameDimIncNegPlusCorr, dbFrameDimIncNegPlusCorr,
@@ -4158,7 +4265,7 @@ void SchematicView::FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QP
 		}
 		else if(p_GraphicsFrameItem->ushKindOfItemInt == SCH_KIND_ITEM_PORT)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenPortFrameFlash);
+			p_Painter->setPen(oQPenPortFrameFlash);
 			p_Painter->drawEllipse(QPointF(0, 0), PORT_DIM, PORT_DIM);
 		}
 	}
@@ -4230,7 +4337,7 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		oC.oDbPointPairPortsCoords.dbSrc.dbY -= oDbPointMid.dbY;
 		oC.oDbPointPairPortsCoords.dbDst.dbX -= oDbPointMid.dbX;
 		oC.oDbPointPairPortsCoords.dbDst.dbY -= oDbPointMid.dbY;
-		p_Painter->setPen(SchematicWindow::oQPenBlackTransparent);
+		p_Painter->setPen(oQPenBlackTransparent);
 		bLT = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0);
 		bRB = (oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
 		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
@@ -4265,7 +4372,7 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		oQPainterPathStroker.setWidth(2);
 		QPainterPath oQPainterPathOutlined = oQPainterPathStroker.createStroke(oQPainterPath);
 		p_Painter->drawPath(oQPainterPathOutlined);
-		p_Painter->setPen(SchematicWindow::oQPenWhiteTransparent);
+		p_Painter->setPen(oQPenWhiteTransparent);
 		p_Painter->drawPath(oQPainterPath);
 	}
 }
@@ -4782,18 +4889,18 @@ void SchematicView::PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPain
 {
 	if(!bLoading)
 	{
-		SchematicWindow::SetTempBrushesStyle(p_GraphicsPortItem->p_ParentInt->oQBrush.style());
+		SetTempBrushesStyle(p_GraphicsPortItem->p_ParentInt->oQBrush.style());
 		if(p_GraphicsPortItem->bIsSrc)
 		{
-			p_Painter->setBrush(SchematicWindow::oQBrushLight);
+			p_Painter->setBrush(oQBrushLight);
 		}
 		else
 		{
-			p_Painter->setBrush(SchematicWindow::oQBrushDark);
+			p_Painter->setBrush(oQBrushDark);
 		}
-		p_Painter->setPen(SchematicWindow::oQPenWhite);
+		p_Painter->setPen(oQPenWhite);
 		p_Painter->drawEllipse(QPointF(0, 0), PORT_DIM, PORT_DIM);
-		SchematicWindow::RestoreBrushesStyles();
+		RestoreBrushesStyles();
 	}
 	// Потом можно перевести в места, где актуально меняется.
 	p_GraphicsPortItem->oDbPAlterVisPos.dbX = p_GraphicsPortItem->pos().x();
@@ -5101,11 +5208,11 @@ void SchematicView::ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem,
 	{
 		if(p_GraphicsScalerItem->p_ParentInt->bIsPositivePalette)
 		{
-			p_Painter->setPen(SchematicWindow::oQPenBlack);
+			p_Painter->setPen(oQPenBlack);
 		}
 		else
 		{
-			p_Painter->setPen(SchematicWindow::oQPenWhite);
+			p_Painter->setPen(oQPenWhite);
 		}
 		p_Painter->setBrush(p_GraphicsScalerItem->p_ParentInt->oQBrush);
 		if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
