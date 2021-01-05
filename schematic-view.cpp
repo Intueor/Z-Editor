@@ -311,13 +311,25 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 	}
 }
 
-/// Переопределение функции обработки перемещения мыши.
+// Установка позиции подложки.
+void SchematicView::SetBackgroundPos()
+{
+	QRectF oQRectF;
+	DbPoint oDbPoint;
+	//
+	oQRectF = GetVisibleRect();
+	oDbPoint.dbX = (int)(oQRectF.x() / 10.0f) * 10.0f;
+	oDbPoint.dbY = (int)(oQRectF.y() / 10.0f) * 10.0f;
+	if(p_GraphicsBackgroundItemInt) p_GraphicsBackgroundItemInt->setPos(oDbPoint.dbX - 10.0f, oDbPoint.dbY - 10.0f);
+}
+
+// Переопределение функции обработки перемещения мыши.
 void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 {
+	QRectF oQRectF;
+	//
 	if(bShiftAndLMBPressed)
 	{
-		QRectF oQRectF;
-		//
 		pntMouseMoveMapped = mapToScene(p_Event->x(), p_Event->y());
 		if(pntMouseMoveMapped.x() < pntMouseClickMapped.x())
 		{
@@ -343,6 +355,7 @@ void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 		p_QGraphicsRectItemSelectionDot->setRect(oQRectF);
 	}
 	QGraphicsView::mouseMoveEvent(p_Event);
+	SetBackgroundPos();
 }
 
 // Создание нового элемента и подготовка отсылки параметров.
@@ -5270,6 +5283,6 @@ void SchematicView::ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScale
 void SchematicView::CreateBackground()
 {
 	MainWindow::p_SchematicWindow->oScene.addItem(new GraphicsBackgroundItem);
-	p_GraphicsBackgroundItemInt->setPos(0, 0);
+	SetBackgroundPos();
 	p_GraphicsBackgroundItemInt->setZValue(-999);
 }

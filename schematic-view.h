@@ -57,6 +57,8 @@ public:
 							///< \param[in] parent Указатель на родительский виджет.
 	/// Деструктор.
 	~SchematicView();
+	/// Установка позиции подложки.
+	static void SetBackgroundPos();
 	/// Переопределение функции обработки перемещения мыши.
 	void mouseMoveEvent(QMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
