@@ -23,7 +23,7 @@ class SchematicView : public QGraphicsView
 {
 	Q_OBJECT
 
-public:
+private:
 	struct DbPointPair
 	{
 		DbPoint dbSrc;
@@ -59,12 +59,209 @@ public:
 	/// Переопределение функции обработки перемещения мыши.
 	void mouseMoveEvent(QMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события нажатия мыши на элемент.
+	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с элементом.
+	static void ElementMouseMoveEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на элементе.
+	static void ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища элемента и его видов.
+	static QRectF ElementBoundingHandler(const GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \return Прямоугольник по размеру элемента.
+	/// Обработчик функции возврата формы элемента и его видов.
+	static QPainterPath ElementShapeHandler(const GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \return Форма элемента.
+	/// Обработчик функции рисования элемента.
+	static void ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора элемента.
+	static void ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase);
+							///< \param[in] GraphicsElementItem Указатель на элемент.
+							///< \param[in] p_PSchElementBase Указатель на структуру с параметрами элемента для копии внутрь.
+
+	/// Обработчик события нажатия мыши на группу.
+	static void GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с группой.
+	static void GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Event Указатель на событие.
+	/// Создание группы с выбранным.
+	static void CreateGroupFromSelected();
+	/// Обработчик события отпусканеия мыши на группе.
+	static void GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища группы.
+	static QRectF GroupBoundingHandler(const GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \return Прямоугольник по размеру группы.
+	/// Обработчик функции рисования группы.
+	static void GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора группы.
+	static void GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupBase* p_PSchGroupBase);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
+	/// Обработчик функции возврата вместилища рамки.
+	static QRectF FrameBoundingHandler(const GraphicsFrameItem* p_GraphicsFrameItem);
+							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
+							///< \return Прямоугольник по размеру рамки.
+	/// Обработчик функции рисования фрейма.
+	static void FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QPainter* p_Painter);
+							///< \param[in] GraphicsFrameItem Указатель на фрейм.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора фрейма.
+	static void FrameConstructorHandler(GraphicsFrameItem* p_GraphicsFrameItem, unsigned short ushKindOfItem,
+										GraphicsElementItem* p_ElementParent, GraphicsGroupItem* p_GroupParent, GraphicsPortItem* p_PortParent);
+							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
+							///< \param[in] ushKindOfItem Тип родителя.
+							///< \param[in] p_ElementParent Указатель на родитель-элемент.
+							///< \param[in] p_GroupParent Указатель на родитель-группу.
+							///< \param[in] p_PortParent Указатель на родитель-порт.
+	/// Обработчик функции рисования линка.
+	static void LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора линка.
+	static void LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkBase* p_PSchLinkBase);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \param[in] p_PSchLinkBase Указатель на структуру с параметрами линка для копии внутрь.
+	/// Обработчик события нажатия мыши на порт.
+	static void PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с портом.
+	static void PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на порте.
+	static void PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища порта.
+	static QRectF PortBoundingHandler();
+							///< \return Прямоугольник по размеру порта.
+	/// Обработчик функции рисования порта.
+	static void PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик конструктора порта.
+	static void PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem, GraphicsLinkItem* p_GraphicsLinkItem,
+									   bool bSrc, GraphicsElementItem* p_Parent);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
+							///< \param[in] bSrc Признак порта на источнике.
+							///< \param[in] p_Parent Указатель на родителя.
+	/// Обработчик нахождения курсора над портом.
+	static void PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+	/// Обработчик ухода курсора с порта.
+	static void PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
+	/// Обработчик события нажатия мыши на скалер.
+	static void ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события перемещения мыши с скалером.
+	static void ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик события отпусканеия мыши на скалере.
+	static void ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Event Указатель на событие.
+	/// Обработчик функции возврата вместилища скалера и его видов.
+	static QRectF ScalerBoundingHandler(const GraphicsScalerItem* p_GraphicsScalerItem);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \return Прямоугольник по размеру элемента.
+	/// Обработчик функции рисования скалера.
+	static void ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Painter Указатель на отрисовщик.
+	/// Обработчик функции возврата формы скалера и его видов.
+	static QPainterPath ScalerShapeHandler(const GraphicsScalerItem* p_GraphicsScalerItem);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \return Форма скалера.
+	/// Обработчик конструктора скалера.
+	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] p_Parent Указатель на родителя.
+	/// Вычисление квадрата и вместилища линии линка.
+	static CalcPortHelper CalcLinkLineWidthHeight(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \return Вмещающий прямоугольник и точки портов.
+	/// Расстановка размеров, статусов групп и их содержания после загрузки.
+	static void AfterLoadingPlacement();
+	/// Установка паттерна блокировки на элемент.
+	static void SetElementBlockingPattern(GraphicsElementItem* p_GraphicsElementItem, bool bValue);
+							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
+							///< \param[in] bValue Вкл\Выкл блокировки.
+	/// Обновление фрейма группы по геометрии контента рекурсивно вверх.
+	static void UpdateGroupFrameByContentRecursivelyUpstream(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
+	/// Обновление Z-позиции линка по данным элементов.
+	static void UpdateLinkZPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
+	/// Установка паттерна блокировки на группу.
+	static void SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
+							///< \param[in] bValue Вкл\Выкл блокировки.
+	/// Рекурсивное удаление пустых групп.
+	static void GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bRemoveFromSelectedVec = false);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] bRemoveFromSelectedVec При true - удаление удаляемых групп из вектора выбранных (выз. из отсоедин.).
+	/// Удаление всех графических элементов портов с элемента по ID.
+	static void RemovePortsByID(unsigned long long ullID);
+							///< \param[in] ullID ID элемента.
 	/// Определение области видимости.
 	static QRectF GetVisibleRect();
 							///< \return Структура определения прямоугольника области видимости.
+	/// Обновление выбранных параметров в элементе.
+	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
+										GraphicsPortItem* p_GraphicsPortItem = nullptr,
+										GraphicsLinkItem *p_GraphicsLinkItem = nullptr, bool bIsIncoming = false);
+							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
+							///< \param[in] ushBits Биты флагов необходимых обновлений.
+							///< \param[in] p_GraphicsPortItem Указатель на граф. объект порта, при необходимости.
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. объект линка, при необходимости.
+							///< \param[in] bIsIncoming Признак того, что изменения пришли извне.
+	/// Обновление выбранных параметров в группе.
+	static void UpdateSelectedInGroup(GraphicsGroupItem* p_GraphicsGroupItem, unsigned short ushBits);
+							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
+							///< \param[in] ushBits Биты флагов необходимых обновлений.
 	/// Установка указателя кэлбэка изменения окна обзора.
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
 								///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
+protected:
+	/// Переопределение функции обработки событий колёсика.
+	void wheelEvent(QWheelEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие колёсика.
+	/// Переопределение функции обработки нажатия на кнопку мыши.
+	void mousePressEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки отпускания кнопки мыши.
+	void mouseReleaseEvent(QMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки перетаскивания вида.
+	void scrollContentsBy(int iX, int iY);
+							///< \param[in] iX Координаты X.
+							///< \param[in] iY Координаты Y.
+	/// Переопределение функции обработки нажатия на клавиши.
+	void keyPressEvent(QKeyEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие клавиши.
+private:
 	/// Подготовка отсылки параметров и удаление группы.
 	static void DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bInitial = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
@@ -133,35 +330,8 @@ public:
 							///< \param[in] bAddBusyOrZPosToSending При true - установка флага занятости, иначе - отправка z-позиций.
 							///< \param[in] bSend При true - отправка.
 							///< \param[in] bToTop При true - поднятие на передний план на клиенте.
-	/// Обновление фрейма группы по геометрии контента рекурсивно вверх.
-	static void UpdateGroupFrameByContentRecursivelyUpstream(GraphicsGroupItem* p_GraphicsGroupItem);
-							///< \param[in] p_GraphicsGroupItem Указатель на корректируемую группу.
-	/// Обновление выбранных параметров в элементе.
-	static void UpdateSelectedInElement(GraphicsElementItem* p_GraphicsElementItem, unsigned short ushBits,
-										GraphicsPortItem* p_GraphicsPortItem = nullptr,
-										GraphicsLinkItem *p_GraphicsLinkItem = nullptr, bool bIsIncoming = false);
-							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
-							///< \param[in] ushBits Биты флагов необходимых обновлений.
-							///< \param[in] p_GraphicsPortItem Указатель на граф. объект порта, при необходимости.
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. объект линка, при необходимости.
-							///< \param[in] bIsIncoming Признак того, что изменения пришли извне.
-	/// Обновление выбранных параметров в группе.
-	static void UpdateSelectedInGroup(GraphicsGroupItem* p_GraphicsGroupItem, unsigned short ushBits);
-							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
-							///< \param[in] ushBits Биты флагов необходимых обновлений.
-	/// Установка паттерна блокировки на элемент.
-	static void SetElementBlockingPattern(GraphicsElementItem* p_GraphicsElementItem, bool bValue);
-							///< \param[in] p_GraphicsElementItem Указатель на граф. элемент.
-							///< \param[in] bValue Вкл\Выкл блокировки.
-	/// Установка паттерна блокировки на группу.
-	static void SetGroupBlockingPattern(GraphicsGroupItem* p_GraphicsGroupItem, bool bValue);
-							///< \param[in] p_GraphicsGroupItem Указатель на граф. линк.
-							///< \param[in] bValue Вкл\Выкл блокировки.
 	/// Отпускание занятого клиентом.
 	static void ReleaseOccupiedAPFS();
-	/// Удаление всех графических элементов портов с элемента по ID.
-	static void RemovePortsByID(unsigned long long ullID);
-							///< \param[in] ullID ID элемента.
 	/// Добавление выбранного в группу и подготовка к отправке по запросу.
 	static void AddFreeSelectedToGroupAPFS(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на граф. группу.
@@ -256,9 +426,6 @@ public:
 							///< \param[in] p_GraphicsGroupItem Указатель на перемещаемую группу.
 							///< \param[in] a_QPointFRes Ссылка на смещение для группы.
 							///< \param[in] bMoveBody При true - смещать и тело группы.
-	/// Обновление Z-позиции линка по данным элементов.
-	static void UpdateLinkZPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
 	/// Обновление позиции линка по данным элементов.
 	static void UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
@@ -270,184 +437,14 @@ public:
 	static bool CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem = nullptr);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент или nullprt.
 							///< \return true - при обнаружении.
-	/// Обработчик события нажатия мыши на элемент.
-	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события перемещения мыши с элементом.
-	static void ElementMouseMoveEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события отпусканеия мыши на элементе.
-	static void ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик функции возврата вместилища элемента и его видов.
-	static QRectF ElementBoundingHandler(const GraphicsElementItem* p_GraphicsElementItem);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \return Прямоугольник по размеру элемента.
-	/// Обработчик функции возврата формы элемента и его видов.
-	static QPainterPath ElementShapeHandler(const GraphicsElementItem* p_GraphicsElementItem);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \return Форма элемента.
-	/// Обработчик функции рисования элемента.
-	static void ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \param[in] p_Painter Указатель на отрисовщик.
-	/// Обработчик конструктора элемента.
-	static void ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase);
-							///< \param[in] GraphicsElementItem Указатель на элемент.
-							///< \param[in] p_PSchElementBase Указатель на структуру с параметрами элемента для копии внутрь.
-
-	/// Обработчик события нажатия мыши на группу.
-	static void GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события перемещения мыши с группой.
-	static void GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] p_Event Указатель на событие.
-	/// Создание группы с выбранным.
-	static void CreateGroupFromSelected();
-	/// Обработчик события отпусканеия мыши на группе.
-	static void GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик функции возврата вместилища группы.
-	static QRectF GroupBoundingHandler(const GraphicsGroupItem* p_GraphicsGroupItem);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \return Прямоугольник по размеру группы.
-	/// Обработчик функции рисования группы.
-	static void GroupPaintHandler(GraphicsGroupItem* p_GraphicsGroupItem, QPainter* p_Painter);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] p_Painter Указатель на отрисовщик.
-	/// Обработчик конструктора группы.
-	static void GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupItem, PSchGroupBase* p_PSchGroupBase);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] p_PSchGroupBase Указатель на структуру с параметрами элемента для копии внутрь.
-
-	/// Рекурсивное удаление пустых групп.
-	static void GroupCheckEmptyAndRemoveRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bRemoveFromSelectedVec = false);
-							///< \param[in] p_GraphicsGroupItem Указатель на группу.
-							///< \param[in] bRemoveFromSelectedVec При true - удаление удаляемых групп из вектора выбранных (выз. из отсоедин.).
-	/// Обработчик функции возврата вместилища рамки.
-	static QRectF FrameBoundingHandler(const GraphicsFrameItem* p_GraphicsFrameItem);
-							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
-							///< \return Прямоугольник по размеру рамки.
-	/// Обработчик функции рисования фрейма.
-	static void FramePaintHandler(GraphicsFrameItem* p_GraphicsFrameItem, QPainter* p_Painter);
-							///< \param[in] GraphicsFrameItem Указатель на фрейм.
-							///< \param[in] p_Painter Указатель на отрисовщик.
-	/// Обработчик конструктора фрейма.
-	static void FrameConstructorHandler(GraphicsFrameItem* p_GraphicsFrameItem, unsigned short ushKindOfItem,
-										GraphicsElementItem* p_ElementParent, GraphicsGroupItem* p_GroupParent, GraphicsPortItem* p_PortParent);
-							///< \param[in] p_GraphicsFrameItem Указатель на фрейм.
-							///< \param[in] ushKindOfItem Тип родителя.
-							///< \param[in] p_ElementParent Указатель на родитель-элемент.
-							///< \param[in] p_GroupParent Указатель на родитель-группу.
-							///< \param[in] p_PortParent Указатель на родитель-порт.
-	/// Обработчик функции рисования линка.
-	static void LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPainter* p_Painter);
-							///< \param[in] p_GraphicsLinkItem Указатель на линк.
-							///< \param[in] p_Painter Указатель на отрисовщик.
-	/// Обработчик конструктора линка.
-	static void LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkBase* p_PSchLinkBase);
-							///< \param[in] p_GraphicsLinkItem Указатель на линк.
-							///< \param[in] p_PSchLinkBase Указатель на структуру с параметрами линка для копии внутрь.
-	/// Вычисление квадрата и вместилища линии линка.
-	static CalcPortHelper CalcLinkLineWidthHeight(GraphicsLinkItem* p_GraphicsLinkItem);
-							///< \param[in] p_GraphicsLinkItem Указатель на линк.
-							///< \return Вмещающий прямоугольник и точки портов.
 	/// Вычисление точек портов.
 	static DbPointPair CalcPortsCoords(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
 							///< \return Точки портов.
-
-	/// Обработчик события нажатия мыши на порт.
-	static void PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события перемещения мыши с портом.
-	static void PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события отпусканеия мыши на порте.
-	static void PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPortItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик функции возврата вместилища порта.
-	static QRectF PortBoundingHandler();
-							///< \return Прямоугольник по размеру порта.
-	/// Обработчик функции рисования порта.
-	static void PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPainter* p_Painter);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-							///< \param[in] p_Painter Указатель на отрисовщик.
-	/// Обработчик конструктора порта.
-	static void PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem, GraphicsLinkItem* p_GraphicsLinkItem,
-									   bool bSrc, GraphicsElementItem* p_Parent);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. структуру с параметрами линка.
-							///< \param[in] bSrc Признак порта на источнике.
-							///< \param[in] p_Parent Указатель на родителя.
-	/// Обработчик нахождения курсора над портом.
-	static void PortHoverEnterEventHandler(GraphicsPortItem* p_GraphicsPortItem);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-	/// Обработчик ухода курсора с порта.
-	static void PortHoverLeaveEventHandler(GraphicsPortItem* p_GraphicsPortItem);
-							///< \param[in] p_GraphicsPortItem Указатель на порт.
-
-	/// Обработчик события нажатия мыши на скалер.
-	static void ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события перемещения мыши с скалером.
-	static void ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик события отпусканеия мыши на скалере.
-	static void ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \param[in] p_Event Указатель на событие.
-	/// Обработчик функции возврата вместилища скалера и его видов.
-	static QRectF ScalerBoundingHandler(const GraphicsScalerItem* p_GraphicsScalerItem);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \return Прямоугольник по размеру элемента.
-	/// Обработчик функции рисования скалера.
-	static void ScalerPaintHandler(GraphicsScalerItem* p_GraphicsScalerItem, QPainter* p_Painter);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \param[in] p_Painter Указатель на отрисовщик.
 	/// Вычисление формы скалера окружности.
 	static QPainterPath CalcCicrleScalerPath(const GraphicsScalerItem* p_GraphicsScalerItem);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \return Форма скалера.
-	/// Обработчик функции возврата формы скалера и его видов.
-	static QPainterPath ScalerShapeHandler(const GraphicsScalerItem* p_GraphicsScalerItem);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \return Форма скалера.
-	/// Обработчик конструктора скалера.
-	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
-							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
-							///< \param[in] p_Parent Указатель на родителя.
-	/// Расстановка размеров, статусов групп и их содержания после загрузки.
-	static void AfterLoadingPlacement();
-protected:
-	/// Переопределение функции обработки событий колёсика.
-	void wheelEvent(QWheelEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие колёсика.
-	/// Переопределение функции обработки нажатия на кнопку мыши.
-	void mousePressEvent(QMouseEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие.
-	/// Переопределение функции обработки отпускания кнопки мыши.
-	void mouseReleaseEvent(QMouseEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие.
-	/// Переопределение функции обработки перетаскивания вида.
-	void scrollContentsBy(int iX, int iY);
-							///< \param[in] iX Координаты X.
-							///< \param[in] iY Координаты Y.
-	/// Переопределение функции обработки нажатия на клавиши.
-	void keyPressEvent(QKeyEvent* p_Event);
-							///< \param[in] p_Event Указатель на событие клавиши.
-private:
 	/// Подготовка удаления графического элемента из сцены и группы, возврат флага на удаление группы элемента.
 	static void PrepareForRemoveElementFromScene(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
@@ -497,6 +494,10 @@ private:
 	/// Подготовка имени внешнего порта.
 	static void PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+public:
+	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
+	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
+
 private:
 	static int iXInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по X.
 	static int iYInt; ///< Внутреннее хранилище коорд. перетаскиваения вида по Y.
@@ -540,9 +541,6 @@ private:
 	static QVector<GraphicsPortItem*> pv_GraphicsPortItemsCollected; ///< Вектор портов из пройденных элементов при смене статуса минимизации.
 	static QVector<GraphicsElementItem*> vp_SelectedForDeleteElements; ///< Вектор с указателями на выбранные для удаления граф. элементы.
 	static QVector<GraphicsGroupItem*> vp_SelectedForDeleteGroups; ///< Вектор с указателями на выбранные для удаления граф. группы.
-
-public:
-	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDash; ///< Прямоугольник выборки, линии.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDot; ///< Прямоугольник выборки, точки.
 	static bool bShiftAndLMBPressed; ///< Признак нажатия на Shift при клике ЛКМ.
@@ -561,7 +559,6 @@ public:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
-	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 };
 
 #endif // SCHEMATICVIEW_H

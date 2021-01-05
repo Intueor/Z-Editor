@@ -74,18 +74,12 @@ public:
 	static QPen oQPenSelectionDot; ///< Карандаш прямоугольной выборки, точки.
 	static QVector<GraphicsElementItem*> vp_SelectedElements; ///< Вектор с указателями на выбранные граф. элементы.
 	static QVector<GraphicsGroupItem*> vp_SelectedGroups; ///< Вектор с указателями на выбранные граф. группы.
-	//
 	static QVector<GraphicsElementItem*> vp_Elements; ///< Вектор с указателями на граф. элементы.
 	static QVector<GraphicsGroupItem*> vp_Groups; ///< Вектор с указателями на граф. группы.
 	static QVector<GraphicsLinkItem*> vp_Links; ///< Вектор с указателями на граф. линки.
 	static QVector<GraphicsPortItem*> vp_Ports; ///< Вектор с указателями на граф. порты.
-	//
 	static QVector<GraphicsElementItem*> vp_LonelyElements; ///< Вектор с указателями на граф. элементы, ожидающие группу.
 	static QVector<GraphicsGroupItem*> vp_LonelyGroups; ///< Вектор с указателями на граф. группы, ожидающие группу.
-	//
-	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
-	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
-	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static SafeMenu* p_SafeMenu; ///< Указатель на меню для общего пользования граф. классами.
 	static bool bCleaningSceneNow; ///< Сцена заблокирована.
@@ -109,6 +103,9 @@ private:
 	static bool bRefClose; ///< Признак закрытия окна снаружи.
 	static GraphicsElementItem* p_GraphicsElementItem; ///< Указатель на графический элемент для передачи в виджет.
 	static Qt::BrushStyle iLStyle, iDStyle, iGStyle; ///< Внутренние переменные для хранения основных стилей кистей при замене на временные.
+	static unsigned char uchElementSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных элементов.
+	static unsigned char uchGroupSelectionFlashCounter; ///< Счётчик таймера мерцания выбранных групп.
+	static unsigned char uchPortSelectionFlashCounter; ///< Счётчик таймера мерцания выбранного порта.
 };
 
 #endif // SCHEMATICWINDOW_H

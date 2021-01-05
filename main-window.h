@@ -159,11 +159,11 @@ signals:
 public:
 	static int iInitRes; ///< Результат инициализации.
 	static SchematicWindow* p_SchematicWindow; ///< Указатель на класс окна схематического обзора.
-	static WidgetsThrAccess* p_WidgetsThrAccess; ///< Указатель на объект класса доступа к интерфейсу.
 	static QSettings* p_UISettings; ///< Указатель на строку установок UI.
-	static Client* p_Client; ///< Указатель на объект клиента.
 	static bool bBlockingGraphics; ///< Признак блокировки главным окном.
+	static Client* p_Client; ///< Указатель на объект клиента.
 	static MainWindow* p_This; ///< Указатель на инициализированного себя.
+	static WidgetsThrAccess* p_WidgetsThrAccess; ///< Указатель на объект класса доступа к интерфейсу.
 
 private:
 	LOGDECL
@@ -220,7 +220,6 @@ public:
 	static GraphicsElementItem* p_ConnGraphicsElementItem; ///< Обменный ук. на графический объект элемента.
 	static GraphicsLinkItem* p_ConnGraphicsLinkItem; ///< Обменный ук. на графический объект линка.
 	static GraphicsGroupItem* p_ConnGraphicsGroupItem; ///< Обменный ук. на графический объект группы.
-	//
 	static PSchElementBase* p_PSchElementBase; ///< Указатель на данные по элементу схемы.
 	static PSchLinkBase* p_PSchLinkBase; ///< Указатель на данные по линку схемы.
 	static PSchGroupBase* p_PSchGroupBase; ///< Указатель на данные по группе схемы.
