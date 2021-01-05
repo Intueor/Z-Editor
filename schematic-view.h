@@ -199,14 +199,6 @@ public:
 	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Parent Указатель на родителя.
-	/// Обработчик конструктора подложки.
-	static void BackgroundConstructorHandler(GraphicsBackgroundItem* p_GraphicsBackgroundItem);
-							///< \param[in] p_GraphicsBackgroundItem Указатель на подложку.
-	// Обработчик деструктора подложки.
-	static void BackgroundDestructorHandler();
-	/// Обработчик функции рисования подкладки.
-	static void BackgroundPaintHandler(QPainter* p_Painter);
-							///< \param[in] p_Painter Указатель на отрисовщик.
 	/// Вычисление квадрата и вместилища линии линка.
 	static CalcPortHelper CalcLinkLineWidthHeight(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
@@ -519,6 +511,7 @@ public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
+	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 
 private:
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
@@ -599,7 +592,6 @@ private:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
-	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 };
 
 #endif // SCHEMATICVIEW_H

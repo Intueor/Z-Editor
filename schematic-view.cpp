@@ -3145,16 +3145,6 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	TrySendBufferToServer;
 }
 
-// Обработчик функции рисования подкладки.
-void SchematicView::BackgroundPaintHandler(QPainter* p_Painter)
-{
-	if(!bLoading)
-	{
-		p_Painter->setPen(oQPenPortFrameFlash);
-		p_Painter->drawEllipse(0, 0, 20, 20);
-	}
-}
-
 // Обработчик функции рисования элемента.
 void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter)
 {
@@ -3324,18 +3314,6 @@ void SchematicView::PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElemen
 								  "]\n") + QString(strName + "\n");
 	strU.fill(qchF, strName.length() + 2);
 	p_GraphicsElementItem->strPreparedName += strU;
-}
-
-// Обработчик конструктора подложки.
-void SchematicView::BackgroundConstructorHandler(GraphicsBackgroundItem* p_GraphicsBackgroundItem)
-{
-	p_GraphicsBackgroundItemInt = p_GraphicsBackgroundItem;
-}
-
-// Обработчик деструктора подложки.
-void SchematicView::BackgroundDestructorHandler()
-{
-	p_GraphicsBackgroundItemInt = nullptr;
 }
 
 // Обработчик конструктора элемента.
