@@ -92,6 +92,7 @@ QVector<GraphicsPortItem*> SchematicView::pv_GraphicsPortItemsCollected;
 bool SchematicView::bLoading = false;
 QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
 QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
+GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;									\
@@ -3144,6 +3145,16 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	TrySendBufferToServer;
 }
 
+// Обработчик функции рисования подкладки.
+void SchematicView::BackgroundPaintHandler(QPainter* p_Painter)
+{
+	if(!bLoading)
+	{
+		p_Painter->setPen(oQPenPortFrameFlash);
+		p_Painter->drawEllipse(0, 0, 20, 20);
+	}
+}
+
 // Обработчик функции рисования элемента.
 void SchematicView::ElementPaintHandler(GraphicsElementItem* p_GraphicsElementItem, QPainter* p_Painter)
 {
@@ -3313,6 +3324,18 @@ void SchematicView::PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElemen
 								  "]\n") + QString(strName + "\n");
 	strU.fill(qchF, strName.length() + 2);
 	p_GraphicsElementItem->strPreparedName += strU;
+}
+
+// Обработчик конструктора подложки.
+void SchematicView::BackgroundConstructorHandler(GraphicsBackgroundItem* p_GraphicsBackgroundItem)
+{
+	p_GraphicsBackgroundItemInt = p_GraphicsBackgroundItem;
+}
+
+// Обработчик деструктора подложки.
+void SchematicView::BackgroundDestructorHandler()
+{
+	p_GraphicsBackgroundItemInt = nullptr;
 }
 
 // Обработчик конструктора элемента.
@@ -5263,4 +5286,12 @@ void SchematicView::ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScale
 	p_GraphicsScalerItem->setCursor(Qt::CursorShape::SizeFDiagCursor);
 	p_GraphicsScalerItem->setParentItem(p_Parent);
 	p_GraphicsScalerItem->p_SchEGGraph = &p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph;
+}
+
+// Создание подложки.
+void SchematicView::CreateBackground()
+{
+	MainWindow::p_SchematicWindow->oScene.addItem(new GraphicsBackgroundItem);
+	p_GraphicsBackgroundItemInt->setPos(0, 0);
+	p_GraphicsBackgroundItemInt->setZValue(-999);
 }

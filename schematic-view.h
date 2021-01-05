@@ -16,7 +16,7 @@ class GraphicsLinkItem;
 class GraphicsPortItem;
 class GraphicsFrameItem;
 class GraphicsScalerItem;
-class GraphicsBackgrounsdItem;
+class GraphicsBackgroundItem;
 
 //== КЛАССЫ.
 /// Класс виджета обзора.
@@ -199,6 +199,14 @@ public:
 	static void ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScalerItem, GraphicsElementItem* p_Parent);
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] p_Parent Указатель на родителя.
+	/// Обработчик конструктора подложки.
+	static void BackgroundConstructorHandler(GraphicsBackgroundItem* p_GraphicsBackgroundItem);
+							///< \param[in] p_GraphicsBackgroundItem Указатель на подложку.
+	// Обработчик деструктора подложки.
+	static void BackgroundDestructorHandler();
+	/// Обработчик функции рисования подкладки.
+	static void BackgroundPaintHandler(QPainter* p_Painter);
+							///< \param[in] p_Painter Указатель на отрисовщик.
 	/// Вычисление квадрата и вместилища линии линка.
 	static CalcPortHelper CalcLinkLineWidthHeight(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
@@ -245,6 +253,8 @@ public:
 	/// Установка указателя кэлбэка изменения окна обзора.
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
 								///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
+	/// Создание подложки.
+	static void CreateBackground();
 public slots:
 	/// Обновление от таймера мерцания выбранных элементов.
 	static void UpdateSelectionFlash();
@@ -589,6 +599,7 @@ private:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
+	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 };
 
 #endif // SCHEMATICVIEW_H

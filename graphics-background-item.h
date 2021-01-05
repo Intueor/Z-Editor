@@ -11,6 +11,8 @@ class GraphicsBackgroundItem : public QGraphicsItem
 public:
 	/// Конструктор.
 	explicit GraphicsBackgroundItem();
+	/// Деструктор.
+	~GraphicsBackgroundItem();
 	/// Переопределение функции сообщения о вмещающем прямоугольнике.
 	QRectF boundingRect() const override;
 							///< \return Вмещающий прямоугольник.

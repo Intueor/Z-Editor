@@ -7,13 +7,19 @@
 // Конструктор.
 GraphicsBackgroundItem::GraphicsBackgroundItem()
 {
+	SchematicView::BackgroundConstructorHandler(this);
+}
 
+// Деструктор.
+GraphicsBackgroundItem::~GraphicsBackgroundItem()
+{
+	SchematicView::BackgroundDestructorHandler();
 }
 
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsBackgroundItem::boundingRect() const
 {
-	return QRectF(0, 0, 0, 0);
+	return QRectF(-20, -20, 40, 40);
 }
 
 // Переопределение функции рисования скалера.
@@ -22,6 +28,6 @@ void GraphicsBackgroundItem::paint(QPainter* p_Painter, const QStyleOptionGraphi
 	// Заглушки.
 	p_Option = p_Option;
 	p_Widget = p_Widget;
-	p_Painter = p_Painter;
 	//
+	SchematicView::BackgroundPaintHandler(p_Painter);
 }

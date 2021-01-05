@@ -38,7 +38,6 @@ GraphicsLinkItem* WidgetsThrAccess::p_ConnGraphicsLinkItem = nullptr;
 GraphicsGroupItem* WidgetsThrAccess::p_ConnGraphicsGroupItem = nullptr;
 WidgetsThrAccess* MainWindow::p_WidgetsThrAccess = nullptr;
 bool MainWindow::bSchemaIsOpened = false;
-bool MainWindow::bLoadingCompleted = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
@@ -303,6 +302,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					SchematicView::AfterLoadingPlacement();
 					BlockSchematic(BLOCKING_OFF);
 					p_SchematicWindow->p_SchematicView->bLoading = false;
+					SchematicView::CreateBackground();
 					p_SchematicWindow->oScene.update();
 					LOG_P_0(LOG_CAT_I, "Loading completed.");
 					goto gLO;
@@ -348,7 +348,6 @@ gLO:		bProcessed = true;
 				oPSchReadyInfo.uchBits = SCH_STATUS_READY;
 				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
 				p_Client->SendToServerImmediately(PROTO_O_SCH_STATUS, (char*)&oPSchReadyInfo, sizeof(PSchStatusInfo), true, false);
-				bLoadingCompleted = false; // Установка для ожидания конца последующей прогрузки.
 			}
 			else
 			{
