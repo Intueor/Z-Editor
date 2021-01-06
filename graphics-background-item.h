@@ -21,6 +21,8 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
+private:
+	static QPen oQPenDarkGray; ///< Тёмно-серый карандаш.
 };
 
 #endif // GRAPHICSBACKGROUNDITEM_H

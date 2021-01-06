@@ -93,6 +93,9 @@ bool SchematicView::bLoading = false;
 QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
 QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
 GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
+unsigned char SchematicView::uchWheelMul = 8;
+double SchematicView::dbSnapStep = 0;
+QVector<double> SchematicView::v_dbSnaps;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;									\
@@ -134,6 +137,12 @@ GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 // Конструктор.
 SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 {
+	double dbTSDimSubCorr = SCALER_TR_DIM - SCALER_TR_DIM_CORR;
+	double dbFrameDimIncNeg = 0 - FRAME_DIM_INC;
+	double dbFrameDimIncCorrHalf = FRAME_DIM_INC_CORR / 2.0f;
+	double dbSnap = 5;
+	unsigned char uchDiv = 0;
+	//
 	oQBrushLight.setColor(QColor(170, 170, 170, 255)); oQBrushLight.setStyle(Qt::SolidPattern);
 	oQBrushDark.setColor(QColor(64, 64, 64, 255)); oQBrushDark.setStyle(Qt::SolidPattern);
 	oQBrushGray.setColor(QColor(100, 100, 100, 255)); oQBrushGray.setStyle(Qt::SolidPattern);
@@ -148,10 +157,6 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	oQPenSelectionDash.setJoinStyle(Qt::MiterJoin);
 	oQPenSelectionDot.setColor(QColor(0, 5, 10, 255)); oQPenSelectionDot.setStyle(Qt::PenStyle::SolidLine);
 	oQPenSelectionDot.setJoinStyle(Qt::MiterJoin);
-	//
-	double dbTSDimSubCorr = SCALER_TR_DIM - SCALER_TR_DIM_CORR;
-	double dbFrameDimIncNeg = 0 - FRAME_DIM_INC;
-	double dbFrameDimIncCorrHalf = FRAME_DIM_INC_CORR / 2.0f;
 	//
 	dbFrameDimIncSubCorr = FRAME_DIM_INC - FRAME_DIM_INC_CORR;
 	dbFrameDimIncTwiceSubCorr = (FRAME_DIM_INC * 2.0f) - FRAME_DIM_INC_CORR;
@@ -193,6 +198,18 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 												 dbMinTriangleR + (pntTrT.y() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)));
 	pntMinFrameTrL = QPointF(dbMinTriangleR + (pntTrL.x() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)) - dbMinTriangleDerc,
 												 dbMinTriangleR + (pntTrL.y() * (dbMinTriangleR + dbFrameDimIncTwiceSubCorr)));
+	// Заготовка шагов сетки.
+	v_dbSnaps.clear();
+	for(unsigned char uchF = 0; uchF != 255; uchF++)
+	{
+		v_dbSnaps.append(dbSnap);
+		uchDiv++;
+		if(uchDiv == 3)
+		{
+			dbSnap *= 2;
+			uchDiv = 0;
+		}
+	}
 	//
 	srand(time(NULL));
 	setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
@@ -300,8 +317,10 @@ QRectF SchematicView::GetVisibleRect()
 // Переопределение функции обработки событий колёсика.
 void SchematicView::wheelEvent(QWheelEvent* p_Event)
 {
-	rScaleFactor = pow((double)2, -p_Event->delta() / 240.0);
-	rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
+	int iD = p_Event->delta();
+	qreal rScaleFactor = pow((double)2, (0 - iD) / 240.0f);
+	qreal rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f)).width();
+	//
 	if((rFactor < 0.1f) || (rFactor > 5.0f))
 		return;
 	scale(rScaleFactor, rScaleFactor);
@@ -309,6 +328,15 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 	{
 		pf_CBSchematicViewFrameChangedInt(GetVisibleRect());
 	}
+	if(iD > 0)
+	{
+		if(uchWheelMul < 255) uchWheelMul++;
+	}
+	else
+	{
+		if(uchWheelMul > 0) uchWheelMul--;
+	}
+	dbSnapStep = v_dbSnaps.at(uchWheelMul);
 }
 
 // Установка позиции подложки.
@@ -318,9 +346,9 @@ void SchematicView::SetBackgroundPos()
 	DbPoint oDbPoint;
 	//
 	oQRectF = GetVisibleRect();
-	oDbPoint.dbX = (int)(oQRectF.x() / 10.0f) * 10.0f;
-	oDbPoint.dbY = (int)(oQRectF.y() / 10.0f) * 10.0f;
-	if(p_GraphicsBackgroundItemInt) p_GraphicsBackgroundItemInt->setPos(oDbPoint.dbX - 10.0f, oDbPoint.dbY - 10.0f);
+	oDbPoint.dbX = (int)(oQRectF.x() / dbSnapStep) * dbSnapStep;
+	oDbPoint.dbY = (int)(oQRectF.y() / dbSnapStep) * dbSnapStep;
+	if(p_GraphicsBackgroundItemInt) p_GraphicsBackgroundItemInt->setPos(oDbPoint.dbX - dbSnapStep, oDbPoint.dbY - dbSnapStep);
 }
 
 // Переопределение функции обработки перемещения мыши.
@@ -5282,7 +5310,8 @@ void SchematicView::ScalerConstructorHandler(GraphicsScalerItem* p_GraphicsScale
 // Создание подложки.
 void SchematicView::CreateBackground()
 {
+	dbSnapStep = v_dbSnaps.at(uchWheelMul);
 	MainWindow::p_SchematicWindow->oScene.addItem(new GraphicsBackgroundItem);
 	SetBackgroundPos();
-	p_GraphicsBackgroundItemInt->setZValue(-999);
+	p_GraphicsBackgroundItemInt->setZValue(OVERMIN_NUMBER);
 }

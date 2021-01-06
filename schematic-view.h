@@ -514,11 +514,12 @@ public:
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
+	static double dbSnapStep; ///< Шаг залипания к сетке.
 
 private:
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
 	static QBrush oQBrushLight; ///< Белая кисть общего пользования.
-	static QBrush oQBrushGray; ///< Серая карандаш общего пользования.
+	static QBrush oQBrushGray; ///< Серая кисть общего пользования.
 	static QPen oQPenWhite; ///< Белый карандаш общего пользования.
 	static QPen oQPenBlack; ///< Чёрный карандаш общего пользования.
 	static QPen oQPenWhiteTransparent; ///< Белый полупрозрачный карандаш общего пользования.
@@ -539,8 +540,6 @@ private:
 	static CBSchematicViewFrameChanged pf_CBSchematicViewFrameChangedInt; ///< Указатель на кэлбэк изменения окна обзора.
 	static QPointF pntMouseClickMapped; ///< Точка клика в координатах сцены.
 	static QPointF pntMouseMoveMapped; ///< Точка смещения от клика в координатах сцены.
-	qreal rScaleFactor; ///<
-	qreal rFactor; ///<
 	static QVector<GraphicsGroupItem*> v_AlreadyMovedGroups; ///< Список указателей на уже перемещённые за цикл группы.
 	static QVector<EGPointersVariant> v_OccupiedByClient; ///< Список занятого клиентом.
 	static QPolygonF oQPolygonFForRectScaler; ///< Объект полигона для отрисовки скалера прямоугольника.
@@ -594,6 +593,8 @@ private:
 	static DbPoint oDbPointPortInitialClick; ///< Точка нажатия для порта.
 	static bool bPortFromElement; ///< Флаг запроса от элемента для порта.
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
+	static unsigned char uchWheelMul; ///< Позиция колёсика мыши от начала работы.
+	static QVector<double> v_dbSnaps; ///< Список шагов сетки.
 };
 
 #endif // SCHEMATICVIEW_H
