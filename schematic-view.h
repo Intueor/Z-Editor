@@ -508,8 +508,8 @@ private:
 							///< \param[in] iStyle Стиль.
 	/// Отмена временного стиля кистей общего пользования.
 	static void RestoreBrushesStyles();
-	/// Просчёт прилипания к сетке.
-	static DbPoint Snap(double dbX, double dbY);
+	/// Вычисление смещения для прилипания к сетке.
+	static DbPoint CalcSnapShift(double dbX, double dbY);
 							///< \param[in] dbX Вхоные Х.
 							///< \param[in] dbX Вхоные Y.
 							///< \return Смещение.
@@ -520,9 +520,14 @@ private:
 	/// Коррекция позиции элемента по сетке.
 	static void ElementSnapCorrection(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-	// Коррекция позиции группы по сетке.
+	/// Коррекция позиции группы по сетке.
 	static void GroupSnapCorrection(GraphicsGroupItem* p_GraphicsGroupItem);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+	/// Процедуры обработки скалирования.
+	static void ScalingProcedures(GraphicsScalerItem* p_GraphicsScalerItem, DbPoint oDbPointPosNow, DbPoint oDbPointPosPrev);
+							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
+							///< \param[in] oDbPointPosNow Текущее положение скалера.
+							///< \param[in] oDbPointPosPrev Старое положение скалера (до обработанного события).
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

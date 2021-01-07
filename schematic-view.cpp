@@ -3033,7 +3033,7 @@ void SchematicView::ChangeColorOfSelectedAPFS(unsigned int uiNewColor)
 // Коррекция позиции элемента по сетке.
 void SchematicView::ElementSnapCorrection(GraphicsElementItem* p_GraphicsElementItem)
 {
-	DbPoint oDbPointShift = Snap(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+	DbPoint oDbPointShift = CalcSnapShift(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
 								 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
 	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += oDbPointShift.dbX;
 	p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += oDbPointShift.dbY;
@@ -3878,8 +3878,8 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 	}
 }
 
-// Просчёт прилипания к сетке.
-DbPoint SchematicView::Snap(double dbX, double dbY)
+// Вычисление смещения для прилипания к сетке.
+DbPoint SchematicView::CalcSnapShift(double dbX, double dbY)
 {
 	double dbShiftX, dbShiftY;
 	DbPoint oDbPointRet;
@@ -3930,7 +3930,7 @@ void SchematicView::ShiftGroupWithContentRecursively(GraphicsGroupItem* p_Graphi
 // Коррекция позиции группы по сетке.
 void SchematicView::GroupSnapCorrection(GraphicsGroupItem* p_GraphicsGroupItem)
 {
-	DbPoint oDbPointShift = Snap(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
+	DbPoint oDbPointShift = CalcSnapShift(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
 								 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
 	//
 	ShiftGroupWithContentRecursively(p_GraphicsGroupItem, oDbPointShift);
@@ -5173,20 +5173,11 @@ void SchematicView::ScalerMousePressEventHandler(GraphicsScalerItem* p_GraphicsS
 	p_GraphicsScalerItem->OBMousePressEvent(p_Event);
 }
 
-// Обработчик события перемещения мыши с скалером.
-void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
+// Процедуры обработки скалирования.
+void SchematicView::ScalingProcedures(GraphicsScalerItem* p_GraphicsScalerItem, DbPoint oDbPointPosNow, DbPoint oDbPointPosPrev)
 {
-	DbPoint oDbPointPos;
 	DbPoint oDbPointMinimals;
 	//
-	if(IsBusy(p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits)
-	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
-	{
-		return;
-	}
-	oDbPointPos.dbX = p_GraphicsScalerItem->pos().x();
-	oDbPointPos.dbY = p_GraphicsScalerItem->pos().y();
-	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event); // Даём мышке уйти.
 	if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 	{
 		if(IsReceiver(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
@@ -5205,26 +5196,26 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 		oDbPointMinimals.dbX = ELEMENT_MIN_X;
 		oDbPointMinimals.dbY = ELEMENT_MIN_Y;
 	}
-	if(p_Event->scenePos().x() <
+	if(oDbPointPosNow.dbX <
 	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX + oDbPointMinimals.dbX)
 	{
-		p_GraphicsScalerItem->setX(oDbPointPos.dbX);
+		p_GraphicsScalerItem->setX(oDbPointPosPrev.dbX);
 	}
-	if(p_Event->scenePos().y() <
+	if(oDbPointPosNow.dbY <
 	   p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY + oDbPointMinimals.dbY)
 	{
-		p_GraphicsScalerItem->setY(oDbPointPos.dbY);
+		p_GraphicsScalerItem->setY(oDbPointPosPrev.dbY);
 	}
-	oDbPointPos.dbX = p_GraphicsScalerItem->pos().x() - oDbPointPos.dbX;
-	oDbPointPos.dbY = p_GraphicsScalerItem->pos().y() - oDbPointPos.dbY;
+	oDbPointPosPrev.dbX = p_GraphicsScalerItem->pos().x() - oDbPointPosPrev.dbX;
+	oDbPointPosPrev.dbY = p_GraphicsScalerItem->pos().y() - oDbPointPosPrev.dbY;
 	if(IsExtended(p_GraphicsScalerItem->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
 	{
-		if(oDbPointPos.dbX < oDbPointPos.dbY)
-			oDbPointPos.dbY = oDbPointPos.dbX;
-		else if (oDbPointPos.dbY < oDbPointPos.dbX)
-			oDbPointPos.dbX = oDbPointPos.dbY;
+		if(oDbPointPosPrev.dbX < oDbPointPosPrev.dbY)
+			oDbPointPosPrev.dbY = oDbPointPosPrev.dbX;
+		else if (oDbPointPosPrev.dbY < oDbPointPosPrev.dbX)
+			oDbPointPosPrev.dbX = oDbPointPosPrev.dbY;
 	}
-	p_GraphicsScalerItem->p_ParentInt->oDbPointDimIncrements = oDbPointPos;
+	p_GraphicsScalerItem->p_ParentInt->oDbPointDimIncrements = oDbPointPosPrev;
 	UpdateSelectedInElement(p_GraphicsScalerItem->p_ParentInt, SCH_UPDATE_ELEMENT_FRAME | SCH_UPDATE_LINKS_POS | SCH_UPDATE_MAIN);
 	if(p_GraphicsScalerItem->p_ParentInt->p_GraphicsGroupItemRel != nullptr) // По группе элемента без выборки, если она есть.
 	{
@@ -5251,13 +5242,49 @@ void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsSc
 	}
 }
 
+// Обработчик события перемещения мыши с скалером.
+void SchematicView::ScalerMouseMoveEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
+{
+	DbPoint oDbPointPosPrev;
+	DbPoint oDbPointPosNow;
+	//
+	if(IsBusy(p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits)
+	   || MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
+	{
+		return;
+	}
+	//
+	oDbPointPosPrev.dbX = p_GraphicsScalerItem->pos().x();
+	oDbPointPosPrev.dbY = p_GraphicsScalerItem->pos().y();
+	p_GraphicsScalerItem->OBMouseMoveEvent(p_Event); // Даём мышке уйти.
+	oDbPointPosNow.dbX = p_Event->scenePos().x();
+	oDbPointPosNow.dbY = p_Event->scenePos().y();
+	ScalingProcedures(p_GraphicsScalerItem, oDbPointPosNow, oDbPointPosPrev);
+}
+
 // Обработчик события отпусканеия мыши на скалере.
 void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_GraphicsScalerItem, QGraphicsSceneMouseEvent* p_Event)
 {
+	DbPoint oDbPointPosPrev;
+	DbPoint oDbPointShift;
+	//
 	if(IsBusy(p_GraphicsScalerItem->p_SchEGGraph->uchSettingsBits) || MainWindow::bBlockingGraphics)
 	{
 		return;
 	}
+	//
+	p_GraphicsScalerItem->OBMouseReleaseEvent(p_Event);
+	oDbPointPosPrev.dbX = p_GraphicsScalerItem->pos().x() +
+						  p_GraphicsScalerItem->p_ParentInt->pos().x();
+	oDbPointPosPrev.dbY = p_GraphicsScalerItem->pos().y() +
+						  p_GraphicsScalerItem->p_ParentInt->pos().y();
+	oDbPointShift = CalcSnapShift(oDbPointPosPrev.dbX, oDbPointPosPrev.dbY);
+	oDbPointShift.dbX += oDbPointPosPrev.dbX;
+	oDbPointShift.dbY += oDbPointPosPrev.dbY;
+	p_GraphicsScalerItem->setPos(oDbPointShift.dbX, oDbPointShift.dbY);
+	p_GraphicsScalerItem->update();
+	ScalingProcedures(p_GraphicsScalerItem, oDbPointShift, oDbPointPosPrev);
+	//
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
 		// Ищем линки к элементу-родителю скалера...
@@ -5284,7 +5311,6 @@ void SchematicView::ScalerMouseReleaseEventHandler(GraphicsScalerItem* p_Graphic
 		ReleaseOccupiedAPFS();
 		TrySendBufferToServer;
 	}
-	p_GraphicsScalerItem->OBMouseReleaseEvent(p_Event);
 }
 
 // Обработчик функции возврата вместилища скалера и его видов.
