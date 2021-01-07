@@ -517,6 +517,12 @@ private:
 	static void ShiftGroupWithContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem, DbPoint oDbPointShift);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 							///< \param[in] oDbPointShift Смещение.
+	/// Коррекция позиции элемента по сетке.
+	static void ElementSnapCorrection(GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+	// Коррекция позиции группы по сетке.
+	static void GroupSnapCorrection(GraphicsGroupItem* p_GraphicsGroupItem);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
