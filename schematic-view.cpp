@@ -94,7 +94,7 @@ QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
 QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
 GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 unsigned char SchematicView::uchWheelMul = 8;
-double SchematicView::dbSnapStep = 0;
+double SchematicView::dbSnapStep = 40;
 QVector<double> SchematicView::v_dbSnaps;
 
 //== МАКРОСЫ.
@@ -166,7 +166,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	//
 	dbPortDimNeg = 0 - PORT_DIM;
 	dbPortDimD = PORT_DIM * 2.0f;
-	dbMinTriangleR = MINIMIZED_DIM / 2.0f;
+	dbMinTriangleR = MINIMIZED_DIM * MIN_TRIANGLE_PROPORTION;
 	dbMinElementR = dbMinTriangleR * MIN_ELEMENT_PROPORTION;
 	dbMinElementD = MINIMIZED_DIM * MIN_ELEMENT_PROPORTION;
 	dbMinGroupD = MINIMIZED_DIM * MIN_GROUP_PROPORTION;
@@ -3033,6 +3033,8 @@ void SchematicView::ChangeColorOfSelectedAPFS(unsigned int uiNewColor)
 // Обработчик события отпусканеия мыши на элементе.
 void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
+//	DbPoint oDbPoint;
+	//
 	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
 	{
 		return;
@@ -3048,6 +3050,25 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	else if(IsBusy(p_ElementSettings)) return;
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
+		DbPoint oDbPointShift = Snap(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+									 p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += oDbPointShift.dbX;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += oDbPointShift.dbY;
+		p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+									  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
+		if(p_GraphicsElementItem->p_GraphicsGroupItemRel)
+			UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+		for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+		{
+			GraphicsLinkItem* p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+			//
+			if((p_GraphicsLinkItem->p_GraphicsElementItemSrc == p_GraphicsElementItem) ||
+					(p_GraphicsLinkItem->p_GraphicsElementItemDst == p_GraphicsElementItem))
+			{
+				UpdateLinkPositionByElements(p_GraphicsLinkItem);
+			}
+		}
+		//
 		ReleaseOccupiedAPFS();
 	}
 	p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
@@ -3848,6 +3869,55 @@ void SchematicView::GroupMouseMoveEventHandler(GraphicsGroupItem* p_GraphicsGrou
 	}
 }
 
+// Просчёт прилипания к сетке.
+DbPoint SchematicView::Snap(double dbX, double dbY)
+{
+	double dbShiftX, dbShiftY;
+	DbPoint oDbPointRet;
+	//
+	oDbPointRet.dbX = dbX;
+	oDbPointRet.dbY = dbY;
+	if(dbX > 0) dbShiftX = dbSnapStep / 2.0f; else dbShiftX = 0.0f - dbSnapStep / 2.0f;
+	if(dbY > 0) dbShiftY = dbSnapStep / 2.0f; else dbShiftY = 0.0f - dbSnapStep / 2.0f;
+	dbX = ((int)(((dbX + dbShiftX) / dbSnapStep))) * dbSnapStep;
+	dbY = ((int)(((dbY + dbShiftY) / dbSnapStep))) * dbSnapStep;
+	oDbPointRet.dbX = dbX - oDbPointRet.dbX;
+	oDbPointRet.dbY = dbY - oDbPointRet.dbY;
+	return oDbPointRet;
+}
+
+// Смещение групп и содержимого рекурсивно.
+void SchematicView::ShiftGroupWithContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem, DbPoint oDbPointShift)
+{
+	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX += oDbPointShift.dbX;
+	p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY += oDbPointShift.dbY;
+	p_GraphicsGroupItem->setPos(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
+								p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
+	for(int iF = 0; iF != p_GraphicsGroupItem->vp_ConnectedElements.count(); iF++)
+	{
+		GraphicsElementItem* p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iF);
+		//
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += oDbPointShift.dbX;
+		p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += oDbPointShift.dbY;
+		p_GraphicsElementItem->setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX,
+									  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY);
+		for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+		{
+			GraphicsLinkItem* p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+			//
+			if((p_GraphicsLinkItem->p_GraphicsElementItemSrc == p_GraphicsElementItem) ||
+					(p_GraphicsLinkItem->p_GraphicsElementItemDst == p_GraphicsElementItem))
+			{
+				UpdateLinkPositionByElements(p_GraphicsLinkItem);
+			}
+		}
+	}
+	for(int iF = 0; iF != p_GraphicsGroupItem->vp_ConnectedGroups.count(); iF++)
+	{
+		ShiftGroupWithContentRecursively(p_GraphicsGroupItem->vp_ConnectedGroups.at(iF), oDbPointShift);
+	}
+}
+
 // Обработчик события отпусканеия мыши на группе.
 void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -3858,6 +3928,12 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 	DoubleButtonsReleaseControl();
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
 	{
+		DbPoint oDbPointShift = Snap(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX,
+									 p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY);
+		//
+		ShiftGroupWithContentRecursively(p_GraphicsGroupItem, oDbPointShift);
+		if(p_GraphicsGroupItem->p_GraphicsGroupItemRel)
+			UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsGroupItem->p_GraphicsGroupItemRel);
 		ReleaseOccupiedAPFS();
 	}
 	p_GraphicsGroupItem->OBMouseReleaseEvent(p_Event);

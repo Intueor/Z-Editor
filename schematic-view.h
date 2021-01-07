@@ -508,7 +508,15 @@ private:
 							///< \param[in] iStyle Стиль.
 	/// Отмена временного стиля кистей общего пользования.
 	static void RestoreBrushesStyles();
-
+	/// Просчёт прилипания к сетке.
+	static DbPoint Snap(double dbX, double dbY);
+							///< \param[in] dbX Вхоные Х.
+							///< \param[in] dbX Вхоные Y.
+							///< \return Смещение.
+	/// Смещение групп и содержимого рекурсивно.
+	static void ShiftGroupWithContentRecursively(GraphicsGroupItem* p_GraphicsGroupItem, DbPoint oDbPointShift);
+							///< \param[in] p_GraphicsGroupItem Указатель на группу.
+							///< \param[in] oDbPointShift Смещение.
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
