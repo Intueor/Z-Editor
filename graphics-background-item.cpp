@@ -29,6 +29,14 @@ QRectF GraphicsBackgroundItem::boundingRect() const
 	return QRectF(0, 0, oQRectFVisible.width() + (SchematicView::dbSnapStep * 2.0f), oQRectFVisible.height() + (SchematicView::dbSnapStep *2.0f));
 }
 
+/// Переопределение функции определения формы.
+QPainterPath GraphicsBackgroundItem::shape() const
+{
+	QPainterPath oQPainterPath;
+	//
+	return oQPainterPath;
+}
+
 // Переопределение функции рисования скалера.
 void GraphicsBackgroundItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
 {

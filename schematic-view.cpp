@@ -382,8 +382,8 @@ void SchematicView::mouseMoveEvent(QMouseEvent* p_Event)
 		p_QGraphicsRectItemSelectionDash->setRect(oQRectF);
 		p_QGraphicsRectItemSelectionDot->setRect(oQRectF);
 	}
-	QGraphicsView::mouseMoveEvent(p_Event);
 	SetBackgroundPos();
+	QGraphicsView::mouseMoveEvent(p_Event);
 }
 
 // Создание нового элемента и подготовка отсылки параметров.

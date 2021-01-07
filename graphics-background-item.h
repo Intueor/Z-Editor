@@ -16,6 +16,9 @@ public:
 	/// Переопределение функции сообщения о вмещающем прямоугольнике.
 	QRectF boundingRect() const override;
 							///< \return Вмещающий прямоугольник.
+	/// Переопределение функции определения формы.
+	QPainterPath shape() const override;
+							///< \return Фигура.
 	/// Переопределение функции рисования скалера.
 	void paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget) override;
 							///< \param[in] p_Painter Указатель на отрисовщик.
