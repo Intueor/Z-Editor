@@ -40,15 +40,6 @@ public:
 							///< \param[in] p_Painter Указатель на отрисовщик.
 							///< \param[in] p_Option Указатель на опции стиля.
 							///< \param[in] p_Widget Указатель на виджет.
-	/// Переопределение функции обработки нажатия мыши.
-	void mousePressEvent(QGraphicsSceneMouseEvent* p_Event) override;
-							///< \param[in] p_Event Указатель на событие.
-	/// Переопределение функции обработки перемещения мыши.
-	void mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event) override;
-							///< \param[in] p_Event Указатель на событие.
-	/// Переопределение функции обработки отпускания мыши.
-	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
-							///< \param[in] p_Event Указатель на событие.
 	/// Для внешнего вызова базового метода.
 	void OBMousePressEvent(QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
@@ -57,6 +48,16 @@ public:
 							///< \param[in] p_Event Указатель на событие.
 	/// Для внешнего вызова базового метода.
 	void OBMouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event);
+							///< \param[in] p_Event Указатель на событие.
+protected:
+	/// Переопределение функции обработки нажатия мыши.
+	void mousePressEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки перемещения мыши.
+	void mouseMoveEvent(QGraphicsSceneMouseEvent* p_Event) override;
+							///< \param[in] p_Event Указатель на событие.
+	/// Переопределение функции обработки отпускания мыши.
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* p_Event) override;
 							///< \param[in] p_Event Указатель на событие.
 public:
 	PSchGroupBase oPSchGroupBaseInt; ///< Внутренний объект структуры с параметрами группы.

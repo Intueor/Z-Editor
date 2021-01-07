@@ -1129,7 +1129,7 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 				QGraphicsSceneMouseEvent oQGraphicsSceneMouseEvent(QEvent::MouseButtonRelease);
 				//
 				oQGraphicsSceneMouseEvent.setButton(Qt::LeftButton);
-				p_GraphicsPortItemActive->mouseReleaseEvent(&oQGraphicsSceneMouseEvent);
+				p_GraphicsPortItemActive->OBMouseReleaseEvent(&oQGraphicsSceneMouseEvent);
 				while(p_GraphicsPortItemActive)
 				{
 					MSleep(WAITING_FOR_INTERFACE);
@@ -2594,7 +2594,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 			UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 			emit MainWindow::p_This->RemoteUpdateSchView();
-			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mousePressEvent(p_Event);
+			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->OBMouseMoveEvent(p_Event);
 			p_GraphicsElementItem->OBMousePressEvent(p_Event);
 			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem->show(); // Зажигаем рамку.
 			p_GraphicsFrameItemForPortFlash = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem;
@@ -2769,7 +2769,7 @@ void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_Graphics
 	}
 	if(p_GraphicsLinkItemNew != nullptr)
 	{
-		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseMoveEvent(p_Event);
+		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->OBMouseMoveEvent(p_Event);
 		return;
 	}
 	else if(IsBusy(p_ElementSettings)) return;
@@ -3042,7 +3042,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	DoubleButtonsReleaseControl();
 	if(p_GraphicsLinkItemNew != nullptr)
 	{
-		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->mouseReleaseEvent(p_Event);
+		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->OBMouseReleaseEvent(p_Event);
 		p_GraphicsLinkItemNew = nullptr;
 		p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
 		return;
