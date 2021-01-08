@@ -534,6 +534,8 @@ public:
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 	static double dbSnapStep; ///< Шаг залипания к сетке.
+	static double dbLinkArkDiameter; ///< Диаметр дуги разворота линка.
+	static double dbLinkArkDoubleDiameter; ///< Удвоенный диаметр дуги разворота линка.
 
 private:
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.

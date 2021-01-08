@@ -82,6 +82,7 @@
 #define MIN_CIRCLE_PROPORTION			0.725f
 #define MIN_TRIANGLE_PROPORTION			0.5f
 #define MIN_GROUP_PROPORTION			1.333333f
+#define LINK_ARC_RADIUS					15.0f
 //
 #define ELEMENT_MIN_X					40
 #define ELEMENT_MIN_Y					30

@@ -88,6 +88,8 @@ double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 double SchematicView::dbMinCircleRPlusFrameDimIncSubCorr;
 double SchematicView::dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr;
+double SchematicView::dbLinkArkDiameter;
+double SchematicView::dbLinkArkDoubleDiameter;
 QVector<GraphicsPortItem*> SchematicView::pv_GraphicsPortItemsCollected;
 bool SchematicView::bLoading = false;
 QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
@@ -177,6 +179,8 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinTriangleRSubMinTriangleDerc = dbMinTriangleR - dbMinTriangleDerc;
 	dbMinCircleRPlusFrameDimIncSubCorr = dbMinCircleR + dbFrameDimIncSubCorr;
 	dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr = dbMinElementD + dbFrameDimIncTwiceSubDoubleCorr;
+	dbLinkArkDiameter = LINK_ARC_RADIUS * 2.0f;
+	dbLinkArkDoubleDiameter = dbLinkArkDiameter * 2.0f;
 	//
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM, -SCALER_RECT_DIM_CORR));
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM_CORR, -SCALER_RECT_DIM));
@@ -4463,6 +4467,8 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 	{
 		bool bLT;
 		bool bRB;
+		bool bLB;
+		GraphicsElementItem* p_GraphicsElementItem;
 		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
@@ -4491,20 +4497,202 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		oC.oDbPointPairPortsCoords.dbSrc.dbY -= oDbPointMid.dbY;
 		oC.oDbPointPairPortsCoords.dbDst.dbX -= oDbPointMid.dbX;
 		oC.oDbPointPairPortsCoords.dbDst.dbY -= oDbPointMid.dbY;
-		p_Painter->setPen(oQPenBlackTransparent);
+		//////////p_Painter->setPen(oQPenBlackTransparent);
+		p_Painter->setPen(oQPenWhite);
 		bLT = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0);
 		bRB = (oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
+		bLB = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
 		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
 		if(bLT || bRB)
 		{
 			DbPoint oDbPointLT;
 			DbPoint oDbPointRB;
+
 			// Рисование с левого верхнего угла в правый нижний.
 			oDbPointLT.dbX = oC.oDbPointWH.dbX / 2.0f;
 			oDbPointLT.dbY = 0;
 			oDbPointRB.dbX = oC.oDbPointWH.dbX / 2.0f;
 			oDbPointRB.dbY = oC.oDbPointWH.dbY;
 			oQPainterPath.moveTo(0, 0);
+
+			// ДИАГОНАЛЬ ЛЕВО_ВЕРХ-ПРАВО_НИЗ.
+			// Источик.
+			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
+			if(IsExtended(p_ElementSettings))
+			{
+				if(IsReceiver(p_ElementSettings))
+				{
+
+				}
+				else
+				{
+
+				}
+			}
+			else
+			{
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX == 0)
+				{
+					// Левая сторона.
+					if(bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 20, "(Src)LeftToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f - LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 20, "(Src)LeftToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTD;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY == 0)
+				{
+					// Верхняя сторона.
+					if(bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 20, "(Src)TopToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f, 0.0f - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 20, "(Src)TopToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTD;
+				}
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+				{
+					// Правая сторона.
+					if(bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 20, "(Src)RightToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 20, "(Src)RightToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTD;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+				{
+					// Нижняя сторона.
+					if(bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 20, "(Src)BottomToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f, 0.0f + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 20, "(Src)BottomToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTD;
+				}
+			}
+gTD:		// Приёмник.
+			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemDst;
+			if(IsExtended(p_ElementSettings))
+			{
+				if(IsReceiver(p_ElementSettings))
+				{
+
+				}
+				else
+				{
+
+				}
+			}
+			else
+			{
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX == 0)
+				{
+					// Левая сторона.
+					if(!bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 40, "(Dst)LeftToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f - LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 40, "(Dst)LeftToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTN;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY == 0)
+				{
+					// Верхняя сторона.
+					if(!bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 40, "(Dst)TopToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f, 0.0f - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 40, "(Dst)TopToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTN;
+				}
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+				{
+					// Правая сторона.
+					if(!bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 40, "(Dst)RightToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 40, "(Dst)RightToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTN;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+				{
+					// Нижняя сторона.
+					if(!bLT)
+					{ // Дуга вправо вниз.
+						p_Painter->drawText(20, 40, "(Dst)BottomToRightBottom");
+						p_Painter->drawEllipse(QPointF(0.0f, 0.0f + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вверх.
+						p_Painter->drawText(20, 40, "(Dst)BottomToLeftTop");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gTN;
+				}
+			}
+
+
+gTN:
+
+			//
 			oQPainterPath.cubicTo(oDbPointLT.dbX, oDbPointLT.dbY, oDbPointRB.dbX, oDbPointRB.dbY,
 								  oC.oDbPointWH.dbX, oC.oDbPointWH.dbY);
 		}
@@ -4518,6 +4706,185 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 			oDbPointRT.dbX = oC.oDbPointWH.dbX / 2.0f;
 			oDbPointRT.dbY = 0;
 			oQPainterPath.moveTo(0, oC.oDbPointWH.dbY);
+
+			// ДИАГОНАЛЬ ЛЕВО_НИЗ-ПРАВО_ВЕРХ.
+			// Источик.
+			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
+			if(IsExtended(p_ElementSettings))
+			{
+				if(IsReceiver(p_ElementSettings))
+				{
+
+				}
+				else
+				{
+
+				}
+			}
+			else
+			{
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX == 0)
+				{
+					// Левая сторона.
+					if(bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 20, "(Src)LeftToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 20, "(Src)LeftToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBD;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY == 0)
+				{
+					// Верхняя сторона.
+					if(bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 20, "(Src)TopToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 20, "(Src)TopToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0.0f - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBD;
+				}
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+				{
+					// Правая сторона.
+					if(bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 20, "(Src)RightToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 20, "(Src)RightToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX + LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBD;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+				{
+					// Нижняя сторона.
+					if(bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 20, "(Src)BottomToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 20, "(Src)BottomToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0 + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBD;
+				}
+			}
+gBD:		// Приёмник.
+			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemDst;
+			if(IsExtended(p_ElementSettings))
+			{
+				if(IsReceiver(p_ElementSettings))
+				{
+
+				}
+				else
+				{
+
+				}
+			}
+			else
+			{
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX == 0)
+				{
+					// Левая сторона.
+					if(!bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 40, "(Dst)LeftToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 40, "(Dst)LeftToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBN;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY == 0)
+				{
+					// Верхняя сторона.
+					if(!bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 40, "(Dst)TopToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 40, "(Dst)TopToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0.0f - LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBN;
+				}
+				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+				{
+					// Правая сторона.
+					if(!bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 40, "(Dst)RightToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 40, "(Dst)RightToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX + LINK_ARC_RADIUS, 0.0f),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBN;
+				}
+				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY ==
+						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+				{
+					// Нижняя сторона.
+					if(!bLB)
+					{ // Дуга вправо вверх.
+						p_Painter->drawText(20, 40, "(Dst)BottomToRightTop");
+						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					else
+					{ // Дуга влево вниз.
+						p_Painter->drawText(20, 40, "(Dst)BottomToLeftBottom");
+						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0 + LINK_ARC_RADIUS),
+											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+					}
+					goto gBN;
+				}
+			}
+
+
+gBN:
+
+			//
 			oQPainterPath.cubicTo(oDbPointLB.dbX, oDbPointLB.dbY, oDbPointRT.dbX, oDbPointRT.dbY,
 								  oC.oDbPointWH.dbX, 0);
 		}

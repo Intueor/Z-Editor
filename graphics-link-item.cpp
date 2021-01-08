@@ -20,7 +20,8 @@ GraphicsLinkItem::~GraphicsLinkItem()
 QRectF GraphicsLinkItem::boundingRect() const
 {
 	DbPoint oDbPoint = SchematicView::CalcLinkLineWidthHeight((GraphicsLinkItem*)this).oDbPointWH;
-	return QRectF(0, 0, oDbPoint.dbX, oDbPoint.dbY);
+	return QRectF(0 - SchematicView::dbLinkArkDiameter, 0 - SchematicView::dbLinkArkDiameter,
+				  oDbPoint.dbX + SchematicView::dbLinkArkDoubleDiameter, oDbPoint.dbY + SchematicView::dbLinkArkDoubleDiameter);
 }
 
 // Переопределение функции рисования линка.
