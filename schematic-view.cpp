@@ -1129,7 +1129,7 @@ void SchematicView::keyPressEvent(QKeyEvent* p_Event)
 				QGraphicsSceneMouseEvent oQGraphicsSceneMouseEvent(QEvent::MouseButtonRelease);
 				//
 				oQGraphicsSceneMouseEvent.setButton(Qt::LeftButton);
-				p_GraphicsPortItemActive->OBMouseReleaseEvent(&oQGraphicsSceneMouseEvent);
+				PortMouseReleaseEventHandler(p_GraphicsPortItemActive, &oQGraphicsSceneMouseEvent);
 				while(p_GraphicsPortItemActive)
 				{
 					MSleep(WAITING_FOR_INTERFACE);
@@ -2594,7 +2594,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 			SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 			UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 			emit MainWindow::p_This->RemoteUpdateSchView();
-			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->OBMouseMoveEvent(p_Event);
+			PortMousePressEventHandler(p_GraphicsLinkItemNew->p_GraphicsPortItemDst, p_Event);
 			p_GraphicsElementItem->OBMousePressEvent(p_Event);
 			p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem->show(); // Зажигаем рамку.
 			p_GraphicsFrameItemForPortFlash = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->p_GraphicsFrameItem;
@@ -2769,7 +2769,7 @@ void SchematicView::ElementMouseMoveEventHandler(GraphicsElementItem* p_Graphics
 	}
 	if(p_GraphicsLinkItemNew != nullptr)
 	{
-		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->OBMouseMoveEvent(p_Event);
+		PortMouseMoveEventHandler(p_GraphicsLinkItemNew->p_GraphicsPortItemDst, p_Event);
 		return;
 	}
 	else if(IsBusy(p_ElementSettings)) return;
@@ -3064,7 +3064,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 	DoubleButtonsReleaseControl();
 	if(p_GraphicsLinkItemNew != nullptr)
 	{
-		p_GraphicsLinkItemNew->p_GraphicsPortItemDst->OBMouseReleaseEvent(p_Event);
+		PortMouseReleaseEventHandler(p_GraphicsLinkItemNew->p_GraphicsPortItemDst, p_Event);
 		p_GraphicsLinkItemNew = nullptr;
 		p_GraphicsElementItem->OBMouseReleaseEvent(p_Event);
 		return;
@@ -4701,7 +4701,7 @@ void SchematicView::PortMouseMoveEventHandler(GraphicsPortItem* p_GraphicsPortIt
 	{
 		return;
 	}
-	if(IsBusy(p_PortSettings) & (!bPortFromElement)) return;
+	if(IsBusy(p_PortSettings) && (!bPortFromElement)) return;
 	//
 	p_GraphicsPortItem->OBMouseMoveEvent(p_Event); // Даём мышке уйти.
 	if(bLMBPressed)
