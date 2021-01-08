@@ -4468,7 +4468,12 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		bool bLT;
 		bool bRB;
 		bool bLB;
+		bool bSrcClockwise;
+		bool bDstClockwise;
+		double dbSrcStartAngle = 0;
+		double dbDstStartAngle = 0;
 		GraphicsElementItem* p_GraphicsElementItem;
+		DbPoint oDbPointSrcC, oDbPointDstC;
 		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
@@ -4536,15 +4541,21 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Левая сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 20, "(Src)LeftToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = 0.0f;
+						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
+						dbSrcStartAngle = PI;
+						bSrcClockwise = true;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 20, "(Src)LeftToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbSrcStartAngle = 0;
+						bSrcClockwise = false;
 					}
 					goto gTD;
 				}
@@ -4553,15 +4564,21 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Верхняя сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 20, "(Src)TopToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = 0.0f;
+						dbSrcStartAngle = PI_AND_HALF;
+						bSrcClockwise = false;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 20, "(Src)TopToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
+						dbSrcStartAngle = HALF_PI;
+						bSrcClockwise = true;
 					}
 					goto gTD;
 				}
@@ -4571,15 +4588,21 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Правая сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 20, "(Src)RightToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = 0.0f;
+						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
+						dbSrcStartAngle = PI;
+						bSrcClockwise = false;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 20, "(Src)RightToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbSrcStartAngle = 0;
+						bSrcClockwise = true;
 					}
 					goto gTD;
 				}
@@ -4589,15 +4612,21 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Нижняя сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 20, "(Src)BottomToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = 0.0f;
+						dbSrcStartAngle = PI_AND_HALF;
+						bSrcClockwise = true;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 20, "(Src)BottomToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
+						dbSrcStartAngle = HALF_PI;
+						bSrcClockwise = false;
 					}
 					goto gTD;
 				}
@@ -4622,15 +4651,21 @@ gTD:		// Приёмник.
 					// Левая сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 40, "(Dst)LeftToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = 0.0f;
+						oDbPointDstC.dbY = LINK_ARC_RADIUS;
+						dbDstStartAngle = PI;
+						bDstClockwise = true;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 40, "(Dst)LeftToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbDstStartAngle = 0;
+						bDstClockwise = false;
 					}
 					goto gTN;
 				}
@@ -4639,15 +4674,22 @@ gTD:		// Приёмник.
 					// Верхняя сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 40, "(Dst)TopToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = 0.0f;
+						dbDstStartAngle = PI_AND_HALF;
+						bDstClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 40, "(Dst)TopToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
+						dbDstStartAngle = HALF_PI;
+						bDstClockwise = true;
 					}
 					goto gTN;
 				}
@@ -4657,15 +4699,21 @@ gTD:		// Приёмник.
 					// Правая сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 40, "(Dst)RightToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = 0.0f;
+						oDbPointDstC.dbY = LINK_ARC_RADIUS;
+						dbDstStartAngle = PI;
+						bDstClockwise = false;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 40, "(Dst)RightToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbDstStartAngle = 0;
+						bDstClockwise = true;
 					}
 					goto gTN;
 				}
@@ -4675,15 +4723,21 @@ gTD:		// Приёмник.
 					// Нижняя сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						p_Painter->drawText(20, 40, "(Dst)BottomToRightBottom");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = 0.0f;
+						dbDstStartAngle = PI_AND_HALF;
+						bDstClockwise = true;
 					}
 					else
 					{ // Дуга влево вверх.
-						p_Painter->drawText(20, 40, "(Dst)BottomToLeftTop");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
+						dbDstStartAngle = HALF_PI;
+						bDstClockwise = false;
 					}
 					goto gTN;
 				}
@@ -4728,15 +4782,21 @@ gTN:
 					// Левая сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 20, "(Src)LeftToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = 0.0f;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbSrcStartAngle = 0;
+						bSrcClockwise = false;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 20, "(Src)LeftToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
+						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
+						dbSrcStartAngle = PI;
+						bSrcClockwise = true;
 					}
 					goto gBD;
 				}
@@ -4745,15 +4805,21 @@ gTN:
 					// Верхняя сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 20, "(Src)TopToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
+						dbSrcStartAngle = PI_AND_HALF;
+						bSrcClockwise = false;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 20, "(Src)TopToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = 0.0f;
+						dbSrcStartAngle = HALF_PI;
+						bSrcClockwise = true;
 					}
 					goto gBD;
 				}
@@ -4763,15 +4829,21 @@ gTN:
 					// Правая сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 20, "(Src)RightToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = 0.0f;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbSrcStartAngle = 0;
+						bSrcClockwise = true;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 20, "(Src)RightToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
+						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
+						dbSrcStartAngle = PI;
+						bSrcClockwise = false;
 					}
 					goto gBD;
 				}
@@ -4781,15 +4853,21 @@ gTN:
 					// Нижняя сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 20, "(Src)BottomToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
+						dbSrcStartAngle = PI_AND_HALF;
+						bSrcClockwise = true;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 20, "(Src)BottomToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointSrcC.dbY = 0.0f;
+						dbSrcStartAngle = HALF_PI;
+						bSrcClockwise = false;
 					}
 					goto gBD;
 				}
@@ -4814,15 +4892,21 @@ gBD:		// Приёмник.
 					// Левая сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 40, "(Dst)LeftToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = 0.0f;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbDstStartAngle = 0;
+						bDstClockwise = false;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 40, "(Dst)LeftToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
+						oDbPointDstC.dbY = LINK_ARC_RADIUS;
+						dbDstStartAngle = PI;
+						bDstClockwise = true;
 					}
 					goto gBN;
 				}
@@ -4831,15 +4915,21 @@ gBD:		// Приёмник.
 					// Верхняя сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 40, "(Dst)TopToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
+						dbDstStartAngle = PI_AND_HALF;
+						bDstClockwise = false;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 40, "(Dst)TopToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = 0.0f;
+						dbDstStartAngle = HALF_PI;
+						bDstClockwise = true;
 					}
 					goto gBN;
 				}
@@ -4849,15 +4939,21 @@ gBD:		// Приёмник.
 					// Правая сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 40, "(Dst)RightToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f, oC.oDbPointWH.dbY - LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = 0.0f;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
+						dbDstStartAngle = 0;
+						bDstClockwise = true;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 40, "(Dst)RightToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX, 0.0f + LINK_ARC_RADIUS),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
+						oDbPointDstC.dbY = LINK_ARC_RADIUS;
+						dbDstStartAngle = PI;
+						bDstClockwise = false;
 					}
 					goto gBN;
 				}
@@ -4867,15 +4963,21 @@ gBD:		// Приёмник.
 					// Нижняя сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						p_Painter->drawText(20, 40, "(Dst)BottomToRightTop");
 						p_Painter->drawEllipse(QPointF(0.0f + LINK_ARC_RADIUS, oC.oDbPointWH.dbY),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
+						dbDstStartAngle = PI_AND_HALF;
+						bDstClockwise = true;
 					}
 					else
 					{ // Дуга влево вниз.
-						p_Painter->drawText(20, 40, "(Dst)BottomToLeftBottom");
 						p_Painter->drawEllipse(QPointF(oC.oDbPointWH.dbX - LINK_ARC_RADIUS, 0.0f),
 											   LINK_ARC_RADIUS, LINK_ARC_RADIUS);
+						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
+						oDbPointDstC.dbY = 0.0f;
+						dbDstStartAngle = HALF_PI;
+						bDstClockwise = false;
 					}
 					goto gBN;
 				}
@@ -4888,6 +4990,108 @@ gBN:
 			oQPainterPath.cubicTo(oDbPointLB.dbX, oDbPointLB.dbY, oDbPointRT.dbX, oDbPointRT.dbY,
 								  oC.oDbPointWH.dbX, 0);
 		}
+
+
+		p_Painter->drawPoint(oDbPointSrcC.dbX, oDbPointSrcC.dbY);
+		if(bSrcClockwise)
+		{
+			for(double dbS = dbSrcStartAngle; dbS < dbSrcStartAngle + HALF_PI; dbS += PI / 32.0f)
+			{
+				DbPoint oDbPoint;
+				//
+				oDbPoint.dbX = oDbPointSrcC.dbX + (sin(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				oDbPoint.dbY = oDbPointSrcC.dbY + (cos(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				if(dbS == dbSrcStartAngle)
+				{
+					oDbPoint.dbX += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX -= 2; oDbPoint.dbX -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX += 2;
+					oDbPoint.dbY += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbY -= 2; oDbPoint.dbY -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				}
+			}
+		}
+		else
+		{
+			for(double dbS = dbSrcStartAngle; dbS > dbSrcStartAngle - HALF_PI; dbS -= PI / 32.0f)
+			{
+				DbPoint oDbPoint;
+				//
+				oDbPoint.dbX = oDbPointSrcC.dbX + (sin(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				oDbPoint.dbY = oDbPointSrcC.dbY + (cos(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				if(dbS == dbSrcStartAngle)
+				{
+					oDbPoint.dbX += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX -= 2; oDbPoint.dbX -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX += 2;
+					oDbPoint.dbY += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbY -= 2; oDbPoint.dbY -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				}
+			}
+		}
+
+
+
+		p_Painter->drawPoint(oDbPointDstC.dbX, oDbPointDstC.dbY);
+		if(bDstClockwise)
+		{
+			for(double dbS = dbDstStartAngle; dbS < dbDstStartAngle + HALF_PI; dbS += PI / 32.0f)
+			{
+				DbPoint oDbPoint;
+				//
+				oDbPoint.dbX = oDbPointDstC.dbX + (sin(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				oDbPoint.dbY = oDbPointDstC.dbY + (cos(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				if(dbS == dbDstStartAngle)
+				{
+					oDbPoint.dbX += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX -= 2; oDbPoint.dbX -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX += 2;
+					oDbPoint.dbY += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbY -= 2; oDbPoint.dbY -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				}
+			}
+		}
+		else
+		{
+			for(double dbS = dbDstStartAngle; dbS > dbDstStartAngle - HALF_PI; dbS -= PI / 32.0f)
+			{
+				DbPoint oDbPoint;
+				//
+				oDbPoint.dbX = oDbPointDstC.dbX + (sin(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				oDbPoint.dbY = oDbPointDstC.dbY + (cos(dbS) * (LINK_ARC_RADIUS / 2.0f));
+				p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				if(dbS == dbDstStartAngle)
+				{
+					oDbPoint.dbX += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX -= 2; oDbPoint.dbX -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbX += 2;
+					oDbPoint.dbY += 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+					oDbPoint.dbY -= 2; oDbPoint.dbY -= 2;
+					p_Painter->drawPoint(oDbPoint.dbX, oDbPoint.dbY);
+				}
+			}
+		}
+
+
+
 		oQPainterPathStroker.setCapStyle(Qt::RoundCap);
 		oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
 		oQPainterPathStroker.setWidth(2);
