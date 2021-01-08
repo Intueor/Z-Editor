@@ -4941,8 +4941,6 @@ gBN:
 		double dbDstDistancePrev = OVERMAX_NUMBER;
 		double dbDstDistanceNow;
 		//
-		double dbStepsDistancePrev = OVERMAX_NUMBER;;
-		double dbStepsDistanceNow;
 
 
 		for(unsigned int iStep = 0; iStep != 128; iStep++)
@@ -4988,12 +4986,12 @@ gBN:
 				// Длина до соседа.
 				oDbPointDist.dbX = oDbPointDstStep.dbX - oDbPointSrcStep.dbX;
 				oDbPointDist.dbY = oDbPointDstStep.dbY - oDbPointSrcStep.dbY;
-				dbStepsDistanceNow = sqrt((oDbPointDist.dbX * oDbPointDist.dbX) + (oDbPointDist.dbY * oDbPointDist.dbY));
+				dbL = sqrt((oDbPointDist.dbX * oDbPointDist.dbX) + (oDbPointDist.dbY * oDbPointDist.dbY));
 
-				oDbPointSrcVector.dbX *= dbStepsDistanceNow;
-				oDbPointSrcVector.dbY *= dbStepsDistanceNow;
-				oDbPointDstVector.dbX *= dbStepsDistanceNow;
-				oDbPointDstVector.dbY *= dbStepsDistanceNow;
+				oDbPointSrcVector.dbX *= dbL;
+				oDbPointSrcVector.dbY *= dbL;
+				oDbPointDstVector.dbX *= dbL;
+				oDbPointDstVector.dbY *= dbL;
 				//
 				oDbPointSrcVector.dbX += oDbPointSrcPrevStep.dbX;
 				oDbPointSrcVector.dbY += oDbPointSrcPrevStep.dbY;
@@ -5012,28 +5010,24 @@ gBN:
 				dbLToS = sqrt((oDbPointDstToSrc.dbX * oDbPointDstToSrc.dbX) + (oDbPointDstToSrc.dbY * oDbPointDstToSrc.dbY));
 
 
-				if(dbStepsDistanceNow < dbStepsDistancePrev)
+				dbSrcDistanceNow = dbLToD;
+				if(dbSrcDistanceNow > dbSrcDistancePrev)
 				{
-					dbSrcDistanceNow = dbLToD;
-					if(dbSrcDistanceNow > dbSrcDistancePrev)
-					{
-						bSrcReady = true;
-						oDbPointSrcResult = oDbPointSrcPrevStep;
-					}
-					dbSrcDistancePrev = dbSrcDistanceNow;
-					dbDstDistanceNow = dbLToS;
-					if(dbDstDistanceNow > dbDstDistancePrev)
-					{
-						bDstReady = true;
-						oDbPointDstResult = oDbPointDstPrevStep;
-					}
-					dbDstDistancePrev = dbDstDistanceNow;
-					if(bSrcReady && bDstReady) break;
+					bSrcReady = true;
+					oDbPointSrcResult = oDbPointSrcPrevStep;
 				}
+				dbSrcDistancePrev = dbSrcDistanceNow;
+				dbDstDistanceNow = dbLToS;
+				if(dbDstDistanceNow > dbDstDistancePrev)
+				{
+					bDstReady = true;
+					oDbPointDstResult = oDbPointDstPrevStep;
+				}
+				dbDstDistancePrev = dbDstDistanceNow;
+				if(bSrcReady && bDstReady) break;
 			}
 			oDbPointSrcPrevStep = oDbPointSrcStep;
 			oDbPointDstPrevStep = oDbPointDstStep;
-			dbStepsDistancePrev = dbStepsDistanceNow;
 			//
 			if(bSrcClockwise) dbSrcStartAngle += dbPartOfPi; else dbSrcStartAngle -= dbPartOfPi;
 			if(bDstClockwise) dbDstStartAngle += dbPartOfPi; else dbDstStartAngle -= dbPartOfPi;
