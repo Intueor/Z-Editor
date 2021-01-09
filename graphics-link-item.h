@@ -35,6 +35,7 @@ public:
 	GraphicsElementItem* p_GraphicsElementItemDst; ///< Указатель на виджет приёмника.
 	PSchElementVars* p_PSchElementVarsSrc; ///< Указатель на элемент схемы источника.
 	PSchElementVars* p_PSchElementVarsDst; ///< Указатель на элемент схемы приёмника.
+	bool bExcludeFromPaint; ///< Флаг отказа от отрисовки.
 };
 
 #endif // GRAPHICSLINKITEM_H

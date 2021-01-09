@@ -96,7 +96,6 @@ GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 unsigned char SchematicView::uchWheelMul = 8;
 double SchematicView::dbSnapStep = 40;
 QVector<double> SchematicView::v_dbSnaps;
-GraphicsGroupItem* SchematicView::p_GraphicsGroupItemHider = nullptr;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;									\
@@ -3484,21 +3483,77 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		DbPoint oDbPointLastGroupPos;
 		GraphicsPortItem* p_GraphicsPortItemCurrent = pv_GraphicsPortItemsCollected.at(iF);
 		GraphicsElementItem* p_GraphicsElementItemCurrent = p_GraphicsPortItemCurrent->p_ParentInt;
-		GraphicsGroupItem* p_GraphicsGroupItem = p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel;
+		GraphicsElementItem* p_GraphicsElementItemOnLink;
+		GraphicsGroupItem* p_GraphicsGroupItem;
 		DbPoint oDbPointCorr;
+		GraphicsGroupItem* p_GraphicsGroupItemCurrentHider = nullptr;
+		GraphicsGroupItem* p_GraphicsGroupItemOnLinkHider = nullptr;
+		bool bHide = false;
+		//
+		if(p_GraphicsPortItemCurrent->bIsSrc)
+		{
+			p_GraphicsElementItemOnLink = p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt->p_GraphicsElementItemDst;
+		}
+		else
+		{
+			p_GraphicsElementItemOnLink = p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt->p_GraphicsElementItemSrc;
+		}
 		//
 		oDbPointLastGroupPos.dbX = OVERMAX_NUMBER;
 		oDbPointLastGroupPos.dbY = OVERMAX_NUMBER;
-		while(p_GraphicsGroupItem)
+		p_GraphicsGroupItem = p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel;
+		if(p_GraphicsGroupItem) // Если у исходного элемента нет группы - группы вообще не надо обрабатывать.
 		{
-			if(IsMinimized(p_GroupSettings))
+			while(p_GraphicsGroupItem) // По всем группам элемента до корня.
 			{
-				oDbPointLastGroupPos.dbX = p_GraphicsGroupItem->pos().x();
-				oDbPointLastGroupPos.dbY = p_GraphicsGroupItem->pos().y();
-				p_GraphicsGroupItem->bPortsForMin = true;
+				if(!p_GraphicsGroupItem->isVisible()) p_GraphicsGroupItemCurrentHider = p_GraphicsGroupItem;
+				if(IsMinimized(p_GroupSettings))
+				{
+					oDbPointLastGroupPos.dbX = p_GraphicsGroupItem->pos().x();
+					oDbPointLastGroupPos.dbY = p_GraphicsGroupItem->pos().y();
+					p_GraphicsGroupItem->bPortsForMin = true;
+				}
+				p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
 			}
-			p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
+			if(p_GraphicsElementItemOnLink->p_GraphicsGroupItemRel) // Если у присоединённого элемента нет группы - тоже отказ от обработки.
+			{
+				if(p_GraphicsGroupItemCurrentHider) p_GraphicsGroupItemCurrentHider = p_GraphicsGroupItemCurrentHider->p_GraphicsGroupItemRel;
+				if(!p_GraphicsGroupItemCurrentHider) // Если скрытых не обнаружили...
+				{
+					p_GraphicsGroupItem = p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel; // Проверка текущей.
+					if(IsMinimized(p_GroupSettings))
+					{
+						p_GraphicsGroupItemCurrentHider = p_GraphicsGroupItem; // Установка скрывателя.
+					}
+				}
+				//
+				p_GraphicsGroupItem = p_GraphicsElementItemOnLink->p_GraphicsGroupItemRel;
+				while(p_GraphicsGroupItem) // По всем группам поключённого элемента до корня.
+				{
+					if(!p_GraphicsGroupItem->isVisible()) p_GraphicsGroupItemOnLinkHider = p_GraphicsGroupItem;
+					p_GraphicsGroupItem = p_GraphicsGroupItem->p_GraphicsGroupItemRel;
+				}
+				if(p_GraphicsGroupItemOnLinkHider) p_GraphicsGroupItemOnLinkHider = p_GraphicsGroupItemOnLinkHider->p_GraphicsGroupItemRel;
+				if(!p_GraphicsGroupItemOnLinkHider) // Если скрытых не обнаружили...
+				{
+					p_GraphicsGroupItem = p_GraphicsElementItemOnLink->p_GraphicsGroupItemRel; // Проверка на линке.
+					if(IsMinimized(p_GroupSettings))
+					{
+						p_GraphicsGroupItemOnLinkHider = p_GraphicsGroupItem; // Установка скрывателя.
+					}
+				}
+				//
+				if(p_GraphicsGroupItemCurrentHider && p_GraphicsGroupItemOnLinkHider) // Если минимизированы обе группы...
+				{
+					if(p_GraphicsGroupItemCurrentHider == p_GraphicsGroupItemOnLinkHider) // И оказатись одной...
+					{
+						bHide = true; // Скыраем линк.
+					}
+				}
+			}
 		}
+		p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt->bExcludeFromPaint = bHide;
+		//
 		if(oDbPointLastGroupPos.dbX == OVERMAX_NUMBER)
 		{
 			if(IsMinimized(p_GraphicsPortItemCurrent->p_ParentInt->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
@@ -3538,17 +3593,10 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 				p_GraphicsGroupItem->p_GraphicsFrameItem->hide();
 				p_GraphicsGroupItem->bSelected = false;
 			}
-			else
-			{
-				p_GraphicsGroupItemHider = p_GraphicsGroupItem;
-				bHiderFound = true;
-			}
+			else bHiderFound = true;
 		}
 	}
-	else
-	{
-		p_GraphicsGroupItem->setToolTip("");
-	}
+	else p_GraphicsGroupItem->setToolTip("");
 	bNextHiding |= bGroupMinStatus;
 	// Элементы.
 	for(int iE = 0; iE != p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
@@ -3563,7 +3611,7 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 			p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 			p_GraphicsElementItem->bSelected = false;
 		}
-		// Обработка линков.
+		// Обработка линков, связанных с элементом.
 		int iCn = lp_Items.count();
 		for(int iC = 0; iC < iCn; iC++)
 		{
@@ -3576,8 +3624,6 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 				if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
 				{
 					p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
-					if(bNextHiding && bHiderFound) p_GraphicsPortItemInt->p_GraphicsGroupItemHider = p_GraphicsGroupItemHider;
-					else p_GraphicsPortItemInt->p_GraphicsGroupItemHider = nullptr;
 					pv_GraphicsPortItemsCollected.append(p_GraphicsPortItemInt);
 				}
 			}
@@ -3647,9 +3693,7 @@ void SchematicView::AfterLoadingPlacement()
 	for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
 	{
 		p_GraphicsGroupItemRoot = vp_GraphicsGroupItemRoots.at(iF);
-		SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItemRoot);
 		GroupMinOperationsRecursively(p_GraphicsGroupItemRoot);
-		SchematicWindow::vp_SelectedGroups.removeOne(p_GraphicsGroupItemRoot);
 		UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemRoot);
 	}
 	//
@@ -4616,13 +4660,10 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		unsigned char uchSrcPortOrientation;
 		unsigned char uchDstPortOrientation;
 		//
-		if(!p_GraphicsLinkItem->p_GraphicsElementItemSrc->isVisible() && !p_GraphicsLinkItem->p_GraphicsElementItemDst->isVisible())
+		if(p_GraphicsLinkItem->bExcludeFromPaint)
 		{
-			if(p_GraphicsLinkItem->p_GraphicsPortItemSrc->p_GraphicsGroupItemHider ==
-					p_GraphicsLinkItem->p_GraphicsPortItemDst->p_GraphicsGroupItemHider)
-				return;
+			return;
 		}
-		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
 		if(oC.oDbPointPairPortsCoords.dbSrc.dbX >= oC.oDbPointPairPortsCoords.dbDst.dbX)
@@ -4723,19 +4764,20 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 			oQPainterPath.cubicTo(oDbPointLB.dbX, oDbPointLB.dbY, oDbPointRT.dbX, oDbPointRT.dbY,
 								  oC.oDbPointWH.dbX, 0);
 		}
+		oQPainterPathStroker.setCapStyle(Qt::RoundCap);
+		oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
+		oQPainterPathStroker.setWidth(2);
+		QPainterPath oQPainterPathOutlined = oQPainterPathStroker.createStroke(oQPainterPath);
+		p_Painter->drawPath(oQPainterPathOutlined);
+		p_Painter->setPen(oQPenWhiteTransparent);
+		p_Painter->drawPath(oQPainterPath);
 	}
-	oQPainterPathStroker.setCapStyle(Qt::RoundCap);
-	oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
-	oQPainterPathStroker.setWidth(2);
-	QPainterPath oQPainterPathOutlined = oQPainterPathStroker.createStroke(oQPainterPath);
-	p_Painter->drawPath(oQPainterPathOutlined);
-	p_Painter->setPen(oQPenWhiteTransparent);
-	p_Painter->drawPath(oQPainterPath);
 }
 
 // Обработчик конструктора линка.
 void SchematicView::LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem, PSchLinkBase* p_PSchLinkBase)
 {
+	p_GraphicsLinkItem->bExcludeFromPaint = false;
 	p_GraphicsLinkItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsLinkItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_LINK);
 	memcpy(&p_GraphicsLinkItem->oPSchLinkBaseInt, p_PSchLinkBase, sizeof(PSchLinkBase));

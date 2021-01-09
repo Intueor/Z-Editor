@@ -642,7 +642,6 @@ private:
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
 	static unsigned char uchWheelMul; ///< Позиция колёсика мыши от начала работы.
 	static QVector<double> v_dbSnaps; ///< Список шагов сетки.
-	static GraphicsGroupItem* p_GraphicsGroupItemHider; ///< Служебная переменная с указателем на скрывающую в данный момент группу.
 };
 
 #endif // SCHEMATICVIEW_H
