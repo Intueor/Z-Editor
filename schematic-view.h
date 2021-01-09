@@ -42,16 +42,6 @@ private:
 		GraphicsElementItem* p_GraphicsElementItem;
 		GraphicsGroupItem* p_GraphicsGroupItem;
 	};
-	struct GroupBranchSegment
-	{
-		unsigned int uiDeepth;
-		GraphicsGroupItem* p_GraphicsGroupItem;
-	};
-	struct GroupsBranch
-	{
-		GraphicsGroupItem* p_GraphicsGroupItemRoot;
-		QVector<GroupBranchSegment> v_GroupBranchSegments;
-	};
 
 public:
 	/// Конструктор.
