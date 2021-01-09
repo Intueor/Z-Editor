@@ -2376,7 +2376,7 @@ void SchematicView::UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLin
 	DbPoint oDbPoint;
 	DbPointPair oP;
 	//
-	oP = CalcPortsCoords(p_GraphicsLinkItem);
+	oP = CalcPortsSceneCoords(p_GraphicsLinkItem);
 	if(oP.dbSrc.dbX >= oP.dbDst.dbX)
 	{
 		oDbPoint.dbX = oP.dbDst.dbX;
@@ -4455,6 +4455,98 @@ void SchematicView::FrameConstructorHandler(GraphicsFrameItem* p_GraphicsFrameIt
 	p_GraphicsFrameItem->setAcceptedMouseButtons(0);
 }
 
+// Просчёт вектора Безье-отклонения линка к левому верхнему углу.
+DbPoint SchematicView::LinkAttachCalcLT(unsigned char uchPortOrientation, DbPoint& a_DbPointWH)
+{
+	DbPoint oDbPointLT;
+	//
+	if(uchPortOrientation == P_HORR) // Левый верхний на горизонталь.
+	{
+		oDbPointLT.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointLT.dbY = 0.0f;
+	}
+	else if(uchPortOrientation == P_VERT)// Левый верхний на вертикаль.
+	{
+		oDbPointLT.dbX = 0.0f;
+		oDbPointLT.dbY = a_DbPointWH.dbY / 2.0f;
+	}
+	else
+	{
+		oDbPointLT.dbX = 0.0f;
+		oDbPointLT.dbY = 0.0f;
+	}
+	return oDbPointLT;
+}
+
+// Просчёт вектора Безье-отклонения линка к правому нижнему углу.
+DbPoint SchematicView::LinkAttachCalcRB(unsigned char uchPortOrientation, DbPoint& a_DbPointWH)
+{
+	DbPoint oDbPointRB;
+	//
+	if(uchPortOrientation == P_HORR) // Правый нижний на горизонталь.
+	{
+		oDbPointRB.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointRB.dbY = a_DbPointWH.dbY;
+	}
+	else if(uchPortOrientation == P_VERT) // Правый нижний на вертикаль.
+	{
+		oDbPointRB.dbX = a_DbPointWH.dbX;
+		oDbPointRB.dbY = a_DbPointWH.dbY / 2.0f;
+	}
+	else
+	{
+		oDbPointRB.dbX = a_DbPointWH.dbX;
+		oDbPointRB.dbY = a_DbPointWH.dbY;
+	}
+	return oDbPointRB;
+}
+
+// Просчёт вектора Безье-отклонения линка к левому нижнему углу.
+DbPoint SchematicView::LinkAttachCalcLB(unsigned char uchPortOrientation, DbPoint& a_DbPointWH)
+{
+	DbPoint oDbPointLB;
+	//
+	if(uchPortOrientation == P_HORR) // Левый нижний на горизонталь.
+	{
+		oDbPointLB.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointLB.dbY = a_DbPointWH.dbY;
+	}
+	else if(uchPortOrientation == P_VERT) // Левый нижний на вертикаль.
+	{
+		oDbPointLB.dbX = 0.0f;
+		oDbPointLB.dbY = a_DbPointWH.dbY / 2.0f;
+	}
+	else
+	{
+		oDbPointLB.dbX = 0.0f;
+		oDbPointLB.dbY = a_DbPointWH.dbY;
+	}
+	return oDbPointLB;
+}
+
+// Просчёт вектора Безье-отклонения линка к правому верхнему углу.
+DbPoint SchematicView::LinkAttachCalcRT(unsigned char uchPortOrientation, DbPoint& a_DbPointWH)
+{
+	DbPoint oDbPointRT;
+	//
+	if(uchPortOrientation == P_HORR) // Правый верхний на горизонталь.
+	{
+		oDbPointRT.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointRT.dbY = 0;
+	}
+	else if(uchPortOrientation == P_VERT) // Правый верхний на вертикаль.
+	{
+		oDbPointRT.dbX = a_DbPointWH.dbX;
+		oDbPointRT.dbY = a_DbPointWH.dbY / 2.0f;
+	}
+	else
+	{
+		oDbPointRT.dbX = a_DbPointWH.dbX;
+		oDbPointRT.dbY = 0;
+	}
+	return oDbPointRT;
+}
+
 // Обработчик функции рисования линка.
 void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPainter* p_Painter)
 {
@@ -4468,7 +4560,11 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 	{
 		bool bLT;
 		bool bRB;
-		bool bLB;
+		bool bFromUser = p_GraphicsLinkItem->p_GraphicsElementItemSrc == p_GraphicsLinkItem->p_GraphicsElementItemDst;
+		unsigned char uchSrcPortOrientation;
+		unsigned char uchDstPortOrientation;
+		double dbHUpper;
+		double dbHLower;
 		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
@@ -4497,29 +4593,28 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		oC.oDbPointPairPortsCoords.dbSrc.dbY -= oDbPointMid.dbY;
 		oC.oDbPointPairPortsCoords.dbDst.dbX -= oDbPointMid.dbX;
 		oC.oDbPointPairPortsCoords.dbDst.dbY -= oDbPointMid.dbY;
-		p_Painter->setPen(oQPenBlackTransparent);
-		bLT = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0);
-		bRB = (oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
-		bLB = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
-		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
-		if(bLT || bRB)
+		// Определение сторон портов на элементах.
+		uchSrcPortOrientation = P_N_DEF;
+		uchDstPortOrientation = P_N_DEF;
+		p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
+		if(!IsMinimized(p_ElementSettings))
 		{
-			DbPoint oDbPointLT;
-			DbPoint oDbPointRB;
-			// Рисование с левого верхнего угла в правый нижний.
-			oDbPointLT.dbX = oC.oDbPointWH.dbX / 2.0f;
-			oDbPointLT.dbY = 0;
-			oDbPointRB.dbX = oC.oDbPointWH.dbX / 2.0f;
-			oDbPointRB.dbY = oC.oDbPointWH.dbY;
-
-			// ДИАГОНАЛЬ ЛЕВО_ВЕРХ-ПРАВО_НИЗ.
-			// Источик.
-			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
 			if(IsExtended(p_ElementSettings))
 			{
 				if(IsReceiver(p_ElementSettings))
 				{
-
+					dbHUpper = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 4.0f;
+					dbHLower = dbHUpper * 3.0f;
+					//
+					if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY > dbHUpper) &&
+							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY < dbHLower))
+					{ // В центральной трети - на горизонталь.
+						uchSrcPortOrientation = P_HORR;
+					}
+					else
+					{ // Иначе - вертикаль.
+						uchSrcPortOrientation = P_VERT;
+					}
 				}
 				else
 				{
@@ -4530,130 +4625,109 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 			{
 				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX == 0)
 				{
-					// Левая сторона.
-					if(bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
+					uchSrcPortOrientation = P_HORR;
 					goto gTD;
 				}
 				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY == 0)
 				{
-					// Верхняя сторона.
-					if(bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
+					uchSrcPortOrientation = P_VERT;
 					goto gTD;
 				}
 				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX ==
 						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
 				{
-					// Правая сторона.
-					if(bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
+					uchSrcPortOrientation = P_HORR;
 					goto gTD;
 				}
 				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY ==
 						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
 				{
-					// Нижняя сторона.
-					if(bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
+					uchSrcPortOrientation = P_VERT;
 					goto gTD;
 				}
 			}
-gTD:		// Приёмник.
+		}
+gTD:	// Приёмник.
+		if(!bFromUser)
+		{
 			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemDst;
-			if(IsExtended(p_ElementSettings))
+			if(!IsMinimized(p_ElementSettings))
 			{
-				if(IsReceiver(p_ElementSettings))
+				if(IsExtended(p_ElementSettings))
 				{
+					if(IsReceiver(p_ElementSettings))
+					{
+						dbHUpper = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 4.0f;
+						dbHLower = dbHUpper * 3.0f;
+						//
+						if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY > dbHUpper) &&
+								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY < dbHLower))
+						{ // В центральной трети - на горизонталь.
+							uchDstPortOrientation = P_HORR;
+						}
+						else
+						{ // Иначе - вертикаль.
+							uchDstPortOrientation = P_VERT;
+						}
+					}
+					else
+					{
 
+					}
 				}
 				else
 				{
-
+					if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX == 0)
+					{
+						uchDstPortOrientation = P_HORR;
+						goto gTN;
+					}
+					else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY == 0)
+					{
+						uchDstPortOrientation = P_VERT;
+						goto gTN;
+					}
+					if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX ==
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+					{
+						uchDstPortOrientation = P_HORR;
+						goto gTN;
+					}
+					else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY ==
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+					{
+						uchDstPortOrientation = P_VERT;
+						goto gTN;
+					}
 				}
+			}
+		}
+gTN:	p_Painter->setPen(oQPenBlackTransparent);
+		bLT = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0);
+		bRB = (oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
+		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
+		if(bLT || bRB)
+		{
+			DbPoint oDbPointLT;
+			DbPoint oDbPointRB;
+			// ДИАГОНАЛЬ ЛЕВО_ВЕРХ-ПРАВО_НИЗ.
+			if(oC.uchSrcCorner == P_LT) // Если источник слева вверху.
+			{
+				oDbPointLT = LinkAttachCalcLT(uchSrcPortOrientation, oC.oDbPointWH);
 			}
 			else
 			{
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX == 0)
-				{
-					// Левая сторона.
-					if(!bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
-					goto gTN;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY == 0)
-				{
-					// Верхняя сторона.
-					if(!bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
-					goto gTN;
-				}
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
-				{
-					// Правая сторона.
-					if(!bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
-					goto gTN;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
-				{
-					// Нижняя сторона.
-					if(!bLT)
-					{ // Дуга вправо вниз.
-
-					}
-					else
-					{ // Дуга влево вверх.
-
-					}
-					goto gTN;
-				}
+				oDbPointRB = LinkAttachCalcRB(uchSrcPortOrientation, oC.oDbPointWH);
 			}
-gTN:		oQPainterPath.moveTo(0, 0);
+			if(oC.uchDstCorner == P_RB) // Если приёмник справа внизу.
+			{
+				oDbPointRB = LinkAttachCalcRB(uchDstPortOrientation, oC.oDbPointWH);
+			}
+			else
+			{
+				oDbPointLT = LinkAttachCalcLT(uchDstPortOrientation, oC.oDbPointWH);
+			}
+			oQPainterPath.moveTo(0, 0);
 			oQPainterPath.cubicTo(oDbPointLT.dbX, oDbPointLT.dbY, oDbPointRB.dbX, oDbPointRB.dbY,
 								  oC.oDbPointWH.dbX, oC.oDbPointWH.dbY);
 		}
@@ -4661,154 +4735,24 @@ gTN:		oQPainterPath.moveTo(0, 0);
 		{
 			DbPoint oDbPointLB;
 			DbPoint oDbPointRT;
-			// Рисование с левого нижнего угла в правый верхний.
-			oDbPointLB.dbX = oC.oDbPointWH.dbX / 2.0f;
-			oDbPointLB.dbY = oC.oDbPointWH.dbY;
-			oDbPointRT.dbX = oC.oDbPointWH.dbX / 2.0f;
-			oDbPointRT.dbY = 0;
-
 			// ДИАГОНАЛЬ ЛЕВО_НИЗ-ПРАВО_ВЕРХ.
-			// Источик.
-			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
-			if(IsExtended(p_ElementSettings))
+			if(oC.uchSrcCorner == P_LB) // Если источник слева внизу.
 			{
-				if(IsReceiver(p_ElementSettings))
-				{
-
-				}
-				else
-				{
-
-				}
+				oDbPointLB = LinkAttachCalcLB(uchSrcPortOrientation, oC.oDbPointWH);
 			}
 			else
 			{
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX == 0)
-				{
-					// Левая сторона.
-					if(bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBD;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY == 0)
-				{
-					// Верхняя сторона.
-					if(bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBD;
-				}
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
-				{
-					// Правая сторона.
-					if(bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBD;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
-				{
-					// Нижняя сторона.
-					if(bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBD;
-				}
+				oDbPointRT = LinkAttachCalcRT(uchSrcPortOrientation, oC.oDbPointWH);
 			}
-gBD:		// Приёмник.
-			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemDst;
-			if(IsExtended(p_ElementSettings))
+			if(oC.uchDstCorner == P_RT) // Если приёмник справа вверху.
 			{
-				if(IsReceiver(p_ElementSettings))
-				{
-
-				}
-				else
-				{
-
-				}
+				oDbPointRT = LinkAttachCalcRT(uchDstPortOrientation, oC.oDbPointWH);
 			}
 			else
 			{
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX == 0)
-				{
-					// Левая сторона.
-					if(!bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBN;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY == 0)
-				{
-					// Верхняя сторона.
-					if(!bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBN;
-				}
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
-				{
-					// Правая сторона.
-					if(!bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBN;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
-				{
-					// Нижняя сторона.
-					if(!bLB)
-					{ // Дуга вправо вверх.
-
-					}
-					else
-					{ // Дуга влево вниз.
-
-					}
-					goto gBN;
-				}
+				oDbPointLB = LinkAttachCalcLB(uchDstPortOrientation, oC.oDbPointWH);
 			}
-gBN:		oQPainterPath.moveTo(0, oC.oDbPointWH.dbY);
+			oQPainterPath.moveTo(0, oC.oDbPointWH.dbY);
 			oQPainterPath.cubicTo(oDbPointLB.dbX, oDbPointLB.dbY, oDbPointRT.dbX, oDbPointRT.dbY,
 								  oC.oDbPointWH.dbX, 0);
 		}
@@ -4873,8 +4817,8 @@ void SchematicView::LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem,
 	p_PSchLinkBase->oPSchLinkVars.oSchLGraph.uchChangesBits = SCH_CHANGES_LINK_BIT_INIT_ERROR; // Отметка про сбой в поиске элементов.
 }
 
-// Вычисление точек портов.
-SchematicView::DbPointPair SchematicView::CalcPortsCoords(GraphicsLinkItem* p_GraphicsLinkItem)
+// Вычисление точек портов в координатах сцены.
+SchematicView::DbPointPair SchematicView::CalcPortsSceneCoords(GraphicsLinkItem* p_GraphicsLinkItem)
 {
 	DbPointPair oDbPointPairResult;
 	//
@@ -4894,23 +4838,33 @@ SchematicView::CalcPortHelper SchematicView::CalcLinkLineWidthHeight(GraphicsLin
 {
 	CalcPortHelper oRes;
 	//
-	oRes.oDbPointPairPortsCoords = CalcPortsCoords(p_GraphicsLinkItem);
+	oRes.oDbPointPairPortsCoords = CalcPortsSceneCoords(p_GraphicsLinkItem);
+	oRes.uchSrcCorner = 0;
+	oRes.uchDstCorner = 0;
 	//
 	if(oRes.oDbPointPairPortsCoords.dbSrc.dbX >= oRes.oDbPointPairPortsCoords.dbDst.dbX) // Если X ист. больше X приёмника...
 	{
 		oRes.oDbPointWH.dbX = oRes.oDbPointPairPortsCoords.dbSrc.dbX - oRes.oDbPointPairPortsCoords.dbDst.dbX;
+		oRes.uchSrcCorner |= 0b10; // Бит право.
+		// Dst не трогаем - там ноль(лево).
 	}
 	else // Если X источника меньше X приёмника...
 	{
 		oRes.oDbPointWH.dbX = oRes.oDbPointPairPortsCoords.dbDst.dbX - oRes.oDbPointPairPortsCoords.dbSrc.dbX;
+		oRes.uchDstCorner |= 0b10; // Бит право.
+		// Src не трогаем - там ноль(лево).
 	}
 	if(oRes.oDbPointPairPortsCoords.dbSrc.dbY >= oRes.oDbPointPairPortsCoords.dbDst.dbY) // Если Y ист. больше Y приёмника...
 	{
 		oRes.oDbPointWH.dbY = oRes.oDbPointPairPortsCoords.dbSrc.dbY - oRes.oDbPointPairPortsCoords.dbDst.dbY;
+		oRes.uchSrcCorner |= 0b01; // Бит низ.
+		// Dst не трогаем - там ноль(верх).
 	}
 	else // Если Y источника меньше Y приёмника...
 	{
 		oRes.oDbPointWH.dbY = oRes.oDbPointPairPortsCoords.dbDst.dbY - oRes.oDbPointPairPortsCoords.dbSrc.dbY;
+		oRes.uchDstCorner |= 0b01; // Бит низ.
+		// Src не трогаем - там ноль(верх).
 	}
 	return oRes;
 }

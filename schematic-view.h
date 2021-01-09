@@ -32,6 +32,8 @@ private:
 	};
 	struct CalcPortHelper
 	{
+		unsigned char uchSrcCorner;
+		unsigned char uchDstCorner;
 		DbPoint oDbPointWH;
 		DbPointPair oDbPointPairPortsCoords;
 	};
@@ -446,8 +448,8 @@ private:
 	static bool CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem = nullptr);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент или nullprt.
 							///< \return true - при обнаружении.
-	/// Вычисление точек портов.
-	static DbPointPair CalcPortsCoords(GraphicsLinkItem* p_GraphicsLinkItem);
+	/// Вычисление точек портов в координатах сцены.
+	static DbPointPair CalcPortsSceneCoords(GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
 							///< \return Точки портов.
 	/// Вычисление формы скалера окружности.
@@ -528,6 +530,22 @@ private:
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] oDbPointPosNow Текущее положение скалера.
 							///< \param[in] oDbPointPosPrev Старое положение скалера (до обработанного события).
+	/// Просчёт вектора Безье-отклонения линка к левому верхнему углу.
+	static DbPoint LinkAttachCalcLT(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
+							///< \param[in] uchPortOrientation Ориентацмя порта.
+							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+	/// Просчёт вектора Безье-отклонения линка к правому нижнему углу.
+	static DbPoint LinkAttachCalcRB(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
+							///< \param[in] uchPortOrientation Ориентацмя порта.
+							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+	/// Просчёт вектора Безье-отклонения линка к левому нижнему углу.
+	static DbPoint LinkAttachCalcLB(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
+							///< \param[in] uchPortOrientation Ориентацмя порта.
+							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+	/// Просчёт вектора Безье-отклонения линка к правому вехнему углу.
+	static DbPoint LinkAttachCalcRT(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
+							///< \param[in] uchPortOrientation Ориентацмя порта.
+							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

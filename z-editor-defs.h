@@ -86,6 +86,13 @@
 #define PI								3.14159265358979323846f
 #define HALF_PI							1.57079632679489661923f
 #define PI_AND_HALF						4.71238898038468985769f
+#define P_HORR							1
+#define P_VERT							2
+#define P_N_DEF							0
+#define P_LT							0b00
+#define P_RB							0b11
+#define P_LB							0b01
+#define P_RT							0b10
 //
 #define ELEMENT_MIN_X					40
 #define ELEMENT_MIN_Y					30
