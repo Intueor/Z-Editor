@@ -82,10 +82,6 @@
 #define MIN_CIRCLE_PROPORTION			0.725f
 #define MIN_TRIANGLE_PROPORTION			0.5f
 #define MIN_GROUP_PROPORTION			1.333333f
-#define LINK_ARC_RADIUS					15.0f
-#define PI								3.14159265358979323846f
-#define HALF_PI							1.57079632679489661923f
-#define PI_AND_HALF						4.71238898038468985769f
 #define P_HORR							1
 #define P_VERT							2
 #define P_N_DEF							0

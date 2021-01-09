@@ -88,8 +88,6 @@ double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 double SchematicView::dbMinCircleRPlusFrameDimIncSubCorr;
 double SchematicView::dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr;
-double SchematicView::dbLinkArkDiameter;
-double SchematicView::dbLinkArkDoubleDiameter;
 QVector<GraphicsPortItem*> SchematicView::pv_GraphicsPortItemsCollected;
 bool SchematicView::bLoading = false;
 QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
@@ -179,8 +177,6 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	dbMinTriangleRSubMinTriangleDerc = dbMinTriangleR - dbMinTriangleDerc;
 	dbMinCircleRPlusFrameDimIncSubCorr = dbMinCircleR + dbFrameDimIncSubCorr;
 	dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr = dbMinElementD + dbFrameDimIncTwiceSubDoubleCorr;
-	dbLinkArkDiameter = LINK_ARC_RADIUS * 2.0f;
-	dbLinkArkDoubleDiameter = dbLinkArkDiameter * 2.0f;
 	//
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM, -SCALER_RECT_DIM_CORR));
 	oQPolygonFForRectScaler.append(QPointF(-SCALER_RECT_DIM_CORR, -SCALER_RECT_DIM));
@@ -4232,7 +4228,7 @@ QRectF SchematicView::ElementBoundingHandler(const GraphicsElementItem* p_Graphi
 				return QRectF(0, 0,
 							  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW -
 							  (p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 7.5925f),
-							  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75245604f);
+							  p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW * 0.75f);
 			}
 		}
 	}
@@ -4547,6 +4543,54 @@ DbPoint SchematicView::LinkAttachCalcRT(unsigned char uchPortOrientation, DbPoin
 	return oDbPointRT;
 }
 
+// Получение ориентации порта на элементе.
+unsigned char SchematicView::GetPortOnElementOrientation(GraphicsElementItem* p_GraphicsElementItem, DbPoint& a_DbPortGraphPos)
+{
+	unsigned char uchPortOrientation;
+	//
+	if(!IsMinimized(p_ElementSettings))
+	{
+		if(IsExtended(p_ElementSettings))
+		{
+			if(IsReceiver(p_ElementSettings))
+			{
+				double dbHUpper = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 4.0f;
+				double dbHLower = dbHUpper * 3.0f;
+				//
+				if((a_DbPortGraphPos.dbY > dbHUpper) && (a_DbPortGraphPos.dbY < dbHLower))
+					uchPortOrientation = P_HORR; // В центральных четвертях - на горизонталь.
+				else uchPortOrientation = P_VERT; // Иначе - вертикаль.
+			}
+			else
+			{
+				double dbH = p_GraphicsElementItem->boundingRect().height() - 1.0f;
+				//
+				if(a_DbPortGraphPos.dbY > dbH)
+					uchPortOrientation = P_VERT;
+				else uchPortOrientation = P_HORR;
+			}
+		}
+		else
+		{
+			if(a_DbPortGraphPos.dbX == 0)
+			{
+				uchPortOrientation = P_HORR; goto gE;
+			}
+			else if(a_DbPortGraphPos.dbY == 0)
+			{
+				uchPortOrientation = P_VERT; goto gE;
+			}
+			if(a_DbPortGraphPos.dbX ==
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
+				uchPortOrientation = P_HORR;
+			else if(a_DbPortGraphPos.dbY ==
+					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
+				uchPortOrientation = P_VERT;
+		}
+	}
+gE:	return uchPortOrientation;
+}
+
 // Обработчик функции рисования линка.
 void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPainter* p_Painter)
 {
@@ -4560,11 +4604,8 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 	{
 		bool bLT;
 		bool bRB;
-		bool bFromUser = p_GraphicsLinkItem->p_GraphicsElementItemSrc == p_GraphicsLinkItem->p_GraphicsElementItemDst;
 		unsigned char uchSrcPortOrientation;
 		unsigned char uchDstPortOrientation;
-		double dbHUpper;
-		double dbHLower;
 		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
@@ -4593,116 +4634,26 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		oC.oDbPointPairPortsCoords.dbSrc.dbY -= oDbPointMid.dbY;
 		oC.oDbPointPairPortsCoords.dbDst.dbX -= oDbPointMid.dbX;
 		oC.oDbPointPairPortsCoords.dbDst.dbY -= oDbPointMid.dbY;
-		// Определение сторон портов на элементах.
+		// Определение ориентации портов на элементах.
 		uchSrcPortOrientation = P_N_DEF;
 		uchDstPortOrientation = P_N_DEF;
-		p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
-		if(!IsMinimized(p_ElementSettings))
+		// Источник.
+		if(!p_GraphicsLinkItem->p_GraphicsPortItemSrc->bAltHolded)
 		{
-			if(IsExtended(p_ElementSettings))
-			{
-				if(IsReceiver(p_ElementSettings))
-				{
-					dbHUpper = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 4.0f;
-					dbHLower = dbHUpper * 3.0f;
-					//
-					if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY > dbHUpper) &&
-							(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY < dbHLower))
-					{ // В центральной трети - на горизонталь.
-						uchSrcPortOrientation = P_HORR;
-					}
-					else
-					{ // Иначе - вертикаль.
-						uchSrcPortOrientation = P_VERT;
-					}
-				}
-				else
-				{
-
-				}
-			}
-			else
-			{
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX == 0)
-				{
-					uchSrcPortOrientation = P_HORR;
-					goto gTD;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY == 0)
-				{
-					uchSrcPortOrientation = P_VERT;
-					goto gTD;
-				}
-				if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
-				{
-					uchSrcPortOrientation = P_HORR;
-					goto gTD;
-				}
-				else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY ==
-						p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
-				{
-					uchSrcPortOrientation = P_VERT;
-					goto gTD;
-				}
-			}
+			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
+			uchSrcPortOrientation =
+					GetPortOnElementOrientation(p_GraphicsElementItem,
+												p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos);
 		}
-gTD:	// Приёмник.
-		if(!bFromUser)
+		// Приёмник.
+		if(!p_GraphicsLinkItem->p_GraphicsPortItemDst->bAltHolded)
 		{
 			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemDst;
-			if(!IsMinimized(p_ElementSettings))
-			{
-				if(IsExtended(p_ElementSettings))
-				{
-					if(IsReceiver(p_ElementSettings))
-					{
-						dbHUpper = p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 4.0f;
-						dbHLower = dbHUpper * 3.0f;
-						//
-						if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY > dbHUpper) &&
-								(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY < dbHLower))
-						{ // В центральной трети - на горизонталь.
-							uchDstPortOrientation = P_HORR;
-						}
-						else
-						{ // Иначе - вертикаль.
-							uchDstPortOrientation = P_VERT;
-						}
-					}
-					else
-					{
-
-					}
-				}
-				else
-				{
-					if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX == 0)
-					{
-						uchDstPortOrientation = P_HORR;
-						goto gTN;
-					}
-					else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY == 0)
-					{
-						uchDstPortOrientation = P_VERT;
-						goto gTN;
-					}
-					if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX ==
-							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW)
-					{
-						uchDstPortOrientation = P_HORR;
-						goto gTN;
-					}
-					else if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY ==
-							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH)
-					{
-						uchDstPortOrientation = P_VERT;
-						goto gTN;
-					}
-				}
-			}
+			uchDstPortOrientation =
+					GetPortOnElementOrientation(p_GraphicsElementItem,
+												p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos);
 		}
-gTN:	p_Painter->setPen(oQPenBlackTransparent);
+		p_Painter->setPen(oQPenBlackTransparent);
 		bLT = (oC.oDbPointPairPortsCoords.dbSrc.dbX <= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY <= 0);
 		bRB = (oC.oDbPointPairPortsCoords.dbSrc.dbX >= 0) && (oC.oDbPointPairPortsCoords.dbSrc.dbY >= 0);
 		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
@@ -4896,10 +4847,12 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 		if(p_Event->modifiers() == Qt::AltModifier)
 		{
 			bPortAltPressed = true;
+			p_GraphicsPortItem->bAltHolded = true;
 		}
 		else
 		{
 			bPortAltPressed = false;
+			p_GraphicsPortItem->bAltHolded = false; // На всякий...
 			oDbPointPortCurrent.dbX = p_GraphicsPortItem->pos().x(); // Текущий X.
 			oDbPointPortCurrent.dbY = p_GraphicsPortItem->pos().y(); // Текущий Y.
 		}
@@ -5284,6 +5237,7 @@ gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
 		bPortMenuExecuted = true;
 	}
 	TrySendBufferToServer;
+	p_GraphicsPortItem->bAltHolded = false;
 }
 
 // Обработчик функции рисования порта.
@@ -5315,6 +5269,7 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 {
 	double dbX, dbY;
 	//
+	p_GraphicsPortItem->bAltHolded = false;
 	p_GraphicsPortItem->p_ParentInt = p_Parent;
 	p_GraphicsPortItem->bIsSrc = bSrc;
 	bPortAltPressed = false;

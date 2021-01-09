@@ -534,26 +534,34 @@ private:
 	static DbPoint LinkAttachCalcLT(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
 							///< \param[in] uchPortOrientation Ориентацмя порта.
 							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+							///< \return Вектор.
 	/// Просчёт вектора Безье-отклонения линка к правому нижнему углу.
 	static DbPoint LinkAttachCalcRB(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
 							///< \param[in] uchPortOrientation Ориентацмя порта.
 							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+							///< \return Вектор.
 	/// Просчёт вектора Безье-отклонения линка к левому нижнему углу.
 	static DbPoint LinkAttachCalcLB(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
 							///< \param[in] uchPortOrientation Ориентацмя порта.
 							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+							///< \return Вектор.
 	/// Просчёт вектора Безье-отклонения линка к правому вехнему углу.
 	static DbPoint LinkAttachCalcRT(unsigned char uchPortOrientation, DbPoint& a_DbPointWH);
 							///< \param[in] uchPortOrientation Ориентацмя порта.
 							///< \param[in] a_DbPointWH Ссылка на размер бокса линка.
+							///< \return Вектор.
+	/// Получение ориентации порта на элементе.
+	static unsigned char GetPortOnElementOrientation(GraphicsElementItem* p_GraphicsElementItem, DbPoint& a_DbPortGraphPos);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] a_DbPortGraphPos Ссылка на координата порта в коорд. элемента.
+							///< \return Ориентация (гор.\верт.).
+
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 	static double dbSnapStep; ///< Шаг залипания к сетке.
-	static double dbLinkArkDiameter; ///< Диаметр дуги разворота линка.
-	static double dbLinkArkDoubleDiameter; ///< Удвоенный диаметр дуги разворота линка.
 
 private:
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
