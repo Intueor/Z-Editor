@@ -96,6 +96,7 @@ GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 unsigned char SchematicView::uchWheelMul = 8;
 double SchematicView::dbSnapStep = 40;
 QVector<double> SchematicView::v_dbSnaps;
+GraphicsGroupItem* SchematicView::p_GraphicsGroupItemHider = nullptr;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;									\
@@ -3525,11 +3526,10 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 {
 	bool bGroupMinStatus = IsMinimized(p_GroupSettings);
 	//
-	if(bGroupMinStatus) p_GraphicsGroupItem->setToolTip(QString(m_chPreGroupName) + p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName);
-	else p_GraphicsGroupItem->setToolTip("");
 	SetHidingStatus(p_GraphicsGroupItem, bNextHiding);
 	if(bGroupMinStatus)
 	{
+		p_GraphicsGroupItem->setToolTip(QString(m_chPreGroupName) + p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName);
 		if(SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem))
 		{
 			if(bHiderFound)
@@ -3540,9 +3540,14 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 			}
 			else
 			{
+				p_GraphicsGroupItemHider = p_GraphicsGroupItem;
 				bHiderFound = true;
 			}
 		}
+	}
+	else
+	{
+		p_GraphicsGroupItem->setToolTip("");
 	}
 	bNextHiding |= bGroupMinStatus;
 	// Элементы.
@@ -3571,6 +3576,8 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 				if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
 				{
 					p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
+					if(bNextHiding && bHiderFound) p_GraphicsPortItemInt->p_GraphicsGroupItemHider = p_GraphicsGroupItemHider;
+					else p_GraphicsPortItemInt->p_GraphicsGroupItemHider = nullptr;
 					pv_GraphicsPortItemsCollected.append(p_GraphicsPortItemInt);
 				}
 			}
@@ -3640,7 +3647,9 @@ void SchematicView::AfterLoadingPlacement()
 	for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
 	{
 		p_GraphicsGroupItemRoot = vp_GraphicsGroupItemRoots.at(iF);
+		SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItemRoot);
 		GroupMinOperationsRecursively(p_GraphicsGroupItemRoot);
+		SchematicWindow::vp_SelectedGroups.removeOne(p_GraphicsGroupItemRoot);
 		UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemRoot);
 	}
 	//
@@ -4606,6 +4615,13 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		bool bRB;
 		unsigned char uchSrcPortOrientation;
 		unsigned char uchDstPortOrientation;
+		//
+		if(!p_GraphicsLinkItem->p_GraphicsElementItemSrc->isVisible() && !p_GraphicsLinkItem->p_GraphicsElementItemDst->isVisible())
+		{
+			if(p_GraphicsLinkItem->p_GraphicsPortItemSrc->p_GraphicsGroupItemHider ==
+					p_GraphicsLinkItem->p_GraphicsPortItemDst->p_GraphicsGroupItemHider)
+				return;
+		}
 		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.

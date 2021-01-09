@@ -61,6 +61,7 @@ public:
 	DbPoint oDbPAlterMinPos; ///< Альтернативное положение порта для обмена с минимизированным статусом.
 	DbPoint oDbPAlterVisPos; ///< Альтернативное положение порта для обмена со скрытым статусом.
 	bool bAltHolded; ///< Признак работы пользователя по изменению перемещению линка.
+	GraphicsGroupItem* p_GraphicsGroupItemHider; ///< Указатель на скрывающую группу или nullptr;
 };
 
 #endif // GRAPHICSPORTITEM_H
