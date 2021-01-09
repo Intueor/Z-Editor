@@ -4458,13 +4458,13 @@ DbPoint SchematicView::LinkAttachCalcLT(unsigned char uchPortOrientation, DbPoin
 	//
 	if(uchPortOrientation == P_HORR) // Левый верхний на горизонталь.
 	{
-		oDbPointLT.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointLT.dbX = a_DbPointWH.dbX / 3.0f;
 		oDbPointLT.dbY = 0.0f;
 	}
 	else if(uchPortOrientation == P_VERT)// Левый верхний на вертикаль.
 	{
 		oDbPointLT.dbX = 0.0f;
-		oDbPointLT.dbY = a_DbPointWH.dbY / 2.0f;
+		oDbPointLT.dbY = a_DbPointWH.dbY / 3.0f;
 	}
 	else
 	{
@@ -4481,13 +4481,13 @@ DbPoint SchematicView::LinkAttachCalcRB(unsigned char uchPortOrientation, DbPoin
 	//
 	if(uchPortOrientation == P_HORR) // Правый нижний на горизонталь.
 	{
-		oDbPointRB.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointRB.dbX = a_DbPointWH.dbX / 1.333333f;
 		oDbPointRB.dbY = a_DbPointWH.dbY;
 	}
 	else if(uchPortOrientation == P_VERT) // Правый нижний на вертикаль.
 	{
 		oDbPointRB.dbX = a_DbPointWH.dbX;
-		oDbPointRB.dbY = a_DbPointWH.dbY / 2.0f;
+		oDbPointRB.dbY = a_DbPointWH.dbY / 1.333333f;
 	}
 	else
 	{
@@ -4504,13 +4504,13 @@ DbPoint SchematicView::LinkAttachCalcLB(unsigned char uchPortOrientation, DbPoin
 	//
 	if(uchPortOrientation == P_HORR) // Левый нижний на горизонталь.
 	{
-		oDbPointLB.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointLB.dbX = a_DbPointWH.dbX / 3.0f;
 		oDbPointLB.dbY = a_DbPointWH.dbY;
 	}
 	else if(uchPortOrientation == P_VERT) // Левый нижний на вертикаль.
 	{
 		oDbPointLB.dbX = 0.0f;
-		oDbPointLB.dbY = a_DbPointWH.dbY / 2.0f;
+		oDbPointLB.dbY = a_DbPointWH.dbY / 1.333333f;
 	}
 	else
 	{
@@ -4527,13 +4527,13 @@ DbPoint SchematicView::LinkAttachCalcRT(unsigned char uchPortOrientation, DbPoin
 	//
 	if(uchPortOrientation == P_HORR) // Правый верхний на горизонталь.
 	{
-		oDbPointRT.dbX = a_DbPointWH.dbX / 2.0f;
+		oDbPointRT.dbX = a_DbPointWH.dbX / 1.333333f;
 		oDbPointRT.dbY = 0;
 	}
 	else if(uchPortOrientation == P_VERT) // Правый верхний на вертикаль.
 	{
 		oDbPointRT.dbX = a_DbPointWH.dbX;
-		oDbPointRT.dbY = a_DbPointWH.dbY / 2.0f;
+		oDbPointRT.dbY = a_DbPointWH.dbY / 3.0f;
 	}
 	else
 	{
@@ -4638,7 +4638,7 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		uchSrcPortOrientation = P_N_DEF;
 		uchDstPortOrientation = P_N_DEF;
 		// Источник.
-		if(!p_GraphicsLinkItem->p_GraphicsPortItemSrc->bAltHolded)
+		if(!p_GraphicsLinkItem->p_GraphicsPortItemSrc->bAltHolded && p_GraphicsLinkItem->p_GraphicsElementItemSrc->isVisible())
 		{
 			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
 			uchSrcPortOrientation =
@@ -4646,7 +4646,7 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 												p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos);
 		}
 		// Приёмник.
-		if(!p_GraphicsLinkItem->p_GraphicsPortItemDst->bAltHolded)
+		if(!p_GraphicsLinkItem->p_GraphicsPortItemDst->bAltHolded && p_GraphicsLinkItem->p_GraphicsElementItemDst->isVisible())
 		{
 			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemDst;
 			uchDstPortOrientation =
