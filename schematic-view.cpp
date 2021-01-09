@@ -4462,18 +4462,13 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 	DbPoint oDbPointMid;
 	QPainterPath oQPainterPath;
 	QPainterPathStroker oQPainterPathStroker;
+	GraphicsElementItem* p_GraphicsElementItem;
 	//
 	if(!bLoading)
 	{
 		bool bLT;
 		bool bRB;
 		bool bLB;
-		bool bSrcClockwise;
-		bool bDstClockwise;
-		double dbSrcStartAngle = 0;
-		double dbDstStartAngle = 0;
-		GraphicsElementItem* p_GraphicsElementItem;
-		DbPoint oDbPointSrcC, oDbPointDstC;
 		//
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
@@ -4509,6 +4504,14 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		// Если источник по X и Y (обязательно вместе) меньше или больше нуля (левый верхний и нижний правый квадраты)...
 		if(bLT || bRB)
 		{
+			DbPoint oDbPointLT;
+			DbPoint oDbPointRB;
+			// Рисование с левого верхнего угла в правый нижний.
+			oDbPointLT.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointLT.dbY = 0;
+			oDbPointRB.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointRB.dbY = oC.oDbPointWH.dbY;
+
 			// ДИАГОНАЛЬ ЛЕВО_ВЕРХ-ПРАВО_НИЗ.
 			// Источик.
 			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
@@ -4530,17 +4533,11 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Левая сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						oDbPointSrcC.dbX = 0.0f;
-						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
-						dbSrcStartAngle = PI;
-						bSrcClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbSrcStartAngle = 0;
-						bSrcClockwise = false;
+
 					}
 					goto gTD;
 				}
@@ -4549,17 +4546,11 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Верхняя сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = 0.0f;
-						dbSrcStartAngle = PI_AND_HALF;
-						bSrcClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
-						dbSrcStartAngle = HALF_PI;
-						bSrcClockwise = true;
+
 					}
 					goto gTD;
 				}
@@ -4569,17 +4560,11 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Правая сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						oDbPointSrcC.dbX = 0.0f;
-						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
-						dbSrcStartAngle = PI;
-						bSrcClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbSrcStartAngle = 0;
-						bSrcClockwise = true;
+
 					}
 					goto gTD;
 				}
@@ -4589,17 +4574,11 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 					// Нижняя сторона.
 					if(bLT)
 					{ // Дуга вправо вниз.
-						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = 0.0f;
-						dbSrcStartAngle = PI_AND_HALF;
-						bSrcClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
-						dbSrcStartAngle = HALF_PI;
-						bSrcClockwise = false;
+
 					}
 					goto gTD;
 				}
@@ -4624,17 +4603,11 @@ gTD:		// Приёмник.
 					// Левая сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						oDbPointDstC.dbX = 0.0f;
-						oDbPointDstC.dbY = LINK_ARC_RADIUS;
-						dbDstStartAngle = PI;
-						bDstClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbDstStartAngle = 0;
-						bDstClockwise = false;
+
 					}
 					goto gTN;
 				}
@@ -4643,18 +4616,11 @@ gTD:		// Приёмник.
 					// Верхняя сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						oDbPointDstC.dbX = LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = 0.0f;
-						dbDstStartAngle = PI_AND_HALF;
-						bDstClockwise = false;
 
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
-						dbDstStartAngle = HALF_PI;
-						bDstClockwise = true;
+
 					}
 					goto gTN;
 				}
@@ -4664,17 +4630,11 @@ gTD:		// Приёмник.
 					// Правая сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						oDbPointDstC.dbX = 0.0f;
-						oDbPointDstC.dbY = LINK_ARC_RADIUS;
-						dbDstStartAngle = PI;
-						bDstClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbDstStartAngle = 0;
-						bDstClockwise = true;
+
 					}
 					goto gTN;
 				}
@@ -4684,28 +4644,29 @@ gTD:		// Приёмник.
 					// Нижняя сторона.
 					if(!bLT)
 					{ // Дуга вправо вниз.
-						oDbPointDstC.dbX = LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = 0.0f;
-						dbDstStartAngle = PI_AND_HALF;
-						bDstClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вверх.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
-						dbDstStartAngle = HALF_PI;
-						bDstClockwise = false;
+
 					}
 					goto gTN;
 				}
 			}
-
-
-gTN:		goto gBN;
-
+gTN:		oQPainterPath.moveTo(0, 0);
+			oQPainterPath.cubicTo(oDbPointLT.dbX, oDbPointLT.dbY, oDbPointRB.dbX, oDbPointRB.dbY,
+								  oC.oDbPointWH.dbX, oC.oDbPointWH.dbY);
 		}
 		else // Иначе...
 		{
+			DbPoint oDbPointLB;
+			DbPoint oDbPointRT;
+			// Рисование с левого нижнего угла в правый верхний.
+			oDbPointLB.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointLB.dbY = oC.oDbPointWH.dbY;
+			oDbPointRT.dbX = oC.oDbPointWH.dbX / 2.0f;
+			oDbPointRT.dbY = 0;
+
 			// ДИАГОНАЛЬ ЛЕВО_НИЗ-ПРАВО_ВЕРХ.
 			// Источик.
 			p_GraphicsElementItem = p_GraphicsLinkItem->p_GraphicsElementItemSrc;
@@ -4727,17 +4688,11 @@ gTN:		goto gBN;
 					// Левая сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						oDbPointSrcC.dbX = 0.0f;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbSrcStartAngle = 0;
-						bSrcClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
-						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
-						dbSrcStartAngle = PI;
-						bSrcClockwise = true;
+
 					}
 					goto gBD;
 				}
@@ -4746,17 +4701,11 @@ gTN:		goto gBN;
 					// Верхняя сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
-						dbSrcStartAngle = PI_AND_HALF;
-						bSrcClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = 0.0f;
-						dbSrcStartAngle = HALF_PI;
-						bSrcClockwise = true;
+
 					}
 					goto gBD;
 				}
@@ -4766,17 +4715,11 @@ gTN:		goto gBN;
 					// Правая сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						oDbPointSrcC.dbX = 0.0f;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbSrcStartAngle = 0;
-						bSrcClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX;
-						oDbPointSrcC.dbY = LINK_ARC_RADIUS;
-						dbSrcStartAngle = PI;
-						bSrcClockwise = false;
+
 					}
 					goto gBD;
 				}
@@ -4786,17 +4729,11 @@ gTN:		goto gBN;
 					// Нижняя сторона.
 					if(bLB)
 					{ // Дуга вправо вверх.
-						oDbPointSrcC.dbX = LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = oC.oDbPointWH.dbY;
-						dbSrcStartAngle = PI_AND_HALF;
-						bSrcClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointSrcC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointSrcC.dbY = 0.0f;
-						dbSrcStartAngle = HALF_PI;
-						bSrcClockwise = false;
+
 					}
 					goto gBD;
 				}
@@ -4821,17 +4758,11 @@ gBD:		// Приёмник.
 					// Левая сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						oDbPointDstC.dbX = 0.0f;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbDstStartAngle = 0;
-						bDstClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
-						oDbPointDstC.dbY = LINK_ARC_RADIUS;
-						dbDstStartAngle = PI;
-						bDstClockwise = true;
+
 					}
 					goto gBN;
 				}
@@ -4840,17 +4771,11 @@ gBD:		// Приёмник.
 					// Верхняя сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						oDbPointDstC.dbX = LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
-						dbDstStartAngle = PI_AND_HALF;
-						bDstClockwise = false;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = 0.0f;
-						dbDstStartAngle = HALF_PI;
-						bDstClockwise = true;
+
 					}
 					goto gBN;
 				}
@@ -4860,17 +4785,11 @@ gBD:		// Приёмник.
 					// Правая сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						oDbPointDstC.dbX = 0.0f;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY - LINK_ARC_RADIUS;
-						dbDstStartAngle = 0;
-						bDstClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX;
-						oDbPointDstC.dbY = LINK_ARC_RADIUS;
-						dbDstStartAngle = PI;
-						bDstClockwise = false;
+
 					}
 					goto gBN;
 				}
@@ -4880,203 +4799,27 @@ gBD:		// Приёмник.
 					// Нижняя сторона.
 					if(!bLB)
 					{ // Дуга вправо вверх.
-						oDbPointDstC.dbX = LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = oC.oDbPointWH.dbY;
-						dbDstStartAngle = PI_AND_HALF;
-						bDstClockwise = true;
+
 					}
 					else
 					{ // Дуга влево вниз.
-						oDbPointDstC.dbX = oC.oDbPointWH.dbX - LINK_ARC_RADIUS;
-						oDbPointDstC.dbY = 0.0f;
-						dbDstStartAngle = HALF_PI;
-						bDstClockwise = false;
+
 					}
 					goto gBN;
 				}
 			}
-
+gBN:		oQPainterPath.moveTo(0, oC.oDbPointWH.dbY);
+			oQPainterPath.cubicTo(oDbPointLB.dbX, oDbPointLB.dbY, oDbPointRT.dbX, oDbPointRT.dbY,
+								  oC.oDbPointWH.dbX, 0);
 		}
-
-
-gBN:	double dbPartOfPi = PI / 32.0f;
-		DbPoint oDbPointSrcResult;
-		DbPoint oDbPointDstResult;
-		bool bSrcReady = false;
-		bool bDstReady = false;
-
-		DbPoint mDbPointSrcs[128];
-		DbPoint mDbPointDsts[128];
-
-
-		DbPoint oDbPointSrcPrevStep;
-		DbPoint oDbPointDstPrevStep;
-		double dbSrcDistancePrev = OVERMAX_NUMBER;
-		double dbSrcDistanceNow;
-		double dbDstDistancePrev = OVERMAX_NUMBER;
-		double dbDstDistanceNow;
-		//
-		DbPoint oDbPointCsDs;
-		oDbPointCsDs.dbX = oDbPointDstC.dbX - oDbPointSrcC.dbX;
-		oDbPointCsDs.dbY = oDbPointDstC.dbY - oDbPointSrcC.dbY;
-		double dbCentresDintances = sqrt((oDbPointCsDs.dbX * oDbPointCsDs.dbX) + (oDbPointCsDs.dbY * oDbPointCsDs.dbY));
-		//
-		unsigned int uiFinalSrcStep = 0;
-		unsigned int uiFinalDstStep = 0;
-		for(unsigned int uiStep = 0; uiStep != 128; uiStep++)
-		{
-			DbPoint oDbPointSrcStep;
-			DbPoint oDbPointDstStep;
-			//
-			oDbPointSrcStep.dbX = oDbPointSrcC.dbX + (sin(dbSrcStartAngle) * LINK_ARC_RADIUS);
-			oDbPointSrcStep.dbY = oDbPointSrcC.dbY + (cos(dbSrcStartAngle) * LINK_ARC_RADIUS);
-			oDbPointDstStep.dbX = oDbPointDstC.dbX + (sin(dbDstStartAngle) * LINK_ARC_RADIUS);
-			oDbPointDstStep.dbY = oDbPointDstC.dbY + (cos(dbDstStartAngle) * LINK_ARC_RADIUS);
-			if(uiStep > 0)
-			{
-				DbPoint oDbPointSrcVector;
-				DbPoint oDbPointDstVector;
-				DbPoint oDbPointDist;
-				double dbL; // Векторы одной длины, хватит и одной переменной.
-				DbPoint oDbPointSrcToDst;
-				DbPoint oDbPointDstToSrc;
-				double dbLToD;
-				double dbLToS;
-				//
-				oDbPointSrcVector.dbX = oDbPointSrcStep.dbX - oDbPointSrcPrevStep.dbX;
-				oDbPointSrcVector.dbY = oDbPointSrcStep.dbY - oDbPointSrcPrevStep.dbY;
-				oDbPointDstVector.dbX = oDbPointDstStep.dbX - oDbPointDstPrevStep.dbX;
-				oDbPointDstVector.dbY = oDbPointDstStep.dbY - oDbPointDstPrevStep.dbY;
-				//
-				dbL = sqrt((oDbPointSrcVector.dbX * oDbPointSrcVector.dbX) + (oDbPointSrcVector.dbY * oDbPointSrcVector.dbY));
-				// Нормализуем векторы.
-				oDbPointSrcVector.dbX /= dbL;
-				oDbPointSrcVector.dbY /= dbL;
-				oDbPointDstVector.dbX /= dbL;
-				oDbPointDstVector.dbY /= dbL;
-				// Длина до соседа.
-				oDbPointDist.dbX = oDbPointDstStep.dbX - oDbPointSrcStep.dbX;
-				oDbPointDist.dbY = oDbPointDstStep.dbY - oDbPointSrcStep.dbY;
-				dbL = sqrt((oDbPointDist.dbX * oDbPointDist.dbX) + (oDbPointDist.dbY * oDbPointDist.dbY));
-				//
-				oDbPointSrcVector.dbX *= dbL;
-				oDbPointSrcVector.dbY *= dbL;
-				oDbPointDstVector.dbX *= dbL;
-				oDbPointDstVector.dbY *= dbL;
-				//
-				oDbPointSrcVector.dbX += oDbPointSrcPrevStep.dbX;
-				oDbPointSrcVector.dbY += oDbPointSrcPrevStep.dbY;
-				oDbPointDstVector.dbX += oDbPointDstPrevStep.dbX;
-				oDbPointDstVector.dbY += oDbPointDstPrevStep.dbY;
-//				if(!bSrcReady) p_Painter->drawLine(QPointF(oDbPointSrcStep.dbX, oDbPointSrcStep.dbY), // Конец дуги.
-//												   QPointF(oDbPointSrcVector.dbX, oDbPointSrcVector.dbY)); // Конец луча.
-//				if(!bDstReady) p_Painter->drawLine(QPointF(oDbPointDstStep.dbX, oDbPointDstStep.dbY),
-//												   QPointF(oDbPointDstVector.dbX, oDbPointDstVector.dbY));
-				if(!bSrcReady)
-				{
-					oDbPointSrcToDst.dbX = oDbPointSrcVector.dbX - oDbPointDstC.dbX;
-					oDbPointSrcToDst.dbY = oDbPointSrcVector.dbY - oDbPointDstC.dbY;
-					// От конца луча до целевой точки конца дуги приёмника.
-					dbLToD = sqrt((oDbPointSrcToDst.dbX * oDbPointSrcToDst.dbX) + (oDbPointSrcToDst.dbY * oDbPointSrcToDst.dbY));
-
-					dbSrcDistanceNow = dbLToD;
-					if(dbSrcDistanceNow < dbCentresDintances)
-					{
-						if(dbSrcDistanceNow > dbSrcDistancePrev)
-						{
-							bSrcReady = true;
-							oDbPointSrcResult = oDbPointSrcPrevStep;
-							uiFinalSrcStep = uiStep;
-						}
-					}
-					dbSrcDistancePrev = dbSrcDistanceNow;
-				}
-				if(!bDstReady)
-				{
-					oDbPointDstToSrc.dbX = oDbPointDstVector.dbX - oDbPointSrcC.dbX;
-					oDbPointDstToSrc.dbY = oDbPointDstVector.dbY - oDbPointSrcC.dbY;
-					// От конца луча до целевой точки конца дуги источника.
-					dbLToS = sqrt((oDbPointDstToSrc.dbX * oDbPointDstToSrc.dbX) + (oDbPointDstToSrc.dbY * oDbPointDstToSrc.dbY));
-
-					dbDstDistanceNow = dbLToS;
-					if(dbDstDistanceNow < dbCentresDintances)
-					{
-						if(dbDstDistanceNow > dbDstDistancePrev)
-						{
-							bDstReady = true;
-							oDbPointDstResult = oDbPointDstPrevStep;
-							uiFinalDstStep = uiStep;
-						}
-					}
-					dbDstDistancePrev = dbDstDistanceNow;
-				}
-
-				if(bSrcReady && bDstReady) break;
-
-
-
-
-//				if(!bSrcReady) p_Painter->drawLine(
-//							QPointF(oDbPointSrcPrevStep.dbX, oDbPointSrcPrevStep.dbY),
-//							QPointF(oDbPointSrcStep.dbX, oDbPointSrcStep.dbY));
-//				if(!bDstReady) p_Painter->drawLine(
-//							QPointF(oDbPointDstPrevStep.dbX, oDbPointDstPrevStep.dbY),
-//							QPointF(oDbPointDstStep.dbX, oDbPointDstStep.dbY));
-				if(!bSrcReady) mDbPointSrcs[uiStep] = oDbPointSrcPrevStep;
-				if(!bDstReady) mDbPointDsts[uiStep] = oDbPointDstPrevStep;
-
-
-			}
-			oDbPointSrcPrevStep = oDbPointSrcStep;
-			oDbPointDstPrevStep = oDbPointDstStep;
-			//
-			if(bSrcClockwise) dbSrcStartAngle += dbPartOfPi; else dbSrcStartAngle -= dbPartOfPi;
-			if(bDstClockwise) dbDstStartAngle += dbPartOfPi; else dbDstStartAngle -= dbPartOfPi;
-		}
-
-		bool bFirstPoint = true;
-		for(unsigned int uiF = 1; uiF < uiFinalSrcStep; uiF++)
-		{
-			if(bFirstPoint)
-			{
-				oQPainterPath.moveTo(mDbPointSrcs[uiF].dbX, mDbPointSrcs[uiF].dbY);
-				bFirstPoint = false;
-			}
-			else
-			{
-				oQPainterPath.lineTo(mDbPointSrcs[uiF].dbX, mDbPointSrcs[uiF].dbY);
-			}
-		}
-		for(unsigned int uiF = uiFinalDstStep - 1; uiF > 0; uiF--)
-		{
-			oQPainterPath.lineTo(mDbPointDsts[uiF].dbX, mDbPointDsts[uiF].dbY);
-		}
-		//oQPainterPath.moveTo(oDbPointSrcResult.dbX, oDbPointSrcResult.dbY);
-		//oQPainterPath.lineTo(oDbPointDstResult.dbX, oDbPointDstResult.dbY);
-
-
-		//p_Painter->drawLine(QPointF(oDbPointSrcResult.dbX, oDbPointSrcResult.dbY), QPointF(oDbPointDstResult.dbX, oDbPointDstResult.dbY));
-
-
-
-		oQPainterPathStroker.setCapStyle(Qt::RoundCap);
-		oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
-		oQPainterPathStroker.setWidth(2);
-		QPainterPath oQPainterPathOutlined = oQPainterPathStroker.createStroke(oQPainterPath);
-		p_Painter->drawPath(oQPainterPathOutlined);
-		p_Painter->setPen(oQPenWhiteTransparent);
-		p_Painter->drawPath(oQPainterPath);
 	}
-}
-
-// Тест пересечения отрезков.
-bool SchematicView::CrossTest(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2)
-{
-	double v1=(bx2-bx1)*(ay1-by1)-(by2-by1)*(ax1-bx1);
-	double v2=(bx2-bx1)*(ay2-by1)-(by2-by1)*(ax2-bx1);
-	double v3=(ax2-ax1)*(by1-ay1)-(ay2-ay1)*(bx1-ax1);
-	double v4=(ax2-ax1)*(by2-ay1)-(ay2-ay1)*(bx2-ax1);
-	return ((v1*v2<=0) && (v3*v4<=0));
+	oQPainterPathStroker.setCapStyle(Qt::RoundCap);
+	oQPainterPathStroker.setJoinStyle(Qt::RoundJoin);
+	oQPainterPathStroker.setWidth(2);
+	QPainterPath oQPainterPathOutlined = oQPainterPathStroker.createStroke(oQPainterPath);
+	p_Painter->drawPath(oQPainterPathOutlined);
+	p_Painter->setPen(oQPenWhiteTransparent);
+	p_Painter->drawPath(oQPainterPath);
 }
 
 // Обработчик конструктора линка.

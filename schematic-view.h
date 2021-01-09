@@ -528,9 +528,6 @@ private:
 							///< \param[in] p_GraphicsScalerItem Указатель на скалер.
 							///< \param[in] oDbPointPosNow Текущее положение скалера.
 							///< \param[in] oDbPointPosPrev Старое положение скалера (до обработанного события).
-	/// Тест пересечения отрезков.
-	static bool CrossTest(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2);
-
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.
