@@ -96,6 +96,7 @@ GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 unsigned char SchematicView::uchWheelMul = 8;
 double SchematicView::dbSnapStep = 40;
 QVector<double> SchematicView::v_dbSnaps;
+QVector<SchematicView::MinGroupsPairForLink> SchematicView::v_MinGroupsPairsForLinksExcl;
 
 //== МАКРОСЫ.
 #define TempSelectGroup(group)			bool _bForceSelected = false;									\
@@ -3475,9 +3476,33 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	SetElementBlockingPattern(p_GraphicsElementItem, IsBusy(p_ElementSettings));
 }
 
+// Проверка наличия структуры скрытия в списке по указателям на группу и направлению линка.
+bool SchematicView::CheckMGPLPresent(QVector<MinGroupsPairForLink>& av_MinGroupsPairsForLinks,
+									 GraphicsGroupItem* p_GraphicsGroupItemCurrentHider, GraphicsGroupItem* p_GraphicsGroupItemOnLinkHider)
+{
+	for(int iF = 0; iF != av_MinGroupsPairsForLinks.count(); iF++)
+	{
+		const MinGroupsPairForLink* p_MinGroupsPairForLink = &av_MinGroupsPairsForLinks.at(iF);
+		//
+		if(((p_MinGroupsPairForLink->p_GraphicsGroupItemCurrentHider == p_GraphicsGroupItemCurrentHider) &&
+			(p_MinGroupsPairForLink->p_GraphicsGroupItemOnLinkHider == p_GraphicsGroupItemOnLinkHider)) ||
+				((p_MinGroupsPairForLink->p_GraphicsGroupItemCurrentHider == p_GraphicsGroupItemOnLinkHider) &&
+				 (p_MinGroupsPairForLink->p_GraphicsGroupItemOnLinkHider == p_GraphicsGroupItemCurrentHider)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 // Установка портов групп после смены статуса минимизации.
 void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 {
+	QVector<MinGroupsPairForLink> v_MinGroupsPairsForLinksUniques;
+	int iExclCount;
+	//
+	v_MinGroupsPairsForLinksUniques.clear();
+	v_MinGroupsPairsForLinksExcl.clear();
 	for(int iF = 0; iF != pv_GraphicsPortItemsCollected.count(); iF++)
 	{
 		DbPoint oDbPointLastGroupPos;
@@ -3489,6 +3514,7 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		GraphicsGroupItem* p_GraphicsGroupItemCurrentHider = nullptr;
 		GraphicsGroupItem* p_GraphicsGroupItemOnLinkHider = nullptr;
 		bool bHide = false;
+		MinGroupsPairForLink oMinGroupsPairForLink;
 		//
 		if(p_GraphicsPortItemCurrent->bIsSrc)
 		{
@@ -3549,6 +3575,21 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 					{
 						bHide = true; // Скыраем линк.
 					}
+					else
+					{
+						// Добавление структуры описания линка с двумя скрытыми группами в список.
+						oMinGroupsPairForLink.p_GraphicsGroupItemCurrentHider = p_GraphicsGroupItemCurrentHider;
+						oMinGroupsPairForLink.p_GraphicsGroupItemOnLinkHider = p_GraphicsGroupItemOnLinkHider;
+						oMinGroupsPairForLink.p_GraphicsLinkpItem = p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt;
+						//
+						if(CheckMGPLPresent(v_MinGroupsPairsForLinksUniques,
+											p_GraphicsGroupItemCurrentHider,
+											p_GraphicsGroupItemOnLinkHider)) // Если линк уже есть в списке...
+						{
+							v_MinGroupsPairsForLinksExcl.append(oMinGroupsPairForLink); // Добавление в исключения из отрисовки.
+						}
+						else v_MinGroupsPairsForLinksUniques.append(oMinGroupsPairForLink); // Иначе - в список уникальных.
+					}
 				}
 			}
 		}
@@ -3573,6 +3614,24 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 			oDbPointCorr.dbY = oDbPointLastGroupPos.dbY - p_GraphicsElementItemCurrent->pos().y() + dbMinGroupR;
 		}
 		SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
+	}
+	// Прочистка исключаемых от уникальных при вынужденных добавлениях на встречных линках.
+	iExclCount = v_MinGroupsPairsForLinksExcl.count();
+	for(int iF = 0; iF < iExclCount; iF++)
+	{
+		const MinGroupsPairForLink* p_MinGroupsPairForLinkExcl = &v_MinGroupsPairsForLinksExcl.at(iF);
+		//
+		for(int iU = 0; iU != v_MinGroupsPairsForLinksUniques.count(); iU++)
+		{
+			const MinGroupsPairForLink* p_MinGroupsPairForLinkUnique = &v_MinGroupsPairsForLinksUniques.at(iU);
+			//
+			if(p_MinGroupsPairForLinkExcl->p_GraphicsLinkpItem == p_MinGroupsPairForLinkUnique->p_GraphicsLinkpItem)
+			{
+				v_MinGroupsPairsForLinksExcl.removeAt(iF);
+				iExclCount--;
+				break;
+			}
+		}
 	}
 }
 
@@ -4663,6 +4722,15 @@ void SchematicView::LinkPaintHandler(GraphicsLinkItem* p_GraphicsLinkItem, QPain
 		if(p_GraphicsLinkItem->bExcludeFromPaint)
 		{
 			return;
+		}
+		for(int iF = 0; iF != v_MinGroupsPairsForLinksExcl.count(); iF ++)
+		{
+			const MinGroupsPairForLink* p_MinGroupsPairForLink = &v_MinGroupsPairsForLinksExcl.at(iF);
+			//
+			if(p_MinGroupsPairForLink->p_GraphicsLinkpItem == p_GraphicsLinkItem)
+			{
+				return;
+			}
 		}
 		oC = CalcLinkLineWidthHeight(p_GraphicsLinkItem);
 		// Нахождение центральной точки между источником и приёмником.
