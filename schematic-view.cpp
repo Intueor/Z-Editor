@@ -2658,7 +2658,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				const char* pc_chVarRename;
 				const char* pc_chVarDelete;
 				const char* pc_chVarPorts;
-				const char* pc_chVarExtPort;
+				const char* pc_chVarExtPort = "";
 				const char* pc_chVarCreateGroup;
 				const char* pc_chVarAdd;
 				const char* pc_chVarDetach;
@@ -4662,7 +4662,7 @@ DbPoint SchematicView::LinkAttachCalcRT(unsigned char uchPortOrientation, DbPoin
 // Получение ориентации порта на элементе.
 unsigned char SchematicView::GetPortOnElementOrientation(GraphicsElementItem* p_GraphicsElementItem, DbPoint& a_DbPortGraphPos)
 {
-	unsigned char uchPortOrientation;
+	unsigned char uchPortOrientation = P_N_DEF;
 	//
 	if(!IsMinimized(p_ElementSettings))
 	{
