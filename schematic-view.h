@@ -464,14 +464,14 @@ private:
 							///< \param[in] bNextHiding Служебная для рекурсии - статус скрытия следующей группы.
 							///< \param[in] bHiderFound Служебная для рекурсии - true - найдена скрывающая группа.
 	/// Операции по минимизации элемента.
-	static void ElementMinOperations(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemInitCollection,
+	static void ElementMinOperations(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemCollection,
 									 GraphicsElementItem* p_GraphicsElementItem, bool bFromAfterLoader = false);
-							///< \param[out] avp_GraphicsLinkItemInitCollection Ссылка на список для заполнения для будущей минимизации.
+							///< \param[out] avp_GraphicsLinkItemCollection Ссылка на список для заполнения для будущей минимизации.
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] bFromAfterLoader true для отключения калибровки групп при заходе после начального загрузчика.
 	/// Установка видимости линков после смены статуса минимизации.
-	static void SetLinksVisAfterMinChanges(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemInitCollection);
-							///< \param[in] avp_GraphicsLinkItemInitCollection Ссылка на список линков.
+	static void SetLinksVisAfterMinChanges(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemCollection);
+							///< \param[in] avp_GraphicsLinkItemCollection Ссылка на список линков.
 	/// Установка портов групп и видимости линков после смены статуса минимизации групп.
 	static void SetPortsPlacementAndLinksVisAfterGroupsMinChanges(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection);
 							///< \param[in] avp_GraphicsPortItemsCollection Ссылка на список портов.
