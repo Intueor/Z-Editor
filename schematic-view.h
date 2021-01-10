@@ -42,12 +42,6 @@ private:
 		GraphicsElementItem* p_GraphicsElementItem;
 		GraphicsGroupItem* p_GraphicsGroupItem;
 	};
-	struct MinGroupsPairForLink
-	{
-		GraphicsGroupItem* p_GraphicsGroupItemCurrentHider;
-		GraphicsGroupItem* p_GraphicsGroupItemOnLinkHider;
-		GraphicsLinkItem* p_GraphicsLinkpItem;
-	};
 
 public:
 	/// Конструктор.
@@ -469,12 +463,10 @@ private:
 							///< \param[in] bHiderFound Служебная для рекурсии - true - найдена скрывающая группа.
 	/// Установка портов групп после смены статуса минимизации.
 	static void SetPortsPlacementAfterGroupsMinChanges();
-	/// Проверка наличия структуры скрытия в списке по указателям на группу и направлению линка.
-	static bool CheckMGPLPresent(QVector<MinGroupsPairForLink>& av_MinGroupsPairsForLinks,
-								 GraphicsGroupItem* p_GraphicsGroupItemCurrentHider, GraphicsGroupItem* p_GraphicsGroupItemOnLinkHider);
-							///< \param[in] av_MinGroupsPairsForLinks Ссылка на список для проверки.
-							///< \param[in] p_GraphicsGroupItemCurrentHider Указатель на исходную группу.
-							///< \param[in] p_GraphicsGroupItemOnLinkHider Указатель на группу-цель линка.
+	/// Проверка наличия структуры скрытия в списке по координатам портов.
+	static bool CheckLinkPresent(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemUniques, GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] avp_GraphicsLinkItemUniques Ссылка на список указателей на линки.
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
 							///< \return true при наличии.
 	/// Путешествие по ветке группы до корня.
 	static GraphicsGroupItem* GetRootOfGroup(GraphicsGroupItem* p_GraphicsGroupItemParent);
@@ -645,7 +637,6 @@ private:
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
 	static unsigned char uchWheelMul; ///< Позиция колёсика мыши от начала работы.
 	static QVector<double> v_dbSnaps; ///< Список шагов сетки.
-	static QVector<MinGroupsPairForLink> v_MinGroupsPairsForLinksExcl; ///< Список пар групп и относящихся к ним линков для оптимизации скрытия.
 };
 
 #endif // SCHEMATICVIEW_H
