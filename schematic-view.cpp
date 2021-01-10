@@ -409,8 +409,12 @@ GraphicsElementItem* SchematicView::CreateNewElementAPFS(char* p_chName, QPointF
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.dbObjectZPos = dbObjectZPos;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbX = pntMapped.x();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbY = pntMapped.y();
-	if(IsReceiver(uchSettings)) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 150;
-	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 225;
+	if(IsExtended(uchSettings))
+	{
+		if(IsReceiver(uchSettings)) oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 140;
+		else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 236;
+	}
+	else oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbW = 220;
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.oDbFrame.dbH = 100;
 	oPSchElementBase.uiObjectBkgColor = QColor(uchR, uchG, uchB, uchA).rgba();
 	oPSchElementBase.oPSchElementVars.oSchEGGraph.uchSettingsBits = uchSettings;
