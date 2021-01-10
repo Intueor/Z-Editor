@@ -88,7 +88,6 @@ double SchematicView::dbMinTriangleDerc;
 double SchematicView::dbMinTriangleRSubMinTriangleDerc;
 double SchematicView::dbMinCircleRPlusFrameDimIncSubCorr;
 double SchematicView::dbMinElementDPlusFrameDimIncTwiceSubDoubleCorr;
-QVector<GraphicsPortItem*> SchematicView::pv_GraphicsPortItemsCollected;
 bool SchematicView::bLoading = false;
 QVector<GraphicsElementItem*> SchematicView::vp_SelectedForDeleteElements;
 QVector<GraphicsGroupItem*> SchematicView::vp_SelectedForDeleteGroups;
@@ -2472,6 +2471,79 @@ bool SchematicView::CheckPortsInSelection(GraphicsElementItem* p_GraphicsElement
 	return false;
 }
 
+// Операции по минимизации элемента.
+void SchematicView::ElementMinOperations(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemInitCollection,
+										 GraphicsElementItem* p_GraphicsElementItem, bool bFromAfterLoader)
+{
+	QList<QGraphicsItem*> lp_Items = p_GraphicsElementItem->childItems();
+	bool bPortsPresent = false;
+	// По всем портам элемента.
+	for(int iC = 0; iC < lp_Items.count(); iC++)
+	{
+		GraphicsPortItem* p_GraphicsPortItemInt;
+		DbPoint oDbPoint;
+		QGraphicsItem* p_GraphicsItem;
+		p_GraphicsItem = lp_Items.at(iC);
+		if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
+		{
+			if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
+			{
+				// Порт найден.
+				bPortsPresent = true;
+				p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
+				oDbPoint = p_GraphicsPortItemInt->oDbPAlterMinPos;
+				p_GraphicsPortItemInt->oDbPAlterMinPos.dbX = p_GraphicsPortItemInt->pos().x();
+				p_GraphicsPortItemInt->oDbPAlterMinPos.dbY = p_GraphicsPortItemInt->pos().y();
+				SetPortToPos(p_GraphicsPortItemInt, oDbPoint);
+				SetHidingStatus(p_GraphicsPortItemInt, IsMinimized(p_ElementSettings));
+				// Добавляем уникальный линк в список для обработки.
+				if(!avp_GraphicsLinkItemInitCollection.contains(p_GraphicsPortItemInt->p_GraphicsLinkItemInt))
+					avp_GraphicsLinkItemInitCollection.append(p_GraphicsPortItemInt->p_GraphicsLinkItemInt);
+			}
+		}
+	}
+	p_GraphicsElementItem->bPortsForMin = bPortsPresent;
+	if(IsMinimized(p_ElementSettings))
+	{
+		p_GraphicsElementItem->p_GraphicsScalerItem->hide();
+		if(p_GraphicsElementItem->p_QGroupBox) p_GraphicsElementItem->p_QGroupBox->hide();
+	}
+	else
+	{
+		p_GraphicsElementItem->p_GraphicsScalerItem->show();
+		if(p_GraphicsElementItem->p_QGroupBox) p_GraphicsElementItem->p_QGroupBox->show();
+	}
+	if(!bFromAfterLoader)
+	{
+		if(p_GraphicsElementItem->p_GraphicsGroupItemRel)
+		{
+			UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsElementItem->p_GraphicsGroupItemRel);
+		}
+		else SchematicWindow::p_QGraphicsScene->update();
+	}
+}
+
+// Установка видимости линков после смены статуса минимизации.
+void SchematicView::SetLinksVisAfterMinChanges(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemInitCollection)
+{
+	QVector<GraphicsLinkItem*> vp_GraphicsLinkItemUniques;
+	//
+	for(int iF = 0; iF != avp_GraphicsLinkItemInitCollection.count(); iF++)
+	{
+		GraphicsLinkItem* p_GraphicsLinkItem = avp_GraphicsLinkItemInitCollection.at(iF);
+		//
+		if(CheckLinkPresent(vp_GraphicsLinkItemUniques, p_GraphicsLinkItem)) // Если линк уже есть в списке...
+		{
+			p_GraphicsLinkItem->bExcludeFromPaint = true; // Добавление в исключения из отрисовки.
+		}
+		else
+		{
+			vp_GraphicsLinkItemUniques.append(p_GraphicsLinkItem); // Иначе - в список уникальных.
+			p_GraphicsLinkItem->bExcludeFromPaint = false; // Исключение из исключений из отрисовки.
+		}
+	}
+}
+
 // Обработчик события нажатия мыши на элемент.
 void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event)
 {
@@ -2486,77 +2558,33 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
 		unsigned char uchMinStatus = IsMinimized(p_ElementSettings);
+		QVector<GraphicsLinkItem*> vp_GraphicsLinkItemInitCollection;
 		//
-		if(uchMinStatus == 0) SetElementTooltip(p_GraphicsElementItem);
-		else p_GraphicsElementItem->setToolTip("");
-		//
-		bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем текущее значение выбраности.
-		if(!SchematicWindow::vp_SelectedElements.contains(p_GraphicsElementItem)) // Если не было выбрано - добавляем для массовых действий.
-		{
-			SchematicWindow::vp_SelectedElements.push_front(p_GraphicsElementItem);
-		}
+		TempSelectElement(p_GraphicsElementItem);
 		// Обработка статусов минимизации.
 		for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++) // По всем причастным.
 		{
 			GraphicsElementItem* p_GraphicsElementItemCurrent = SchematicWindow::vp_SelectedElements.at(iF);
 			//
+			if(uchMinStatus == 0) SetElementTooltip(p_GraphicsElementItemCurrent);
+			else p_GraphicsElementItemCurrent->setToolTip("");
+			//
+			// Смена минимизации элемента.
 			if(IsMinimized(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits) ==
 			   uchMinStatus)
 			{
-				QList<QGraphicsItem*> lp_Items = p_GraphicsElementItemCurrent->childItems();
-				int iCn = lp_Items.count();
-				bool bPortsPresent = false;
-				//
 				p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits ^= SCH_SETTINGS_EG_BIT_MIN;
 				p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_MIN;
 				MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
 															   (char*)&p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars,
 															   sizeof(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars));
-				for(int iC = 0; iC < iCn; iC++)
-				{
-					GraphicsPortItem* p_GraphicsPortItemInt;
-					DbPoint oDbPoint;
-					QGraphicsItem* p_GraphicsItem;
-					//
-					p_GraphicsItem = lp_Items.at(iC);
-					if(p_GraphicsItem->data(SCH_TYPE_OF_ITEM) == SCH_TYPE_ITEM_UI)
-					{
-						if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
-						{
-							bPortsPresent = true;
-							p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
-							oDbPoint = p_GraphicsPortItemInt->oDbPAlterMinPos;
-							p_GraphicsPortItemInt->oDbPAlterMinPos.dbX = p_GraphicsPortItemInt->pos().x();
-							p_GraphicsPortItemInt->oDbPAlterMinPos.dbY = p_GraphicsPortItemInt->pos().y();
-							SetPortToPos(p_GraphicsPortItemInt, oDbPoint);
-							SetHidingStatus(p_GraphicsPortItemInt, IsMinimized(p_GraphicsElementItemCurrent->oPSchElementBaseInt.
-											oPSchElementVars.oSchEGGraph.uchSettingsBits));
-						}
-					}
-				}
-				p_GraphicsElementItemCurrent->bPortsForMin = bPortsPresent;
-				if(IsMinimized(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits))
-				{
-					p_GraphicsElementItemCurrent->p_GraphicsScalerItem->hide();
-					if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->hide();
-				}
-				else
-				{
-					p_GraphicsElementItemCurrent->p_GraphicsScalerItem->show();
-					if(p_GraphicsElementItemCurrent->p_QGroupBox) p_GraphicsElementItemCurrent->p_QGroupBox->show();
-				}
-				if(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel)
-				{
-					UpdateGroupFrameByContentRecursivelyUpstream(p_GraphicsElementItemCurrent->p_GraphicsGroupItemRel);
-				}
-				else SchematicWindow::p_QGraphicsScene->update();
+				//
+				ElementMinOperations(vp_GraphicsLinkItemInitCollection, p_GraphicsElementItemCurrent);
 			}
 		}
+		SetLinksVisAfterMinChanges(vp_GraphicsLinkItemInitCollection);
 		//
-		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
-		{
-			SchematicWindow::vp_SelectedElements.removeAll(p_GraphicsElementItem);
-		}
+		TempDeselectElement(p_GraphicsElementItem);
 		goto gM;
 	}
 	if(p_Event->button() == Qt::MouseButton::LeftButton)
@@ -3468,10 +3496,10 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 				setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
 					   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
 	}
-	if(IsMinimized(p_ElementSettings))
-	{
-		p_GraphicsElementItem->p_GraphicsScalerItem->hide();  // Если минимизировано - скрываем.
-	}
+//	if(IsMinimized(p_ElementSettings))
+//	{
+//		p_GraphicsElementItem->p_GraphicsScalerItem->hide();  // Если минимизировано - скрываем.
+//	}
 	// Фрейм для обводки.
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
@@ -3520,17 +3548,16 @@ bool SchematicView::CheckLinkPresent(QVector<GraphicsLinkItem*>& avp_GraphicsLin
 	return false;
 }
 
-// Установка портов групп после смены статуса минимизации.
-void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
+// Установка портов групп и видимости линков после смены статуса минимизации групп.
+void SchematicView::SetPortsPlacementAndLinksVisAfterGroupsMinChanges(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection)
 {
-	QVector<GraphicsLinkItem*> vp_GraphicsLinkItemUniques;
 	GraphicsPortItem* p_GraphicsPortItemCurrent;
 	QVector<GraphicsLinkItem*> vp_GraphicsLinkItemInitCollection;
 	//
-	for(int iF = 0; iF != pv_GraphicsPortItemsCollected.count(); iF++)
+	for(int iF = 0; iF != avp_GraphicsPortItemsCollection.count(); iF++)
 	{
 		DbPoint oDbPointLastGroupPos;
-		p_GraphicsPortItemCurrent = pv_GraphicsPortItemsCollected.at(iF);
+		p_GraphicsPortItemCurrent = avp_GraphicsPortItemsCollection.at(iF);
 		GraphicsElementItem* p_GraphicsElementItemCurrent = p_GraphicsPortItemCurrent->p_ParentInt;
 		GraphicsElementItem* p_GraphicsElementItemOnLink;
 		GraphicsGroupItem* p_GraphicsGroupItem;
@@ -3548,8 +3575,8 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 			p_GraphicsElementItemOnLink = p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt->p_GraphicsElementItemSrc;
 		}
 		//
-		if(!(p_GraphicsElementItemCurrent->isVisible() && p_GraphicsElementItemCurrent->isVisible()))
-		{ // Если хоть один элемент из прикреплённых скрыт - добавляем линк в список для обработки.
+		if(!(p_GraphicsElementItemCurrent->isVisible() && p_GraphicsElementItemOnLink->isVisible()))
+		{ // Если хоть один элемент из прикреплённых скрыт - добавляем уникальный линк в список для обработки.
 			if(!vp_GraphicsLinkItemInitCollection.contains(p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt)) // Елси уже не добавлен.
 				vp_GraphicsLinkItemInitCollection.append(p_GraphicsPortItemCurrent->p_GraphicsLinkItemInt);
 		}
@@ -3629,20 +3656,12 @@ void SchematicView::SetPortsPlacementAfterGroupsMinChanges()
 		SetPortToPos(p_GraphicsPortItemCurrent, oDbPointCorr);
 	}
 	//
-	for(int iF = 0; iF != vp_GraphicsLinkItemInitCollection.count(); iF++)
-	{
-		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItemInitCollection.at(iF);
-		//
-		if(CheckLinkPresent(vp_GraphicsLinkItemUniques, p_GraphicsLinkItem)) // Если линк уже есть в списке...
-		{
-			p_GraphicsLinkItem->bExcludeFromPaint = true; // Добавление в исключения из отрисовки.
-		}
-		else vp_GraphicsLinkItemUniques.append(p_GraphicsLinkItem); // Иначе - в список уникальных.
-	}
+	SetLinksVisAfterMinChanges(vp_GraphicsLinkItemInitCollection);
 }
 
 // Рекурсивные операции по минимизации группы.
-void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding, bool bHiderFound)
+void SchematicView::GroupMinOperationsRecursively(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection,
+												  GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding, bool bHiderFound)
 {
 	bool bGroupMinStatus = IsMinimized(p_GroupSettings);
 	//
@@ -3689,7 +3708,8 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 				if(p_GraphicsItem->data(SCH_KIND_OF_ITEM) == SCH_KIND_ITEM_PORT)
 				{
 					p_GraphicsPortItemInt = (GraphicsPortItem*)p_GraphicsItem;
-					pv_GraphicsPortItemsCollected.append(p_GraphicsPortItemInt);
+					if(!avp_GraphicsPortItemsCollection.contains(p_GraphicsPortItemInt))
+							avp_GraphicsPortItemsCollection.append(p_GraphicsPortItemInt);
 				}
 			}
 		}
@@ -3698,7 +3718,7 @@ void SchematicView::GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsG
 	{
 		GraphicsGroupItem* p_GraphicsGroupItemInt = p_GraphicsGroupItem->vp_ConnectedGroups.at(iE);
 		// Рекурсия.
-		GroupMinOperationsRecursively(p_GraphicsGroupItemInt, bNextHiding, bHiderFound);
+		GroupMinOperationsRecursively(avp_GraphicsPortItemsCollection, p_GraphicsGroupItemInt, bNextHiding, bHiderFound);
 	}
 }
 
@@ -3728,6 +3748,8 @@ void SchematicView::AfterLoadingPlacement()
 	GraphicsGroupItem* p_GraphicsGroupItemCurrent;
 	GraphicsGroupItem* p_GraphicsGroupItemRoot;
 	QVector<GraphicsGroupItem*> vp_GraphicsGroupItemRoots;
+	QVector<GraphicsLinkItem*> vp_GraphicsLinkItemsCollection;
+	QVector<GraphicsPortItem*> vp_GraphicsPortItemsCollection;
 	//
 	for(int iF = 0; iF != SchematicWindow::vp_Groups.count(); iF++)
 	{
@@ -3752,21 +3774,23 @@ void SchematicView::AfterLoadingPlacement()
 			vp_GraphicsGroupItemRoots.append(p_GraphicsGroupItemRoot);
 		}
 	}
-	pv_GraphicsPortItemsCollected.clear();
+	//
 	SchematicWindow::vp_SelectedGroups.clear();
 	//
 	for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
 	{
 		p_GraphicsGroupItemRoot = vp_GraphicsGroupItemRoots.at(iF);
-		GroupMinOperationsRecursively(p_GraphicsGroupItemRoot);
+		GroupMinOperationsRecursively(vp_GraphicsPortItemsCollection, p_GraphicsGroupItemRoot);
 		UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemRoot);
 	}
 	//
-	SetPortsPlacementAfterGroupsMinChanges();
+	SetPortsPlacementAndLinksVisAfterGroupsMinChanges(vp_GraphicsPortItemsCollection);
+	//
 	for(int iF = 0; iF != SchematicWindow::vp_Elements.count(); iF++)
 	{
 		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		//
+		ElementMinOperations(vp_GraphicsLinkItemsCollection, p_GraphicsElementItem, true);
 		if(!IsMinimized(p_ElementSettings))
 		{
 			if(p_GraphicsElementItem->p_QGroupBox)
@@ -3780,6 +3804,7 @@ void SchematicView::AfterLoadingPlacement()
 			SetElementTooltip(p_GraphicsElementItem);
 		}
 	}
+	SetLinksVisAfterMinChanges(vp_GraphicsLinkItemsCollection);
 }
 
 // Обработчик события нажатия мыши на группу.
@@ -3799,6 +3824,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 		GraphicsGroupItem* p_GraphicsGroupItemCurrent;
 		GraphicsGroupItem* p_GraphicsGroupItemRoot;
 		QVector<GraphicsGroupItem*> vp_GraphicsGroupItemRoots;
+		QVector<GraphicsPortItem*> vp_GraphicsPortItemsCollection;
 		//
 		bLastSt = p_GraphicsGroupItem->bSelected; // Запоминаем текущее значение выбраности.
 		if(!SchematicWindow::vp_SelectedGroups.contains(p_GraphicsGroupItem)) // Если не было выбрано - добавляем для массовых действий.
@@ -3844,16 +3870,15 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				}
 			}
 		}
-		pv_GraphicsPortItemsCollected.clear();
 		// Заход в каждый корень.
 		for(int iF = 0; iF != vp_GraphicsGroupItemRoots.count(); iF++)
 		{
 			p_GraphicsGroupItemRoot = vp_GraphicsGroupItemRoots.at(iF);
-			GroupMinOperationsRecursively(p_GraphicsGroupItemRoot);
+			GroupMinOperationsRecursively(vp_GraphicsPortItemsCollection, p_GraphicsGroupItemRoot);
 			UpdateVerticalOfGroupFramesRecursively(p_GraphicsGroupItemRoot);
 		}
 		//
-		SetPortsPlacementAfterGroupsMinChanges();
+		SetPortsPlacementAndLinksVisAfterGroupsMinChanges(vp_GraphicsPortItemsCollection);
 		//
 		if(!bLastSt) // Если был не выбран и добавлялся для массовых действий - удаление из списка выбранных.
 		{

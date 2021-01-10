@@ -457,12 +457,24 @@ private:
 	static bool DoubleButtonsReleaseControl();
 							///< \return true при снятии совместного нажатия.
 	/// Рекурсивные операции по минимизации группы.
-	static void GroupMinOperationsRecursively(GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding = false, bool bHiderFound = false);
+	static void GroupMinOperationsRecursively(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection,
+											  GraphicsGroupItem* p_GraphicsGroupItem, bool bNextHiding = false, bool bHiderFound = false);
+							///< \param[out] avp_GraphicsPortItemsCollection Ссылка на список для заполнения для будущей минимизации.
 							///< \param[in] p_GraphicsGroupItem Указатель на группу - корень (для пользователя).
 							///< \param[in] bNextHiding Служебная для рекурсии - статус скрытия следующей группы.
 							///< \param[in] bHiderFound Служебная для рекурсии - true - найдена скрывающая группа.
-	/// Установка портов групп после смены статуса минимизации.
-	static void SetPortsPlacementAfterGroupsMinChanges();
+	/// Операции по минимизации элемента.
+	static void ElementMinOperations(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemInitCollection,
+									 GraphicsElementItem* p_GraphicsElementItem, bool bFromAfterLoader = false);
+							///< \param[out] avp_GraphicsLinkItemInitCollection Ссылка на список для заполнения для будущей минимизации.
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] bFromAfterLoader true для отключения калибровки групп при заходе после начального загрузчика.
+	/// Установка видимости линков после смены статуса минимизации.
+	static void SetLinksVisAfterMinChanges(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemInitCollection);
+							///< \param[in] avp_GraphicsLinkItemInitCollection Ссылка на список линков.
+	/// Установка портов групп и видимости линков после смены статуса минимизации групп.
+	static void SetPortsPlacementAndLinksVisAfterGroupsMinChanges(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection);
+							///< \param[in] avp_GraphicsPortItemsCollection Ссылка на список портов.
 	/// Проверка наличия структуры скрытия в списке по координатам портов.
 	static bool CheckLinkPresent(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemUniques, GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] avp_GraphicsLinkItemUniques Ссылка на список указателей на линки.
@@ -614,7 +626,6 @@ private:
 	static QPointF pntMinFrameTrT; ///< Центральная вершина минимизированного треугольника рамки.
 	static QPointF pntMinFrameTrL; ///< Левая вершина минимизированного треугольника рамки.
 	static constexpr double dbSqrtFromTwoDivByTwo = 0.7071067811865475244f; ///< Для определения 45гр. на окружности.
-	static QVector<GraphicsPortItem*> pv_GraphicsPortItemsCollected; ///< Вектор портов из пройденных элементов при смене статуса минимизации.
 	static QVector<GraphicsElementItem*> vp_SelectedForDeleteElements; ///< Вектор с указателями на выбранные для удаления граф. элементы.
 	static QVector<GraphicsGroupItem*> vp_SelectedForDeleteGroups; ///< Вектор с указателями на выбранные для удаления граф. группы.
 	static QGraphicsRectItem* p_QGraphicsRectItemSelectionDash; ///< Прямоугольник выборки, линии.
