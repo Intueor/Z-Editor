@@ -2441,10 +2441,10 @@ bool SchematicView::DoubleButtonsReleaseControl()
 	return false;
 }
 
-// Проверка наличия портов в выборке и по элементу (опционально).
-bool SchematicView::CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem)
+// Проверка наличия портов в выборке и в добавочных объектах (опционально).
+bool SchematicView::CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem, GraphicsGroupItem* p_GraphicsGroupItem)
 {
-	for(int iF = 0; iF !=  SchematicWindow::vp_Ports.count(); iF++)
+	for(int iF = 0; iF != SchematicWindow::vp_Ports.count(); iF++)
 	{
 		GraphicsElementItem* p_GraphicsElementItemHelper;
 		GraphicsElementItem* p_GraphicsElementItemPortParent = SchematicWindow::vp_Ports.at(iF)->p_ParentInt;
@@ -2456,6 +2456,10 @@ bool SchematicView::CheckPortsInSelection(GraphicsElementItem* p_GraphicsElement
 			//
 			if(p_GraphicsElementItemHelper == p_GraphicsElementItemPortParent) return true;
 		}
+		if(p_GraphicsGroupItem)
+		{
+			SchematicWindow::vp_SelectedGroups.append(p_GraphicsGroupItem);
+		}
 		for(int iG = 0; iG != SchematicWindow::vp_SelectedGroups.count(); iG++)
 		{
 			GraphicsGroupItem* p_GraphicsGroupItemHelper = SchematicWindow::vp_SelectedGroups.at(iG);
@@ -2464,8 +2468,19 @@ bool SchematicView::CheckPortsInSelection(GraphicsElementItem* p_GraphicsElement
 			{
 				p_GraphicsElementItemHelper = p_GraphicsGroupItemHelper->vp_ConnectedElements.at(iL);
 				//
-				if(p_GraphicsElementItemHelper == p_GraphicsElementItemPortParent) return true;
+				if(p_GraphicsElementItemHelper == p_GraphicsElementItemPortParent)
+				{
+					if(p_GraphicsGroupItem)
+					{
+						SchematicWindow::vp_SelectedGroups.removeLast();
+					}
+					return true;
+				}
 			}
+		}
+		if(p_GraphicsGroupItem)
+		{
+			SchematicWindow::vp_SelectedGroups.removeLast();
 		}
 	}
 	return false;
@@ -3915,7 +3930,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 			QString strCaption;
 			bool bSingleSelected;
 			bool bNoSelElements = SchematicWindow::vp_SelectedElements.isEmpty();
-			bool bPortsPresent = CheckPortsInSelection();
+			bool bPortsPresent = CheckPortsInSelection(nullptr, p_GraphicsGroupItem);
 			bool bGroupIsFree = p_GraphicsGroupItem->p_GraphicsGroupItemRel == nullptr;
 			//
 			if(!(bNoSelElements && SchematicWindow::vp_SelectedGroups.isEmpty()))

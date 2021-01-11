@@ -434,9 +434,10 @@ private:
 	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem, DbPoint dbPortPos);
 							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.
 							///< \param[in] dbPortPos Позиция порта в коорд. элемента.
-	/// Проверка наличия портов в выборке и по элементу (опционально).
-	static bool CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem = nullptr);
+	/// Проверка наличия портов в выборке и в добавочных объектах (опционально).
+	static bool CheckPortsInSelection(GraphicsElementItem* p_GraphicsElementItem = nullptr, GraphicsGroupItem* p_GraphicsGroupItem = nullptr);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент или nullprt.
+							///< \param[in] p_GraphicsGroupItem Указатель на элемент или nullprt.
 							///< \return true - при обнаружении.
 	/// Вычисление точек портов в координатах сцены.
 	static DbPointPair CalcPortsSceneCoords(GraphicsLinkItem* p_GraphicsLinkItem);
