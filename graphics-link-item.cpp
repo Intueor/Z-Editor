@@ -19,16 +19,13 @@ GraphicsLinkItem::~GraphicsLinkItem()
 // Переопределение функции сообщения о вмещающем прямоугольнике.
 QRectF GraphicsLinkItem::boundingRect() const
 {
-	DbPoint oDbPoint = SchematicView::CalcLinkLineWidthHeight((GraphicsLinkItem*)this).oDbPointWH;
+	DbPoint oDbPoint = SchematicView::CalcLinkLineWidthHeight(const_cast<GraphicsLinkItem*>(this)).oDbPointWH;
 	return QRectF(0, 0, oDbPoint.dbX, oDbPoint.dbY);
 }
 
 // Переопределение функции рисования линка.
-void GraphicsLinkItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
+void GraphicsLinkItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
 	//
 	SchematicView::LinkPaintHandler(this, p_Painter);
 }

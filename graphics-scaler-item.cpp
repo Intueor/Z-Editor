@@ -23,12 +23,8 @@ QPainterPath GraphicsScalerItem::shape() const
 }
 
 // Переопределение функции рисования скалера.
-void GraphicsScalerItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
+void GraphicsScalerItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
-	//
 	SchematicView::ScalerPaintHandler(this, p_Painter);
 }
 

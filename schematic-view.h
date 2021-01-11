@@ -306,11 +306,11 @@ private:
 	static void UpdateLinksZPos();
 	/// Замена линка.
 	static bool ReplaceLink(GraphicsLinkItem* p_GraphicsLinkItem, GraphicsElementItem* p_GraphicsElementItem, bool bIsSrc,
-							DbPoint oDbPortPos, bool bFromElement);
+							DbPoint& a_oDbPortPos, bool bFromElement);
 							///< \param[in] p_GraphicsLinkItem Указатель на старый линк.
 							///< \param[in] p_GraphicsElementItem Указатель на элемент, на который будет создан новый линк.
 							///< \param[in] bIsSrc При true - новый элемент будет источником.
-							///< \param[in] oDbPortPos Координаты порта в коорд. элемента на момент обращения.
+							///< \param[in] a_oDbPortPos Ссылка оординаты порта в коорд. элемента на момент обращения.
 							///< \param[in] bFromElement Флаг запроса работы с портом от элемента (при создании нового линка).
 							///< \return true при удаче.
 	/// Пересчёт позиции граф. порта к краям элемента.

@@ -18,12 +18,8 @@ QRectF GraphicsFrameItem::boundingRect() const
 }
 
 // Переопределение функции рисования фрейма.
-void GraphicsFrameItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem *p_Option, QWidget *p_Widget)
+void GraphicsFrameItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
-	//
 	SchematicView::FramePaintHandler(this, p_Painter);
 }
 

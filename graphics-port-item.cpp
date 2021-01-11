@@ -17,12 +17,8 @@ QRectF GraphicsPortItem::boundingRect() const
 }
 
 // Переопределение функции рисования порта.
-void GraphicsPortItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
+void GraphicsPortItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
-	//
 	SchematicView::PortPaintHandler(this, p_Painter);
 }
 

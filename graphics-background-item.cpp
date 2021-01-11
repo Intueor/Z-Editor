@@ -38,12 +38,8 @@ QPainterPath GraphicsBackgroundItem::shape() const
 }
 
 // Переопределение функции рисования скалера.
-void GraphicsBackgroundItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
+void GraphicsBackgroundItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
-	//
 	if(!SchematicView::bLoading)
 	{
 		p_Painter->setPen(oQPenDarkGray);

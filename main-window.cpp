@@ -43,41 +43,37 @@ bool MainWindow::bSchemaIsOpened = false;
 //== Класс добавки данных сервера к стандартному элементу лист-виджета.
 // Конструктор.
 ServersListWidgetItem::ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPassword,
-											 bool bIsIPv4, char *p_chName, QListWidget* p_ListWidget) : QListWidgetItem(p_ListWidget)
+											 bool bIsIPv4, char *p_chName, QListWidget* p_ListWidget) : QListWidgetItem(p_ListWidget), m_chName("")
 {
 	if(p_chName)
 	{
 		CopyStrArray(p_chName, m_chName, SERVER_NAME_STR_LEN);
-	}
-	else
-	{
-		m_chName[0] = 0;
 	}
 	CopyStrArray(p_IPPortPassword->p_chIPNameBuffer, m_chIP, IP_STR_LEN);
 	CopyStrArray(p_IPPortPassword->p_chPortNameBuffer, m_chPort, PORT_STR_LEN);
 	CopyStrArray(p_IPPortPassword->p_chPasswordNameBuffer, m_chPassword, AUTH_PASSWORD_STR_LEN);
 	if(bIsIPv4)
 	{
-		if(m_chName[0] == 0)
-		{
-			this->setText(QString(m_chIP) + ":" + QString(m_chPort));
-		}
-		else
+		if(m_chName[0])
 		{
 			this->setText(QString(m_chName));
 			this->setToolTip(QString(m_chName) + " - " + QString(m_chIP) + ":" + QString(m_chPort));
 		}
+		else
+		{
+			this->setText(QString(m_chIP) + ":" + QString(m_chPort));
+		}
 	}
 	else
 	{
-		if(m_chName[0] == 0)
-		{
-			this->setText("[" + QString(m_chIP) + "]:" + QString(m_chPort));
-		}
-		else
+		if(m_chName[0])
 		{
 			this->setText(QString(m_chName));
 			this->setToolTip(QString(m_chName) + " - [" + QString(m_chIP) + "]:" + QString(m_chPort));
+		}
+		else
+		{
+			this->setText("[" + QString(m_chIP) + "]:" + QString(m_chPort));
 		}
 	}
 }
@@ -85,7 +81,7 @@ ServersListWidgetItem::ServersListWidgetItem(NetHub::IPPortPassword* p_IPPortPas
 // Получение указателя строку с именем сервера или 0 при пустой строке.
 char* ServersListWidgetItem::GetName()
 {
-	if(m_chName[0] != 0)
+	if(m_chName[0])
 	{
 		return &m_chName[0];
 	}
@@ -296,7 +292,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 			{
 				PSchStatusInfo oPSchStatusInfo;
 				//
-				oPSchStatusInfo = *(PSchStatusInfo*)p_ReceivedData;
+				oPSchStatusInfo = *static_cast<PSchStatusInfo*>(p_ReceivedData);
 				if(oPSchStatusInfo.uchBits & SCH_STATUS_LOADED)
 				{
 					SchematicView::AfterLoadingPlacement();
@@ -366,7 +362,7 @@ gLO:		bProcessed = true;
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				bool bGroupFounded = false;
 				//
-				oPSchElementBase = *(PSchElementBase*)p_ReceivedData;
+				oPSchElementBase = *static_cast<PSchElementBase*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Element base [" << QString(oPSchElementBase.m_chName).toStdString() << "]");
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
@@ -435,7 +431,7 @@ gP:				if(oPSchElementBase.oPSchElementVars.bLastInQueue)
 				PSchElementVars oPSchElementVars;
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
-				oPSchElementVars = *(PSchElementVars*)p_ReceivedData;
+				oPSchElementVars = *static_cast<PSchElementVars*>(p_ReceivedData);
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
 					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
@@ -473,7 +469,7 @@ gC:				if(oPSchElementVars.bLastInQueue)
 				PSchElementName oPSchElementName;
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
-				oPSchElementName = *(PSchElementName*)p_ReceivedData;
+				oPSchElementName = *static_cast<PSchElementName*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Element name [" << QString(oPSchElementName.m_chName).toStdString() << "]");
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
@@ -510,7 +506,7 @@ gN:				if(oPSchElementName.bLastInQueue)
 				PSchElementColor oPSchElementColor;
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
-				oPSchElementColor = *(PSchElementColor*)p_ReceivedData;
+				oPSchElementColor = *static_cast<PSchElementColor*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Element color");
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
@@ -548,7 +544,7 @@ gNC:			if(oPSchElementColor.bLastInQueue)
 				GraphicsLinkItem* p_GraphicsLinkItem;
 				GraphicsLinkItem* p_WaitingHelper = nullptr;
 				//
-				oPSchLinkBase = *(PSchLinkBase*)p_ReceivedData;
+				oPSchLinkBase = *static_cast<PSchLinkBase*>(p_ReceivedData);
 				for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
 				{
 					p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
@@ -607,7 +603,7 @@ gL:				if(oPSchLinkBase.oPSchLinkVars.bLastInQueue)
 				PSchLinkVars oPSchLinkVars;
 				GraphicsLinkItem* p_GraphicsLinkItem;
 				//
-				oPSchLinkVars = *(PSchLinkVars*)p_ReceivedData;
+				oPSchLinkVars = *static_cast<PSchLinkVars*>(p_ReceivedData);
 				for(int iF = 0; iF < SchematicWindow::vp_Links.count(); iF++)
 				{
 					p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
@@ -658,7 +654,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 				GraphicsElementItem* p_GraphicsElementItemInt;
 				bool bGroupFounded = false;
 				//
-				oPSchGroupBase = *(PSchGroupBase*)p_ReceivedData;
+				oPSchGroupBase = *static_cast<PSchGroupBase*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Group base [" << QString(oPSchGroupBase.m_chName).toStdString() << "]");
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
@@ -866,7 +862,7 @@ gG:				if(oPSchGroupBase.oPSchGroupVars.bLastInQueue)
 				PSchGroupVars oPSchGroupVars;
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
-				oPSchGroupVars = *(PSchGroupVars*)p_ReceivedData;
+				oPSchGroupVars = *static_cast<PSchGroupVars*>(p_ReceivedData);
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
 					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
@@ -904,7 +900,7 @@ gI:				if(oPSchGroupVars.bLastInQueue)
 				PSchGroupName oPSchGroupName;
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
-				oPSchGroupName = *(PSchGroupName*)p_ReceivedData;
+				oPSchGroupName = *static_cast<PSchGroupName*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Group name [" << QString(oPSchGroupName.m_chName).toStdString() << "]");
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
@@ -941,7 +937,7 @@ gGN:			if(oPSchGroupName.bLastInQueue)
 				PSchGroupColor oPSchGroupColor;
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
-				oPSchGroupColor = *(PSchGroupColor*)p_ReceivedData;
+				oPSchGroupColor = *static_cast<PSchGroupColor*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Group color");
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
@@ -978,7 +974,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 				PSchElementEraser oPSchElementEraser;
 				GraphicsElementItem* p_GraphicsElementItem = nullptr;
 				//
-				oPSchElementEraser = *(PSchElementEraser*)p_ReceivedData;
+				oPSchElementEraser = *static_cast<PSchElementEraser*>(p_ReceivedData);
 				// Работа с линками.
 				EraseLinksFromElement(oPSchElementEraser.ullIDInt);
 				// Работа с элементами.
@@ -1038,7 +1034,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 				GraphicsGroupItem* p_GraphicsGroupItem = nullptr;
 				GraphicsElementItem* p_GraphicsElementItem = nullptr;
 				//
-				oPSchGroupEraser = *(PSchGroupEraser*)p_ReceivedData;
+				oPSchGroupEraser = *static_cast<PSchGroupEraser*>(p_ReceivedData);
 				// Поиск группы.
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++) // Поиск по всем группам...
 				{
@@ -1292,7 +1288,6 @@ bool MainWindow::SaveClientConfig()
 	XMLNode* p_NodePassword;
 	XMLNode* p_NodeServers;
 	XMLNode* p_NodeServer;
-	char* p_chHelper;
 	//
 	xmlDocCConf.InsertEndChild(xmlDocCConf.NewDeclaration());
 	p_NodeRoot = xmlDocCConf.InsertEndChild(xmlDocCConf.NewElement("Root"));
@@ -1313,8 +1308,10 @@ bool MainWindow::SaveClientConfig()
 	p_NodeServers = p_NodeRoot->InsertEndChild(xmlDocCConf.NewElement("Servers"));
 	for(int iC = p_ui->listWidget_Servers->count() - 1; iC != -1; iC--)
 	{
+		char* p_chHelper;
+		//
 		p_NodeServer = p_NodeServers->InsertEndChild(xmlDocCConf.NewElement("Server"));
-		p_chHelper = ((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->GetName();
+		p_chHelper = (static_cast<ServersListWidgetItem*>(p_ui->listWidget_Servers->item(iC)))->GetName();
 		if(p_chHelper != 0)
 		{
 			p_NodeName = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Name"));
@@ -1322,13 +1319,13 @@ bool MainWindow::SaveClientConfig()
 		}
 		p_NodeServerIP = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("IP"));
 		p_NodeServerIP->ToElement()->SetText(
-					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->m_chIP);
+					(static_cast<ServersListWidgetItem*>(p_ui->listWidget_Servers->item(iC)))->m_chIP);
 		p_NodePort = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Port"));
 		p_NodePort->ToElement()->SetText(
-					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->m_chPort);
+					(static_cast<ServersListWidgetItem*>(p_ui->listWidget_Servers->item(iC)))->m_chPort);
 		p_NodePassword = p_NodeServer->InsertEndChild(xmlDocCConf.NewElement("Password"));
 		p_NodePassword->ToElement()->SetText(
-					((ServersListWidgetItem*)p_ui->listWidget_Servers->item(iC))->m_chPassword);
+					(static_cast<ServersListWidgetItem*>(p_ui->listWidget_Servers->item(iC)))->m_chPassword);
 	}
 	eResult = xmlDocCConf.SaveFile(C_CONF_PATH);
 	if (eResult != XML_SUCCESS)
@@ -1478,11 +1475,11 @@ void MainWindow::EraseLinksFromElement(unsigned long long ullIDInt)
 {
 	bool bToErase = false;
 	int iLC = SchematicWindow::vp_Links.count();
-	GraphicsLinkItem* p_GraphicsLinkItem;
 	//
 	for(int iL = 0; iL < iLC; iL++) // По всем линкам...
 	{
-		p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iL);
+		GraphicsLinkItem* p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iL);
+		//
 		if(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc == ullIDInt)
 		{
 			bToErase = true; // Линк относится к удаляемому и будет тоже удалён.
@@ -1659,13 +1656,12 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 {
 	QPoint pntGlobalPos;
 	SafeMenu oSafeMenu;
-	QAction* p_SelectedMenuItem;
 	ServersListWidgetItem* p_ServersListWidgetItem;
-	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
-	p_ServersListWidgetItem = (ServersListWidgetItem*)p_ui->listWidget_Servers->itemAt(pos);
+	p_ServersListWidgetItem = static_cast<ServersListWidgetItem*>(p_ui->listWidget_Servers->itemAt(pos));
 	if(p_ServersListWidgetItem != 0)
 	{
+		QAction* p_SelectedMenuItem;
 		pntGlobalPos = QCursor::pos();
 		oSafeMenu.addAction(m_chMenuDeleteItem)->setData(MENU_DELETE_ITEM);
 		oSafeMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
@@ -1683,7 +1679,7 @@ void MainWindow::on_listWidget_Servers_customContextMenuRequested(const QPoint &
 			}
 			else if(p_SelectedMenuItem->data() == MENU_SET_PASSWORD)
 			{
-				p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword,
+				Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog = new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword,
 																			  p_ServersListWidgetItem->m_chPassword, AUTH_PASSWORD_STR_LEN);
 				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 				{
@@ -1707,7 +1703,6 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	QPoint pntGlobalPos;
 	SafeMenu oSafeMenu;
 	QAction* p_SelectedMenuItem;
-	Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
 	//
 	pntGlobalPos = QCursor::pos();
 	oSafeMenu.addAction(m_chMenuSetPassword)->setData(MENU_SET_PASSWORD);
@@ -1716,8 +1711,9 @@ void MainWindow::on_label_CurrentServer_customContextMenuRequested(const QPoint 
 	{
 		if(p_SelectedMenuItem->data() == MENU_SET_PASSWORD)
 		{
-			p_Set_Proposed_String_Dialog =
+			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog =
 					new Set_Proposed_String_Dialog((char*)m_chMsgServerPassword, m_chPasswordInt, AUTH_PASSWORD_STR_LEN);
+			//
 			if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 			{
 				LCHECK_BOOL(SaveClientConfig());
@@ -1752,7 +1748,7 @@ gA: p_Set_Server_Dialog = new Set_Server_Dialog((char*)"127.0.0.1", (char*)"8877
 		}
 		for(int iItem = 0; iItem < p_ui->listWidget_Servers->count(); iItem++)
 		{
-			p_ServersListWidgetItem = (ServersListWidgetItem*)(p_ui->listWidget_Servers->item(iItem));
+			p_ServersListWidgetItem = static_cast<ServersListWidgetItem*>(p_ui->listWidget_Servers->item(iItem));
 			FillNumericStructWithIPPortStrs(oNumericAddressHelper,
 											QString(p_ServersListWidgetItem->m_chIP), QString(p_ServersListWidgetItem->m_chPort));
 			if(CheckEqualsNumbers(oNumericAddress, oNumericAddressHelper))
@@ -1806,7 +1802,7 @@ void MainWindow::on_listWidget_Servers_itemDoubleClicked(QListWidgetItem* item)
 	ServersListWidgetItem* p_ServersListWidgetItem;
 	//
 	if(p_ui->pushButton_Disconnect->isEnabled()) return;
-	p_ServersListWidgetItem = (ServersListWidgetItem*)item;
+	p_ServersListWidgetItem = static_cast<ServersListWidgetItem*>(item);
 	CurrentServerSwap(p_ServersListWidgetItem);
 	LCHECK_BOOL(SaveClientConfig());
 }
@@ -1891,12 +1887,11 @@ void MainWindow::IncomingUpdateGroupParameters(GraphicsGroupItem* p_GraphicsGrou
 				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbX;
 		double dbYShift = a_SchGroupVars.oSchEGGraph.oDbFrame.dbY -
 				p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbY;
-		GraphicsElementItem* p_GraphicsElementItem;
 		//
 		LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "] elements shift.");
 		for(int iE = 0; iE != p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
 		{
-			p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
+			GraphicsElementItem* p_GraphicsElementItem = p_GraphicsGroupItem->vp_ConnectedElements.at(iE);
 			LOG_P_2(LOG_CAT_I, "[" << QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "] shifting.");
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbX += dbXShift;
 			p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbY += dbYShift;

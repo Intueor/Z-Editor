@@ -23,10 +23,8 @@ public:
 	QRectF boundingRect() const override;
 							///< \return Вмещающий прямоугольник.
 	/// Переопределение функции рисования линка.
-	void paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget) override;
+	void paint(QPainter* p_Painter, const QStyleOptionGraphicsItem*, QWidget*) override;
 							///< \param[in] p_Painter Указатель на отрисовщик.
-							///< \param[in] p_Option Указатель на опции стиля.
-							///< \param[in] p_Widget Указатель на виджет.
 public:
 	PSchLinkBase oPSchLinkBaseInt; ///< Внутренний объект структуры с параметрами линка.
 	GraphicsPortItem* p_GraphicsPortItemSrc; ///< Внутренний указатель на граф. объект структуры с параметрами порта источника.

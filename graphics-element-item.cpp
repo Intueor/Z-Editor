@@ -31,12 +31,8 @@ QPainterPath GraphicsElementItem::shape() const
 }
 
 // Переопределение функции рисования элемента.
-void GraphicsElementItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem *p_Option, QWidget *p_Widget)
+void GraphicsElementItem::paint(QPainter *p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
-	//
 	SchematicView::ElementPaintHandler(this, p_Painter);
 }
 

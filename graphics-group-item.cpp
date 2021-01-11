@@ -23,12 +23,8 @@ QRectF GraphicsGroupItem::boundingRect() const
 }
 
 // Переопределение функции рисования группы.
-void GraphicsGroupItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem* p_Option, QWidget* p_Widget)
+void GraphicsGroupItem::paint(QPainter* p_Painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-	// Заглушки.
-	p_Option = p_Option;
-	p_Widget = p_Widget;
-	//
 	SchematicView::GroupPaintHandler(this, p_Painter);
 }
 

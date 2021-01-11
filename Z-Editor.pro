@@ -92,7 +92,8 @@ FORMS += \
 DISTFILES += \
     ../Z-Hub/pthread/lib/pthreadVC2.lib \
     ../Z-Hub/pthread/dll/pthreadVC2.dll \
-    ../Z-Hub/win-libs/WS2_32.Lib
+    ../Z-Hub/win-libs/WS2_32.Lib \
+    Z-Editor.supp
 
 RESOURCES += \
     ../Z-Hub/resources.qrc

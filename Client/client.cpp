@@ -54,7 +54,7 @@ bool Client::Start(NetHub::IPPortPassword* p_IPPortPassword)
 		bExitAccepted = false;
 		bServerAlive = false;
 		LOG_P_1(LOG_CAT_I, "Starting client thread.");
-		pthread_create(&ClientThr, nullptr, ClientThread, nullptr);
+		SafeThreadStart(ClientThr, ClientThread, nullptr);
 		return true;
 	}
 	else
@@ -538,7 +538,7 @@ void* Client::ClientThread(void *p_vPlug)
 	oConvData.oConnectionData.iStatus = 1;
 	LOG_P_1(LOG_CAT_I, "Starting connection thread.");
 	bConnectionThrAlive = true;
-	pthread_create(&ConnectThr, nullptr, ConnectionThread, nullptr); // Запуск потока ожидания соединения с сервером.
+	SafeThreadStart(ConnectThr, ConnectionThread, nullptr); // Запуск потока ожидания соединения с сервером.
 	for(unsigned char uchAttempt = 1; uchAttempt != 5; uchAttempt++)
 	{
 		for(unsigned char uchCAttempt = 0; uchCAttempt != 48; uchCAttempt++)
@@ -562,7 +562,7 @@ gCO:    if(uchAttempt == 4)
 			oConvData.oConnectionData.iStatus = 1;
 			LOG_P_1(LOG_CAT_I, "Attempt nr." << (int)uchAttempt << ". Waiting for connection...");
 			bConnectionThrAlive = true;
-			pthread_create(&ConnectThr, nullptr, ConnectionThread, 0); // Запуск потока ожидания соединения с сервером.
+			SafeThreadStart(ConnectThr, ConnectionThread, nullptr); // Запуск потока ожидания соединения с сервером.
 		}
 	}
 	if(oConvData.oConnectionData.iStatus == -1)
@@ -576,7 +576,7 @@ gCO:    if(uchAttempt == 4)
 								(int)strlen(p_IPPortPasswordInt->p_chPasswordNameBuffer));
 	LOG_P_1(LOG_CAT_I, "Authentification is requested.");
 	LOG_P_1(LOG_CAT_I, "Starting receiver thread.");
-	pthread_create(&RecThr, nullptr, RecThread, nullptr); // Запуск потока приёма.
+	SafeThreadStart(RecThr, RecThread, nullptr); // Запуск потока приёма.
 	//
 	LOG_P_1(LOG_CAT_I, "Waiting for response.");
 	for(unsigned char uchAtt = 0; uchAtt != CLIENT_WAITING_ATTEMPTS; uchAtt++)
