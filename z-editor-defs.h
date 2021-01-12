@@ -152,8 +152,6 @@
 // Логи.
 const char m_chLogWrongData[] = "Wrong data in pocket.";
 const char m_chLogSyncFault[] = "Schematic object operations synchronization fault.";
-const char m_chLogSource[] = "Source ";
-const char m_chLogDestination[] = "Destination ";
 // Тексты.
 const char m_chStatusConnected[] = "Соединён";
 const char m_chMsgServerPassword[] = "Пароль сервера.";

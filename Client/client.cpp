@@ -93,7 +93,7 @@ bool Client::Stop()
 	{
 		MSleep(WAITING_FOR_SRV_STEP / 2);
 		if(bExitSignal == true) goto gES;
-		LOG_P_1(LOG_CAT_I, "Waiting for answer, attempt nr." << (chAttempt + 1));
+		LOG_P_1(LOG_CAT_I, "Waiting for answer, attempt [" << (chAttempt + 1) << "].");
 	}
 	LOG_P_0(LOG_CAT_W, "Server not response, force disconnect.");
 gNC:bExitSignal = true;
@@ -329,7 +329,6 @@ gDp:		oConvData.iCurrentFreePocket = oInternalNetHub.FindFreeReceivedPocketsPos(
 				{
 					if(oParsingResult.bStored)
 					{
-						//LOG_P_1(LOG_CAT_I, "Received pocket nr." << (oConvData.iCurrentFreePocket + 1));
 						oConvData.mReceivedPockets[oConvData.iCurrentFreePocket].bBusy = true;
 					}
 					else
@@ -412,7 +411,7 @@ gI:					break;
 				}
 				case PROTOPARSER_UNKNOWN_COMMAND:
 				{
-					LOG_P_0(LOG_CAT_W, (char*)MSG_UNKNOWN_COMMAND << ": '" << oParsingResult.ushTypeCode << "'");
+					LOG_P_0(LOG_CAT_W, (char*)MSG_UNKNOWN_COMMAND << ": [" << oParsingResult.ushTypeCode << "].");
 					break;
 				}
 				case PROTOPARSER_WRONG_FORMAT:
@@ -466,11 +465,11 @@ void* Client::ConnectionThread(void* p_vPlug)
 											(int)oConvData.oConnectionData.ai_addrlen);
 #ifdef WIN32
 	if(oConvData.oConnectionData.iStatus == SOCKET_ERROR)
-		LOG_P_0(LOG_CAT_E, "Connection error: " << WSAGetLastError());
+		LOG_P_0(LOG_CAT_E, "Connection error: [" << WSAGetLastError() << "].");
 #else
 	if(oConvData.oConnectionData.iStatus == -1)
 	{
-		LOG_P_0(LOG_CAT_W, "Connection error: " << strerror(errno));
+		LOG_P_0(LOG_CAT_W, "Connection error: [" << strerror(errno) << "].");
 	}
 #endif
 	LOG_P_1(LOG_CAT_I, "Exiting connection thread.");
@@ -517,7 +516,7 @@ void* Client::ClientThread(void *p_vPlug)
 	iServerStatus = getaddrinfo(p_IPPortPasswordInt->p_chIPNameBuffer, p_IPPortPasswordInt->p_chPortNameBuffer, &o_Hints, &p_Res);
 	if(iServerStatus != 0)
 	{
-		LOG_P_0(LOG_CAT_E, "'getaddrinfo': " << gai_strerror(iServerStatus));
+		LOG_P_0(LOG_CAT_E, "'getaddrinfo': [" << gai_strerror(iServerStatus) << "].");
 		RETVAL_SET(RETVAL_ERR);
 		goto ex;
 	}
@@ -529,7 +528,7 @@ void* Client::ClientThread(void *p_vPlug)
 	if(oConvData.oConnectionData.iSocket == -1)
 #endif
 	{
-		LOG_P_0(LOG_CAT_E, "'socket': "  << gai_strerror(iServerStatus));
+		LOG_P_0(LOG_CAT_E, "'socket': ["  << gai_strerror(iServerStatus) << "].");
 		RETVAL_SET(RETVAL_ERR);
 		goto ex;
 	}
@@ -560,7 +559,7 @@ gCO:    if(uchAttempt == 4)
 		{
 			MSleep(WAITING_FOR_SRV_STEP);
 			oConvData.oConnectionData.iStatus = 1;
-			LOG_P_1(LOG_CAT_I, "Attempt nr." << (int)uchAttempt << ". Waiting for connection...");
+			LOG_P_1(LOG_CAT_I, "Attempt [nr.]" << (int)uchAttempt << "]. Waiting for connection...");
 			bConnectionThrAlive = true;
 			SafeThreadStart(ConnectThr, ConnectionThread, nullptr); // Запуск потока ожидания соединения с сервером.
 		}

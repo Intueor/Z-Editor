@@ -175,7 +175,7 @@ MainWindow::~MainWindow()
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogErrorExit << RETVAL);
+		LOG_P_0(LOG_CAT_E, m_chLogErrorExit << RETVAL << "].");
 	}
 	LOG_CLOSE;
 	delete p_ui;
@@ -223,7 +223,7 @@ void MainWindow::ServerStatusChangedCallback(bool bStatus)
 // Кэлбэк обработки прихода команд от сервера.
 void MainWindow::ServerCommandArrivedCallback(unsigned short ushCommand)
 {
-	LOG_P_1(LOG_CAT_I, "Server command: " << ushCommand);
+	LOG_P_1(LOG_CAT_I, "Server command: [" << ushCommand << "].");
 	switch(chLastClientRequest)
 	{
 		case CLIENT_REQUEST_CONNECT:
@@ -300,7 +300,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					p_SchematicWindow->p_SchematicView->bLoading = false;
 					SchematicView::CreateBackground();
 					p_SchematicWindow->oScene.update();
-					LOG_P_0(LOG_CAT_I, "Loading completed.");
+					LOG_P_1(LOG_CAT_I, "Loading completed.");
 					goto gLO;
 				}
 				if(oPSchStatusInfo.uchBits & SCH_STATUS_READY) // Если вкл. - очистка сцены и отправка сообщ. о готовности клиента начать загр.
@@ -316,7 +316,7 @@ void MainWindow::ServerDataArrivedCallback(unsigned short ushType, void* p_Recei
 					SchematicView::dbObjectZPos = 1;
 					RemoteUpdateSchViewAndSendRFrame();
 					p_SchematicWindow->p_SchematicView->bLoading = true;
-					LOG_P_0(LOG_CAT_I, "Loading...");
+					LOG_P_1(LOG_CAT_I, "Loading...");
 				}
 				else // Если отключена - блокировка схем.
 				{
@@ -339,7 +339,7 @@ gLO:		bProcessed = true;
 					memcpy(oPServerName.m_chServerName, p_ReceivedData, sizeof(PServerName)); // Загрузка в соотв. структуру.
 					LCHECK_BOOL(SaveClientConfig());
 				}
-				LOG_P_1(LOG_CAT_I, "Server name: " << oPServerName.m_chServerName);
+				LOG_P_1(LOG_CAT_I, "Server name: [" << oPServerName.m_chServerName << "].");
 				p_ui->label_CurrentServer->setText(QString(oPServerName.m_chServerName));
 				oPSchReadyInfo.uchBits = SCH_STATUS_READY;
 				// По приходу имени сервера, ясно, что авторизация прошла успешно. Даётся запрос про статус среды.
@@ -363,7 +363,7 @@ gLO:		bProcessed = true;
 				bool bGroupFounded = false;
 				//
 				oPSchElementBase = *static_cast<PSchElementBase*>(p_ReceivedData);
-				LOG_P_2(LOG_CAT_I, "{In} Element base [" << QString(oPSchElementBase.m_chName).toStdString() << "]");
+				LOG_P_2(LOG_CAT_I, "{In} Element base [" << QString(oPSchElementBase.m_chName).toStdString() << "].");
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
 					if(SchematicWindow::vp_Elements.at(iF)->oPSchElementBaseInt.oPSchElementVars.ullIDInt ==
@@ -440,13 +440,13 @@ gP:				if(oPSchElementBase.oPSchElementVars.bLastInQueue)
 					{
 						// Установка новых параметров.
 						LOG_P_2(LOG_CAT_I, "{In} Element vars [" <<
-								QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
+								QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "].");
 						IncomingUpdateElementParameters(p_GraphicsElementItem, oPSchElementVars);
 						goto gC;
 					}
 				}
 				// Не нашлось в имеющихся ID - ошибка.
-				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_ELEMENT_VARS");
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
 				//
 gC:				if(oPSchElementVars.bLastInQueue)
 				{
@@ -470,7 +470,7 @@ gC:				if(oPSchElementVars.bLastInQueue)
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
 				oPSchElementName = *static_cast<PSchElementName*>(p_ReceivedData);
-				LOG_P_2(LOG_CAT_I, "{In} Element name [" << QString(oPSchElementName.m_chName).toStdString() << "]");
+				LOG_P_2(LOG_CAT_I, "{In} Element name [" << QString(oPSchElementName.m_chName).toStdString() << "].");
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
 					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
@@ -484,7 +484,7 @@ gC:				if(oPSchElementVars.bLastInQueue)
 					}
 				}
 				// Не нашлось в имеющихся ID - ошибка.
-				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_ELEMENT_NAME");
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
 gN:				if(oPSchElementName.bLastInQueue)
 				{
 					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
@@ -507,7 +507,7 @@ gN:				if(oPSchElementName.bLastInQueue)
 				GraphicsElementItem* p_GraphicsElementItem;
 				//
 				oPSchElementColor = *static_cast<PSchElementColor*>(p_ReceivedData);
-				LOG_P_2(LOG_CAT_I, "{In} Element color");
+				LOG_P_2(LOG_CAT_I, "{In} Element color.");
 				for(int iF = 0; iF < SchematicWindow::vp_Elements.count(); iF++)
 				{
 					p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
@@ -579,7 +579,7 @@ gNC:			if(oPSchElementColor.bLastInQueue)
 				LOG_P_2(LOG_CAT_I, "{In} Link base [" <<
 						QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString()
 						<< "<>" << QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
-						<< "]");
+						<< "].");
 				SchematicWindow::vp_Links.push_front(p_GraphicsLinkItem);
 				SchematicView::UpdateLinkZPositionByElements(p_GraphicsLinkItem);
 gL:				if(oPSchLinkBase.oPSchLinkVars.bLastInQueue)
@@ -620,13 +620,13 @@ gL:				if(oPSchLinkBase.oPSchLinkVars.bLastInQueue)
 						LOG_P_2(LOG_CAT_I, "{In} Link vars [" <<
 								QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName).toStdString() << "<>" <<
 								QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName).toStdString()
-								<< "]");
+								<< "].");
 						MainWindow::IncomingUpdateLinkParameters(p_GraphicsLinkItem, oPSchLinkVars);
 						goto gS;
 					}
 				}
 				// Не нашлось в имеющихся ID - ошибка.
-				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_LINK_VARS");
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
 				//
 gS:				if(oPSchLinkVars.bLastInQueue)
 				{
@@ -655,7 +655,7 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 				bool bGroupFounded = false;
 				//
 				oPSchGroupBase = *static_cast<PSchGroupBase*>(p_ReceivedData);
-				LOG_P_2(LOG_CAT_I, "{In} Group base [" << QString(oPSchGroupBase.m_chName).toStdString() << "]");
+				LOG_P_2(LOG_CAT_I, "{In} Group base [" << QString(oPSchGroupBase.m_chName).toStdString() << "].");
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
 					if(SchematicWindow::vp_Groups.at(iF)->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt ==
@@ -839,7 +839,6 @@ gS:				if(oPSchLinkVars.bLastInQueue)
 						}
 					}
 				}
-
 				//
 gG:				if(oPSchGroupBase.oPSchGroupVars.bLastInQueue)
 				{
@@ -871,13 +870,13 @@ gG:				if(oPSchGroupBase.oPSchGroupVars.bLastInQueue)
 					{
 						// Установка новых параметров.
 						LOG_P_2(LOG_CAT_I, "{In} Group vars [" <<
-								QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
+								QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "].");
 						IncomingUpdateGroupParameters(p_GraphicsGroupItem, oPSchGroupVars);
 						goto gI;
 					}
 				}
 				// Не нашлось в имеющихся ID - ошибка.
-				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_GROUP_VARS");
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
 				//
 gI:				if(oPSchGroupVars.bLastInQueue)
 				{
@@ -901,7 +900,7 @@ gI:				if(oPSchGroupVars.bLastInQueue)
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
 				oPSchGroupName = *static_cast<PSchGroupName*>(p_ReceivedData);
-				LOG_P_2(LOG_CAT_I, "{In} Group name [" << QString(oPSchGroupName.m_chName).toStdString() << "]");
+				LOG_P_2(LOG_CAT_I, "{In} Group name [" << QString(oPSchGroupName.m_chName).toStdString() << "].");
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
 					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
@@ -915,7 +914,7 @@ gI:				if(oPSchGroupVars.bLastInQueue)
 					}
 				}
 				// Не нашлось в имеющихся ID - ошибка.
-				LOG_P_0(LOG_CAT_W, "Schematic object changes synchronization fault on PROTO_O_SCH_GROUP_NAME");
+				LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
 gGN:			if(oPSchGroupName.bLastInQueue)
 				{
 					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
@@ -938,7 +937,7 @@ gGN:			if(oPSchGroupName.bLastInQueue)
 				GraphicsGroupItem* p_GraphicsGroupItem;
 				//
 				oPSchGroupColor = *static_cast<PSchGroupColor*>(p_ReceivedData);
-				LOG_P_2(LOG_CAT_I, "{In} Group color");
+				LOG_P_2(LOG_CAT_I, "{In} Group color.");
 				for(int iF = 0; iF < SchematicWindow::vp_Groups.count(); iF++)
 				{
 					p_GraphicsGroupItem = SchematicWindow::vp_Groups.at(iF);
@@ -985,7 +984,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 							oPSchElementEraser.ullIDInt) // Найден удаляемый элемент...
 					{
 						LOG_P_2(LOG_CAT_I, "{In} Erase element [" <<
-								QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "]");
+								QString(p_GraphicsElementItem->oPSchElementBaseInt.m_chName).toStdString() << "].");
 						// Работа с группой.
 						if(p_GraphicsElementItem->p_GraphicsGroupItemRel != nullptr)
 						{
@@ -1043,7 +1042,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 							oPSchGroupEraser.ullIDInt) // Найдена удаляемая группа...
 					{
 						LOG_P_2(LOG_CAT_I, "{In} Erase group [" <<
-								QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "]");
+								QString(p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName).toStdString() << "].");
 						// Удаление граф. группы.
 						for(int iE = 0; iE < p_GraphicsGroupItem->vp_ConnectedElements.count(); iE++)
 						{
@@ -1099,7 +1098,7 @@ bool MainWindow::LoadClientConfig()
 	eResult = xmlDocCConf.LoadFile(C_CONF_PATH);
 	if (eResult != XML_SUCCESS)
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogCantOpenConfig << C_CONF_PATH);
+		LOG_P_0(LOG_CAT_E, m_chLogCantOpenConfig << C_CONF_PATH << "].");
 		return false;
 	}
 	else
@@ -1110,7 +1109,7 @@ bool MainWindow::LoadClientConfig()
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pSelectedServer,
 					   "Selected_server", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No 'Selected_server' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Selected_server] node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListName, "Name",
@@ -1121,7 +1120,7 @@ bool MainWindow::LoadClientConfig()
 	if(p_chHelper != 0)
 	{
 		CopyStrArray(p_chHelper, oPServerName.m_chServerName, SERVER_NAME_STR_LEN);
-		LOG_P_1(LOG_CAT_I, "Name: " << oPServerName.m_chServerName);
+		LOG_P_1(LOG_CAT_I, "Name: [" << oPServerName.m_chServerName << "].");
 	}
 	else
 	{
@@ -1134,19 +1133,22 @@ bool MainWindow::LoadClientConfig()
 	} FIND_IN_CHILDLIST_END(p_ListServerIP);
 	if(p_chHelper != 0)
 	{
+
 		CopyStrArray(p_chHelper, m_chIPInt, IP_STR_LEN);
+#ifndef LOG_LEVEL_0
 		if(NetHub::CheckIPv4(p_chHelper))
 		{
-			LOG_P_1(LOG_CAT_I, "IP: " << m_chIPInt);
+			LOG_P_1(LOG_CAT_I, "IPv4: [" << m_chIPInt << "].");
 		}
 		else
 		{
-			LOG_P_1(LOG_CAT_I, "IP: [" << m_chIPInt << "]");
+			LOG_P_1(LOG_CAT_I, "IPv6: [" << m_chIPInt << "].");
 		}
+#endif
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Selected_server)IP' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Selected_server]->[IP] node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListPort, "Port",
@@ -1161,7 +1163,7 @@ bool MainWindow::LoadClientConfig()
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Selected_server)Port' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Selected_server]->[Port] node.");
 		return false;
 	}
 	FIND_IN_CHILDLIST(l_pSelectedServer.front(), p_ListPassword, "Password",
@@ -1171,7 +1173,7 @@ bool MainWindow::LoadClientConfig()
 	} FIND_IN_CHILDLIST_END(p_ListPassword);
 	if(p_chHelper == 0)
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Password' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Selected_server]->[Password] node.");
 		return false;
 	}
 	else
@@ -1191,7 +1193,7 @@ bool MainWindow::LoadClientConfig()
 	if(!FindChildNodes(xmlDocCConf.LastChild(), l_pServers,
 					   "Servers", FCN_ONE_LEVEL, FCN_FIRST_ONLY))
 	{
-		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No 'Servers' node.");
+		LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Servers] node.");
 		return false;
 	}
 	LOG_P_1(LOG_CAT_I, "--- Stored servers info ---");
@@ -1206,7 +1208,7 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListName);
 		if(p_chHelper != 0)
 		{
-			LOG_P_1(LOG_CAT_I, "Name: " << p_chHelper);
+			LOG_P_1(LOG_CAT_I, "Name: [" << p_chHelper << "].");
 		}
 		oIPPortPasswordHelper.p_chIPNameBuffer = 0;
 		FIND_IN_CHILDLIST(p_NodeServer, p_ListServerIP, "IP",
@@ -1216,18 +1218,20 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListServerIP);
 		if(oIPPortPasswordHelper.p_chIPNameBuffer != 0)
 		{
+#ifndef LOG_LEVEL_0
 			if(NetHub::CheckIPv4(oIPPortPasswordHelper.p_chIPNameBuffer))
 			{
-				LOG_P_1(LOG_CAT_I, "Server IP: " << oIPPortPasswordHelper.p_chIPNameBuffer);
+				LOG_P_1(LOG_CAT_I, "Server IPv4: [" << oIPPortPasswordHelper.p_chIPNameBuffer << "].");
 			}
 			else
 			{
-				LOG_P_1(LOG_CAT_I, "Server IP: [" << oIPPortPasswordHelper.p_chIPNameBuffer << "]");
+				LOG_P_1(LOG_CAT_I, "Server IPv6: [" << oIPPortPasswordHelper.p_chIPNameBuffer << "].");
 			}
+#endif
 		}
 		else
 		{
-			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)IP'" << m_chLogNodeInList);
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Server]->[IP]" << m_chLogNodeInList);
 			return false;
 		}
 		oIPPortPasswordHelper.p_chPortNameBuffer = 0;
@@ -1242,7 +1246,7 @@ bool MainWindow::LoadClientConfig()
 		}
 		else
 		{
-			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Port'" << m_chLogNodeInList);
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Server]->[Port]" << m_chLogNodeInList);
 			return false;
 		}
 		oIPPortPasswordHelper.p_chPasswordNameBuffer = 0;
@@ -1253,7 +1257,7 @@ bool MainWindow::LoadClientConfig()
 		} FIND_IN_CHILDLIST_END(p_ListPassword);
 		if(oIPPortPasswordHelper.p_chPasswordNameBuffer == 0)
 		{
-			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No '(Server)Password'" << m_chLogNodeInList);
+			LOG_P_0(LOG_CAT_E, m_chLogCorruptConf << "No [Server]->[Password]" << m_chLogNodeInList);
 			return false;
 		}
 		LOG_P_1(LOG_CAT_I, "--- ---");

@@ -58,7 +58,7 @@ SchematicWindow::SchematicWindow(QWidget* p_parent) : QMainWindow(p_parent)
 	}
 	else
 	{
-		LOG_P_0(LOG_CAT_W, "SchematicWindow_ui.ini is missing and will be created by default at the exit from program.");
+		LOG_P_0(LOG_CAT_W, "[SchematicWindow_ui.ini] is missing and will be created by default at the exit from program.");
 	}
 	//
 	oScene.setSceneRect(0 - (SCENE_DIM_X / 2), 0 - (SCENE_DIM_Y / 2), SCENE_DIM_X, SCENE_DIM_Y);
