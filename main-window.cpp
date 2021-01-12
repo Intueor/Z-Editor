@@ -1084,16 +1084,16 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 				//
 				oPSchPseudonym = *static_cast<PSchPseudonym*>(p_ReceivedData);
 				LOG_P_2(LOG_CAT_I, "{In} Pseudonym [" << QString(oPSchPseudonym.m_chName).toStdString() << "].");
-				for(int iF = 0; iF < SchematicWindow::vp_PSchPseudonyms.count(); iF++)
+				for(int iF = 0; iF < SchematicWindow::v_PSchPseudonyms.count(); iF++)
 				{
-					if(SchematicWindow::vp_PSchPseudonyms.at(iF).ushiPort ==
+					if(SchematicWindow::v_PSchPseudonyms.at(iF).ushiPort ==
 							oPSchPseudonym.ushiPort)
 					{
-						SchematicWindow::vp_PSchPseudonyms.removeAt(iF);
+						SchematicWindow::v_PSchPseudonyms.removeAt(iF);
 						LOG_P_0(LOG_CAT_W, "Pseudonym has been replaced by incoming.");
 					}
 				}
-				SchematicWindow::vp_PSchPseudonyms.append(oPSchPseudonym);
+				SchematicWindow::v_PSchPseudonyms.append(oPSchPseudonym);
 				if(oPSchPseudonym.bLastInQueue)
 				{
 					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
@@ -1116,14 +1116,14 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 				const PSchPseudonym* p_PSchPseudonym = nullptr;
 				//
 				oPSchPseudonymEraser = *static_cast<PSchPseudonymEraser*>(p_ReceivedData);
-				for(int iF = 0; iF < SchematicWindow::vp_PSchPseudonyms.count(); iF++)
+				for(int iF = 0; iF < SchematicWindow::v_PSchPseudonyms.count(); iF++)
 				{
-					p_PSchPseudonym = &SchematicWindow::vp_PSchPseudonyms.at(iF);
+					p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
 					if(p_PSchPseudonym->ushiPort == oPSchPseudonymEraser.ushiPort)
 					{
 						LOG_P_2(LOG_CAT_I, "{In} Erase pseudonym [" <<
 								QString(p_PSchPseudonym->m_chName).toStdString() << "].");
-						SchematicWindow::vp_PSchPseudonyms.removeAt(iF);
+						SchematicWindow::v_PSchPseudonyms.removeAt(iF);
 						break;
 					}
 					p_PSchPseudonym = nullptr;

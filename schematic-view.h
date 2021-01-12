@@ -563,7 +563,9 @@ private:
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] a_DbPortGraphPos Ссылка на координата порта в коорд. элемента.
 							///< \return Ориентация (гор.\верт.).
-
+	/// Задатчик тултипа порта.
+	static void SetPortTooltip(GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] p_GraphicsPortItem Указатель на порт.
 public:
 	static bool bLoading; ///< Флаг блокировки отрисовок при загрузке сцены.
 	static GraphicsPortItem* p_GraphicsPortItemActive; ///< Указатель на текущий выбранный порт или nullptr.

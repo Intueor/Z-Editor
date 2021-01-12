@@ -3009,7 +3009,7 @@ gO:		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
 				CopyStrArray(m_chName, oPSchElementName.m_chName, SCH_OBJ_NAME_STR_LEN);
 				CopyStrArray(m_chName, p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 				oPSchElementName.ullIDInt = p_EGPointersVariant->p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
-				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName, sizeof(oPSchElementName));
+				MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_NAME, (char*)&oPSchElementName, sizeof(oPSchElementName));
 				if(p_EGPointersVariant->p_GraphicsElementItem->p_QGroupBox)
 				{
 					p_EGPointersVariant->p_GraphicsElementItem->p_QGroupBox->setTitle(oPSchElementName.m_chName);
@@ -3021,13 +3021,14 @@ gO:		memcpy(m_chName, m_chPreObjectName, sizeof(m_chPreObjectName));
 				CopyStrArray(m_chName, oPSchGroupName.m_chName, SCH_OBJ_NAME_STR_LEN);
 				CopyStrArray(m_chName, p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.m_chName, SCH_OBJ_NAME_STR_LEN);
 				oPSchGroupName.ullIDInt = p_EGPointersVariant->p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.ullIDInt;
-				MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName, sizeof(oPSchGroupName));
+				MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_GROUP_NAME, (char*)&oPSchGroupName, sizeof(oPSchGroupName));
 				p_EGPointersVariant->p_GraphicsGroupItem->p_QLabel->setText(oPSchGroupName.m_chName);
 			}
 		}
 		SchematicWindow::p_MainWindow->p_SchematicWindow->update();
 	}
 	p_Batch_Rename_Dialog->deleteLater();
+	TrySendBufferToServer;
 }
 
 // Вызов диалога смены цвета.
@@ -3213,7 +3214,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ushiExtPort = QString(m_chPortNumber).toUShort();
 					PrepareNameWithExtPort(p_GraphicsElementItem);
 					p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchChangesBits = SCH_CHANGES_ELEMENT_BIT_EXTPORT;
-					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_ELEMENT_VARS,
+					MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_ELEMENT_VARS,
 																  (char*)&p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars,
 																  sizeof(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars));
 				}
@@ -5033,10 +5034,23 @@ void SchematicView::PortMousePressEventHandler(GraphicsPortItem* p_GraphicsPortI
 			//================= СОСТАВЛЕНИЕ ПУНКТОВ МЕНЮ. =================//
 			QString strCaptionSrc = QString(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
 			QString strCaptionDst = QString(p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
-			QString strPortSrc = QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort);
-			QString strPortDst = QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort);
+			QString strPortSrc;
+			QString strPortDst;
 			QString strName = QString(m_chNewLink + QString(" [") + strCaptionSrc + QString(" => ") + strCaptionDst + QString("]"));
 			SchematicWindow::p_SafeMenu->setMinimumWidth(GetStringWidthInPixels(SchematicWindow::p_SafeMenu->font(), strName) + 50);
+			//
+			for(int iF = 0; iF != SchematicWindow::v_PSchPseudonyms.count(); iF++)
+			{
+				const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
+				//
+				if(p_PSchPseudonym->ushiPort == p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort)
+					strPortSrc = QString(p_PSchPseudonym->m_chName);
+				if (p_PSchPseudonym->ushiPort == p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort)
+					strPortDst = QString(p_PSchPseudonym->m_chName);
+				if(!strPortSrc.isEmpty() && !strPortDst.isEmpty()) break;
+			}
+			if(strPortSrc.isEmpty()) strPortSrc = QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort);
+			if(strPortDst.isEmpty()) strPortDst = QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort);
 			// Линк.
 			SchematicWindow::p_SafeMenu->addSection(strName)->setDisabled(true);
 			// Порт.
@@ -5359,18 +5373,17 @@ gSrc:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsI
 					{
 						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 						p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort = QString(m_chPortNumber).toUShort();
-						p_GraphicsPortItem->p_GraphicsLinkItemInt->
-								p_GraphicsPortItemSrc->setToolTip(m_chPortTooltip +
-																  QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort));
-						oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
-gSd:					MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+						p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
+						oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->ushiPortInt;
+gSd:					SetPortTooltip(p_GraphicsPortItem);
+						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
 					}
 					p_Set_Proposed_String_Dialog->deleteLater();
 					goto gEx;
 				}
 				else if(p_SelectedMenuItem->data() == MENU_DST_PORT)
 				{
-gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(),
+gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort).toStdString().c_str(),
 								 m_chPortNumber, PORT_NUMBER_STR_LEN);
 					p_Set_Proposed_String_Dialog =
 							new Set_Proposed_String_Dialog((char*)QString(QString(m_chNumOrPseudo) + "приёмника").toStdString().c_str(),
@@ -5379,10 +5392,8 @@ gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsI
 					{
 						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 						p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort = QString(m_chPortNumber).toUShort();
-						p_GraphicsPortItem->p_GraphicsLinkItemInt->
-								p_GraphicsPortItemDst->setToolTip(m_chPortTooltip +
-																  QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort));
-						oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+						p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+						oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->ushiPortInt;
 						goto gSd;
 					}
 				}
@@ -5429,6 +5440,22 @@ void SchematicView::PortPaintHandler(GraphicsPortItem* p_GraphicsPortItem, QPain
 	p_GraphicsPortItem->oDbPAlterVisPos.dbY = p_GraphicsPortItem->pos().y();
 }
 
+// Задатчик тултипа порта.
+void SchematicView::SetPortTooltip(GraphicsPortItem* p_GraphicsPortItem)
+{
+	for(int iF = 0; iF != SchematicWindow::v_PSchPseudonyms.count(); iF++)
+	{
+		const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
+		//
+		if(p_GraphicsPortItem->ushiPortInt == p_PSchPseudonym->ushiPort)
+		{
+			p_GraphicsPortItem->setToolTip(QString(m_chPortTooltip) + p_PSchPseudonym->m_chName);
+			return;
+		}
+	}
+	p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->ushiPortInt));
+}
+
 // Обработчик конструктора порта.
 void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem, GraphicsLinkItem* p_GraphicsLinkItem,
 										   bool bSrc, GraphicsElementItem* p_Parent)
@@ -5454,14 +5481,16 @@ void SchematicView::PortConstructorHandler(GraphicsPortItem* p_GraphicsPortItem,
 		dbX = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbX;
 		dbY = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbSrcPortGraphPos.dbY;
 		p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc = p_GraphicsPortItem;
-		p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort));
+		p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
+		SetPortTooltip(p_GraphicsPortItem);
 	}
 	else
 	{
 		dbX = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbX;
 		dbY = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph.oDbDstPortGraphPos.dbY;
 		p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst = p_GraphicsPortItem;
-		p_GraphicsPortItem->setToolTip(m_chPortTooltip + QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort));
+		p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+		SetPortTooltip(p_GraphicsPortItem);
 	}
 	p_GraphicsPortItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_PORT, nullptr, nullptr, p_GraphicsPortItem);
 	p_GraphicsPortItem->p_GraphicsFrameItem->hide();
