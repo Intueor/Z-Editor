@@ -1006,6 +1006,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 						SchematicWindow::vp_Elements.removeAt(iF);
 						break;
 					}
+					p_GraphicsElementItem = nullptr;
 				}
 				if(p_GraphicsElementItem == nullptr)
 				{
@@ -1055,6 +1056,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 						SchematicWindow::vp_Groups.removeAt(iF);
 						break;
 					}
+					p_GraphicsGroupItem = nullptr;
 				}
 				if(p_GraphicsGroupItem == nullptr)
 				{
@@ -1073,7 +1075,77 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 			bProcessed = true;
 			break;
 		}
-			// Следующий раздел...
+		//========  Раздел PROTO_O_SCH_PSEUDONYM. ========
+		case PROTO_O_SCH_PSEUDONYM:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchPseudonym oPSchPseudonym;
+				//
+				oPSchPseudonym = *static_cast<PSchPseudonym*>(p_ReceivedData);
+				LOG_P_2(LOG_CAT_I, "{In} Pseudonym [" << QString(oPSchPseudonym.m_chName).toStdString() << "].");
+				for(int iF = 0; iF < SchematicWindow::vp_PSchPseudonyms.count(); iF++)
+				{
+					if(SchematicWindow::vp_PSchPseudonyms.at(iF).ushiPort ==
+							oPSchPseudonym.ushiPort)
+					{
+						SchematicWindow::vp_PSchPseudonyms.removeAt(iF);
+						LOG_P_0(LOG_CAT_W, "Pseudonym has been replaced by incoming.");
+					}
+				}
+				SchematicWindow::vp_PSchPseudonyms.append(oPSchPseudonym);
+				if(oPSchPseudonym.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		//========  Раздел PROTO_O_SCH_GROUP_ERASE. ========
+		case PROTO_O_SCH_PSEUDONYM_ERASE:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchPseudonymEraser oPSchPseudonymEraser;
+				const PSchPseudonym* p_PSchPseudonym = nullptr;
+				//
+				oPSchPseudonymEraser = *static_cast<PSchPseudonymEraser*>(p_ReceivedData);
+				for(int iF = 0; iF < SchematicWindow::vp_PSchPseudonyms.count(); iF++)
+				{
+					p_PSchPseudonym = &SchematicWindow::vp_PSchPseudonyms.at(iF);
+					if(p_PSchPseudonym->ushiPort == oPSchPseudonymEraser.ushiPort)
+					{
+						LOG_P_2(LOG_CAT_I, "{In} Erase pseudonym [" <<
+								QString(p_PSchPseudonym->m_chName).toStdString() << "].");
+						SchematicWindow::vp_PSchPseudonyms.removeAt(iF);
+						break;
+					}
+					p_PSchPseudonym = nullptr;
+				}
+				if(p_PSchPseudonym == nullptr)
+				{
+					LOG_P_0(LOG_CAT_W, m_chLogSyncFault);
+				}
+				if(oPSchPseudonymEraser.bLastInQueue)
+				{
+					p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
+		// Следующий раздел...
 	}
 	//
 	if(!bProcessed)

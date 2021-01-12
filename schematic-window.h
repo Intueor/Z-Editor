@@ -62,6 +62,7 @@ public:
 	static QVector<GraphicsGroupItem*> vp_Groups; ///< Вектор с указателями на граф. группы.
 	static QVector<GraphicsLinkItem*> vp_Links; ///< Вектор с указателями на граф. линки.
 	static QVector<GraphicsPortItem*> vp_Ports; ///< Вектор с указателями на граф. порты.
+	static QVector<PSchPseudonym> vp_PSchPseudonyms; ///< Вектор с псевдонимами.
 	static QVector<GraphicsElementItem*> vp_LonelyElements; ///< Вектор с указателями на граф. элементы, ожидающие группу.
 	static QVector<GraphicsGroupItem*> vp_LonelyGroups; ///< Вектор с указателями на граф. группы, ожидающие группу.
 	static SafeMenu* p_SafeMenu; ///< Указатель на меню для общего пользования граф. классами.

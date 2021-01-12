@@ -22,6 +22,7 @@ QVector<GraphicsElementItem*> SchematicWindow::vp_Elements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_Groups;
 QVector<GraphicsLinkItem*> SchematicWindow::vp_Links;
 QVector<GraphicsPortItem*> SchematicWindow::vp_Ports;
+QVector<PSchPseudonym> SchematicWindow::vp_PSchPseudonyms;
 QVector<GraphicsElementItem*> SchematicWindow::vp_LonelyElements;
 QVector<GraphicsGroupItem*> SchematicWindow::vp_LonelyGroups;
 QGraphicsScene* SchematicWindow::p_QGraphicsScene = nullptr;
@@ -83,6 +84,7 @@ void SchematicWindow::ClearScene()
 	vp_Groups.clear();
 	vp_Links.clear();
 	vp_Ports.clear();
+	vp_PSchPseudonyms.clear();
 	vp_LonelyElements.clear();
 	vp_SelectedElements.clear();
 	vp_SelectedGroups.clear();
