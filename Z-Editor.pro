@@ -27,6 +27,7 @@ DEFINES += WIN32 _WINDOWS _CRT_SECURE_NO_WARNINGS
 SOURCES += \
     ../Z-Hub/Dialogs/set_server_dialog.cpp \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.cpp \
+    Dialogs/set_proposed_number_dialog.cpp \
     graphics-background-item.cpp \
     graphics-element-item.cpp \
     graphics-frame-item.cpp \
@@ -53,6 +54,7 @@ SOURCES += \
 HEADERS += \
     ../Z-Hub/Dialogs/set_server_dialog.h \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.h \
+    Dialogs/set_proposed_number_dialog.h \
     graphics-background-item.h \
     graphics-element-item.h \
     graphics-frame-item.h \
@@ -84,6 +86,7 @@ HEADERS += \
 FORMS += \
     ../Z-Hub/Dialogs/set_server_dialog.ui \
     ../Z-Hub/Dialogs/set_proposed_string_dialog.ui \
+    Dialogs/set_proposed_number_dialog.ui \
     main-window.ui \
     schematic-window.ui \
     ../Z-Hub/Dialogs/message_dialog.ui \

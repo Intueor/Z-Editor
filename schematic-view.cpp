@@ -12,6 +12,7 @@
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 #include "Dialogs/batch_rename_dialog.h"
 #include "ui_batch_rename_dialog.h"
+#include "Dialogs/set_proposed_number_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QBrush SchematicView::oQBrushDark;
@@ -5106,7 +5107,6 @@ void SchematicView::PortMouseReleaseEventHandler(GraphicsPortItem* p_GraphicsPor
 	double dbZ = OVERMIN_NUMBER;
 	DbPoint oDbMapped;
 	DbPoint oDbMappedToElement;
-	char m_chPortNumber[PORT_NUMBER_STR_LEN];
 	bool bLMBPressedOverride;
 	//
 	if(MainWindow::bBlockingGraphics || p_Event->modifiers() == Qt::ShiftModifier)
@@ -5350,8 +5350,9 @@ gF:		ReleaseOccupiedAPFS();
 		bPortMenuInExecution = false;
 		if(p_SelectedMenuItem != 0)
 		{
-			Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog = nullptr;
+			Set_Proposed_Number_Dialog* p_Set_Proposed_Number_Dialog = nullptr;
 			PSchLinkBase oPSchLinkBase;
+			int iNumber;
 			//
 			if((p_SelectedMenuItem->data() == MENU_SRC_PORT) |
 			   (p_SelectedMenuItem->data() == MENU_DST_PORT) |
@@ -5364,36 +5365,36 @@ gF:		ReleaseOccupiedAPFS();
 				oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
-gSrc:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(),
-								 m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog =
-							new Set_Proposed_String_Dialog((char*)QString(QString(m_chPortNum) + "источника").toStdString().c_str(),
-														   m_chPortNumber, PORT_NUMBER_STR_LEN);
-					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
+gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
+					p_Set_Proposed_Number_Dialog =
+							new Set_Proposed_Number_Dialog(const_cast<char*>(m_chPortTooltip), 0, 65535, 1, &iNumber);
+					if(p_Set_Proposed_Number_Dialog->exec() == DIALOGS_ACCEPT)
 					{
-						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
-						p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort = QString(m_chPortNumber).toUShort();
-						p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
-						oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->ushiPortInt;
-gSd:					SetPortTooltip(p_GraphicsPortItem);
-						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort)
+						{
+							DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
+							p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort = iNumber;
+							p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
+							oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->ushiPortInt;
+gSd:						SetPortTooltip(p_GraphicsPortItem);
+							MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+						}
 					}
-					p_Set_Proposed_String_Dialog->deleteLater();
-					goto gEx;
 				}
 				else if(p_SelectedMenuItem->data() == MENU_DST_PORT)
 				{
-gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort).toStdString().c_str(),
-								 m_chPortNumber, PORT_NUMBER_STR_LEN);
-					p_Set_Proposed_String_Dialog =
-							new Set_Proposed_String_Dialog((char*)QString(QString(m_chPortNum) + "приёмника").toStdString().c_str(),
-														   m_chPortNumber, PORT_NUMBER_STR_LEN);
-					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
+gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+					p_Set_Proposed_Number_Dialog =
+							new Set_Proposed_Number_Dialog(const_cast<char*>(m_chPortTooltip), 0, 65535, 1, &iNumber);
+					if(p_Set_Proposed_Number_Dialog->exec() == DIALOGS_ACCEPT)
 					{
-						DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
-						p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort = QString(m_chPortNumber).toUShort();
-						p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
-						oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->ushiPortInt;
+						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort)
+						{
+							DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
+							p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort = iNumber;
+							p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+							oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->ushiPortInt;
+						}
 						goto gSd;
 					}
 				}
@@ -5403,11 +5404,11 @@ gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsI
 					else goto gDst;
 				}
 			}
-gEx:		if(p_SelectedMenuItem->data() == MENU_DELETE)
+			if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
 				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt);
 			}
-			if(p_Set_Proposed_String_Dialog) p_Set_Proposed_String_Dialog->deleteLater();
+			if(p_Set_Proposed_Number_Dialog) p_Set_Proposed_Number_Dialog->deleteLater();
 		}
 		p_GraphicsPortItem->p_GraphicsFrameItem->hide();
 		p_GraphicsFrameItemForPortFlash = nullptr;

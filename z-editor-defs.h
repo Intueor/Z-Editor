@@ -162,7 +162,6 @@ const char m_chNewGroup[] = "Новая группа";
 const char m_chNewLink[] = "Линк";
 const char m_chPortTooltip[] = "Порт: ";
 const char m_chSelection[] = "Выборка";
-const char m_chPortNum[] = "Номер порта ";
 const char m_chPortNumExt[] = "Номер внешнего порта";
 const char m_chPreElementName[] = "Элемент: ";
 const char m_chPreBroadcasterName[] = "Транслятор: ";
