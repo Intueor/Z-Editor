@@ -3206,7 +3206,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			{
 				char m_chPortNumber[PORT_NUMBER_STR_LEN];
 				Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog =
-						new Set_Proposed_String_Dialog((char*)QString(m_chNumOrPseudoExt).toStdString().c_str(),
+						new Set_Proposed_String_Dialog((char*)QString(m_chPortNumExt).toStdString().c_str(),
 													   m_chPortNumber, PORT_NUMBER_STR_LEN);
 				//
 				if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
@@ -5367,7 +5367,7 @@ gF:		ReleaseOccupiedAPFS();
 gSrc:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort).toStdString().c_str(),
 								 m_chPortNumber, PORT_NUMBER_STR_LEN);
 					p_Set_Proposed_String_Dialog =
-							new Set_Proposed_String_Dialog((char*)QString(QString(m_chNumOrPseudo) + "источника").toStdString().c_str(),
+							new Set_Proposed_String_Dialog((char*)QString(QString(m_chPortNum) + "источника").toStdString().c_str(),
 														   m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{
@@ -5386,7 +5386,7 @@ gSd:					SetPortTooltip(p_GraphicsPortItem);
 gDst:				CopyStrArray((char*)QString::number(p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort).toStdString().c_str(),
 								 m_chPortNumber, PORT_NUMBER_STR_LEN);
 					p_Set_Proposed_String_Dialog =
-							new Set_Proposed_String_Dialog((char*)QString(QString(m_chNumOrPseudo) + "приёмника").toStdString().c_str(),
+							new Set_Proposed_String_Dialog((char*)QString(QString(m_chPortNum) + "приёмника").toStdString().c_str(),
 														   m_chPortNumber, PORT_NUMBER_STR_LEN);
 					if(p_Set_Proposed_String_Dialog->exec() == DIALOGS_ACCEPT)
 					{

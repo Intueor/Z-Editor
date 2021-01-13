@@ -30,13 +30,15 @@ Batch_Rename_Dialog::~Batch_Rename_Dialog()
 	delete p_ui;
 }
 
-void Batch_Rename_Dialog::on_buttonBox_accepted()
+// Принято.
+void Batch_Rename_Dialog::accept()
 {
 	CopyStrArray((char*)p_ui->BaseName_lineEdit->text().toStdString().c_str(), p_chTextInt, uchMaxLengthInt);
 	done(DIALOGS_ACCEPT);
 }
 
-void Batch_Rename_Dialog::on_buttonBox_rejected()
+// Отменено.
+void Batch_Rename_Dialog::reject()
 {
 	done(DIALOGS_REJECT);
 }

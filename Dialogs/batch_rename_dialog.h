@@ -25,9 +25,10 @@ public:
 	~Batch_Rename_Dialog();
 
 private slots:
-	void on_buttonBox_accepted();
-
-	void on_buttonBox_rejected();
+	/// Принято.
+	void accept();
+	/// Отменено.
+	void reject();
 
 public:
 	Ui::Batch_Rename_Dialog* p_ui; ///< Указатель на интерфейс.
