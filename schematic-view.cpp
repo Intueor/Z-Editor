@@ -12,7 +12,7 @@
 #include "../Z-Hub/Dialogs/set_proposed_string_dialog.h"
 #include "Dialogs/batch_rename_dialog.h"
 #include "ui_batch_rename_dialog.h"
-#include "Dialogs/set_proposed_number_dialog.h"
+#include "Dialogs/edit_port_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QBrush SchematicView::oQBrushDark;
@@ -5350,7 +5350,8 @@ gF:		ReleaseOccupiedAPFS();
 		bPortMenuInExecution = false;
 		if(p_SelectedMenuItem != 0)
 		{
-			Set_Proposed_Number_Dialog* p_Set_Proposed_Number_Dialog = nullptr;
+			Edit_Port_Dialog* p_Edit_Port_Dialog = nullptr;
+			QVector<Edit_Port_Dialog::PortInfo> v_PortInfo;
 			PSchLinkBase oPSchLinkBase;
 			int iNumber;
 			//
@@ -5366,9 +5367,8 @@ gF:		ReleaseOccupiedAPFS();
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
 gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
-					p_Set_Proposed_Number_Dialog =
-							new Set_Proposed_Number_Dialog(const_cast<char*>(m_chPortTooltip), 0, 65535, 1, &iNumber);
-					if(p_Set_Proposed_Number_Dialog->exec() == DIALOGS_ACCEPT)
+					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortInfo, &iNumber);
+					if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort)
 						{
@@ -5384,9 +5384,8 @@ gSd:						SetPortTooltip(p_GraphicsPortItem);
 				else if(p_SelectedMenuItem->data() == MENU_DST_PORT)
 				{
 gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
-					p_Set_Proposed_Number_Dialog =
-							new Set_Proposed_Number_Dialog(const_cast<char*>(m_chPortTooltip), 0, 65535, 1, &iNumber);
-					if(p_Set_Proposed_Number_Dialog->exec() == DIALOGS_ACCEPT)
+					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortInfo, &iNumber);
+					if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort)
 						{
@@ -5408,7 +5407,7 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 			{
 				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt);
 			}
-			if(p_Set_Proposed_Number_Dialog) p_Set_Proposed_Number_Dialog->deleteLater();
+			if(p_Edit_Port_Dialog) p_Edit_Port_Dialog->deleteLater();
 		}
 		p_GraphicsPortItem->p_GraphicsFrameItem->hide();
 		p_GraphicsFrameItemForPortFlash = nullptr;

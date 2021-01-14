@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>169</width>
+    <width>168</width>
     <height>60</height>
    </rect>
   </property>
@@ -18,13 +18,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>169</width>
-    <height>60</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>170</width>
+    <width>168</width>
     <height>60</height>
    </size>
   </property>
@@ -83,10 +77,10 @@
       </property>
       <item>
        <widget class="QSpinBox" name="spinBox">
-        <property name="minimumSize">
+        <property name="maximumSize">
          <size>
-          <width>165</width>
-          <height>0</height>
+          <width>57</width>
+          <height>16777215</height>
          </size>
         </property>
         <property name="alignment">
