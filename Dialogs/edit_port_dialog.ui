@@ -180,7 +180,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_Search">
+          <widget class="PortDialogLineEdit" name="lineEdit_Search">
            <property name="clearButtonEnabled">
             <bool>true</bool>
            </property>
@@ -258,11 +258,21 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit"/>
+      </item>
      </layout>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PortDialogLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">port-dialog-line-edit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../Z-Hub/resources.qrc"/>
  </resources>

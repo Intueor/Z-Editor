@@ -13,6 +13,7 @@ QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt;
 int* Edit_Port_Dialog::p_iNumberInt;
 QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected;
 bool Edit_Port_Dialog::bFromDelete = false;
+bool Edit_Port_Dialog::bFromConstructor = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
@@ -48,6 +49,7 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	}
 	if(p_QTableWidgetItemSelected)
 	{
+		bFromConstructor = true;
 		oQTimer.singleShot(0, this, SLOT(UpdateTable()));
 	}
 	else p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
@@ -79,12 +81,11 @@ void Edit_Port_Dialog::UpdateTable()
 	p_ui->tableWidget_Pseudonyms->scrollToItem(p_QTableWidgetItemSelected);
 	p_ui->tableWidget_Pseudonyms->setCurrentCell(p_QTableWidgetItemSelected->row(), 0);
 	p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
-}
-
-// Возвращение фокуса по умолчанию на кнопку "Принять".
-void Edit_Port_Dialog::ReturnDefaultToAccept()
-{
-	p_ui->pushButton_Accept->setDefault(true);
+	if(bFromConstructor)
+	{
+		p_ui->tableWidget_Pseudonyms->setFocus();
+		bFromConstructor = false;
+	}
 }
 
 // Смена значения.
@@ -149,29 +150,10 @@ void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
 	}
 }
 
-// Смена позиции курсора в строке (смотрим для снятия фокуса с кнопок - чтобы случайный Enter не сработал).
-void Edit_Port_Dialog::on_lineEdit_Search_cursorPositionChanged(int, int)
-{
-	p_ui->pushButton_Accept->setDefault(false);
-}
-
 // Обработка нажатия на Enter.
 void Edit_Port_Dialog::on_lineEdit_Search_returnPressed()
 {
 	p_ui->tableWidget_Pseudonyms->setFocus();
-	oQTimer.singleShot(0, this, SLOT(ReturnDefaultToAccept()));
 	p_ui->lineEdit_Search->deselect();
 }
 
-// Обработка ухода со строки.
-void Edit_Port_Dialog::on_lineEdit_Search_editingFinished()
-{
-	oQTimer.singleShot(0, this, SLOT(ReturnDefaultToAccept()));
-	p_ui->lineEdit_Search->deselect();
-}
-
-// Обработка смены выбранности.
-void Edit_Port_Dialog::on_lineEdit_Search_selectionChanged()
-{
-	p_ui->pushButton_Accept->setDefault(false);
-}

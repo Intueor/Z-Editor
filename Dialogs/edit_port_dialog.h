@@ -41,8 +41,6 @@ private slots:
 	void reject();
 	/// Исполнение таймера центровки таблицы.
 	void UpdateTable();
-	// Возвращение фокуса по умолчанию на кнопку "Принять".
-	void ReturnDefaultToAccept();
 	/// Смена значения.
 	void on_spinBox_valueChanged(int arg1);
 								///< \param[in] arg1 Число.
@@ -55,14 +53,8 @@ private slots:
 								///< \param[in] arg1 Ссылка на строку.
 	/// Удаление псевдонима.
 	void on_pushButton_Delete_Pseudonym_clicked();
-	/// Смена позиции курсора в строке (смотрим для снятия фокуса с кнопок - чтобы случайный Enter не сработал).
-	void on_lineEdit_Search_cursorPositionChanged(int, int);
 	/// Обработка нажатия на Enter.
 	void on_lineEdit_Search_returnPressed();
-	/// Обработка ухода со строки.
-	void on_lineEdit_Search_editingFinished();
-	/// Обработка смены выбранности.
-	void on_lineEdit_Search_selectionChanged();
 
 private:
 	Ui::Edit_Port_Dialog* p_ui; ///< Указатель на интерфейс.
@@ -71,6 +63,7 @@ private:
 	static QTableWidgetItem* p_QTableWidgetItemSelected; ///< Выбранная ячейка для установки в таблице.
 	QTimer oQTimer; ///< Таймер для установки текущей ячейки в таблице (уродство).
 	static bool bFromDelete; ///< Признак захода в смену строки из удаления.
+	static bool bFromConstructor; ///< Признак захода в смену строки из конструктора.
 };
 
 #endif // EDIT_PORT_DIALOG_H
