@@ -12,6 +12,8 @@
 QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt;
 int* Edit_Port_Dialog::p_iNumberInt;
 QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected;
+bool Edit_Port_Dialog::bFromDelete = false;
+bool Edit_Port_Dialog::bAnythingFounded = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
@@ -29,7 +31,6 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	pv_PortsInt = pv_Ports;
 	p_iNumberInt = p_iNumber;
 	p_ui->tableWidget_Pseudonyms->setRowCount(iRows);
-	p_ui->tableWidget_Pseudonyms->horizontalHeader()->setStretchLastSection(true);
 	for(int iF = 0; iF != iRows; iF++)
 	{
 		const PortInfo* p_PortInfo = &pv_PortsInt->at(iF);
@@ -46,11 +47,11 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 			p_QTableWidgetItemSelected = p_QTableWidgetItem;
 		}
 	}
-	p_ui->tableWidget_Pseudonyms->resizeColumnsToContents();
 	if(p_QTableWidgetItemSelected)
 	{
 		oQTimer.singleShot(0, this, SLOT(UpdateTable()));
 	}
+	else p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
 }
 
 // Деструктор.
@@ -78,19 +79,99 @@ void Edit_Port_Dialog::UpdateTable()
 	p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItemSelected, true);
 	p_ui->tableWidget_Pseudonyms->scrollToItem(p_QTableWidgetItemSelected);
 	p_ui->tableWidget_Pseudonyms->setCurrentCell(p_QTableWidgetItemSelected->row(), 0);
+	p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
+}
+
+// Возвращение фокуса по умолчанию на кнопку "Принять".
+void Edit_Port_Dialog::ReturnDefaultToAccept()
+{
+	p_ui->pushButton_Accept->setDefault(true);
 }
 
 // Смена значения.
 void Edit_Port_Dialog::on_spinBox_valueChanged(int arg1)
 {
+	bool bFoundPseudonym = false;
 	for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
 	{
 		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
-		if(p_QTableWidgetItem->data(ROLE_PORT_NUMBER) == arg1)
+		if(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt() == arg1)
 		{
 			p_QTableWidgetItemSelected = p_QTableWidgetItem;
 			oQTimer.singleShot(0, this, SLOT(UpdateTable()));
+			bFoundPseudonym = true;
 		}
-		p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItem, false);
+		else p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItem, false);
 	}
+	if(!bFoundPseudonym) p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
+}
+
+// Смена ячейки псевдонима.
+void Edit_Port_Dialog::on_tableWidget_Pseudonyms_currentCellChanged(int currentRow, int currentColumn, int, int)
+{
+	if(!bFromDelete)
+	{
+		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(currentRow, currentColumn);
+		//
+		p_ui->spinBox->setValue(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt());
+	}
+	else bFromDelete = false;
+}
+
+// Смена значения поисковой строки.
+void Edit_Port_Dialog::on_lineEdit_Search_textEdited(const QString &arg1)
+{
+	if(!arg1.isEmpty())
+	{
+		QList<QTableWidgetItem*> vp_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->findItems(arg1, Qt::MatchStartsWith);
+		//
+		if(!vp_QTableWidgetItem.isEmpty())
+		{
+			p_QTableWidgetItemSelected = vp_QTableWidgetItem.first();
+			bAnythingFounded = true;
+			oQTimer.singleShot(0, this, SLOT(UpdateTable()));
+		}
+		else bAnythingFounded = false;
+	}
+}
+
+// Удаление псевдонима.
+void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
+{
+	int iRow = p_ui->tableWidget_Pseudonyms->currentRow();
+	//
+	if(iRow != -1)
+	{
+		bFromDelete = true;
+		p_ui->tableWidget_Pseudonyms->removeRow(iRow);
+	}
+}
+
+// Смена позиции курсора в строке (смотрим для снятия фокуса с кнопок - чтобы случайный Enter не сработал).
+void Edit_Port_Dialog::on_lineEdit_Search_cursorPositionChanged(int, int)
+{
+	p_ui->pushButton_Accept->setDefault(false);
+}
+
+// Обработка нажатия на Enter.
+void Edit_Port_Dialog::on_lineEdit_Search_returnPressed()
+{
+	if(bAnythingFounded) p_ui->tableWidget_Pseudonyms->setFocus();
+	else p_ui->lineEdit_Search->clearFocus();
+
+	oQTimer.singleShot(0, this, SLOT(ReturnDefaultToAccept()));
+	p_ui->lineEdit_Search->deselect();
+}
+
+// Обработка ухода со строки.
+void Edit_Port_Dialog::on_lineEdit_Search_editingFinished()
+{
+	oQTimer.singleShot(0, this, SLOT(ReturnDefaultToAccept()));
+	p_ui->lineEdit_Search->deselect();
+}
+
+// Обработка смены выбранности.
+void Edit_Port_Dialog::on_lineEdit_Search_selectionChanged()
+{
+	p_ui->pushButton_Accept->setDefault(false);
 }
