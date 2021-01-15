@@ -55,6 +55,12 @@ private slots:
 	void on_pushButton_Delete_Pseudonym_clicked();
 	/// Обработка нажатия на Enter.
 	void on_lineEdit_Search_returnPressed();
+	// Обработка ухода из редактора.
+	void on_lineEdit_Search_editingFinished();
+
+private:
+	// Уход из редактирования поиска.
+	void LeaveSearch();
 
 private:
 	Ui::Edit_Port_Dialog* p_ui; ///< Указатель на интерфейс.
@@ -62,7 +68,7 @@ private:
 	static int* p_iNumberInt; ///< Внутренний указатель на число.
 	static QTableWidgetItem* p_QTableWidgetItemSelected; ///< Выбранная ячейка для установки в таблице.
 	QTimer oQTimer; ///< Таймер для установки текущей ячейки в таблице (уродство).
-	static bool bFromDelete; ///< Признак захода в смену строки из удаления.
+	static bool bBlockSpinBoxSync; ///< При true - блокировка обновления числа в спинбоксе по выбранной ячейке таблицы.
 	static bool bFromConstructor; ///< Признак захода в смену строки из конструктора.
 };
 

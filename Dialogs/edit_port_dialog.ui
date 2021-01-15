@@ -180,11 +180,7 @@
           </widget>
          </item>
          <item>
-          <widget class="PortDialogLineEdit" name="lineEdit_Search">
-           <property name="clearButtonEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
+          <widget class="SafeSearchingLineEdit" name="lineEdit_Search"/>
          </item>
         </layout>
        </widget>
@@ -258,9 +254,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QLineEdit" name="lineEdit"/>
-      </item>
      </layout>
     </widget>
    </item>
@@ -268,9 +261,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PortDialogLineEdit</class>
+   <class>SafeSearchingLineEdit</class>
    <extends>QLineEdit</extends>
-   <header location="global">port-dialog-line-edit.h</header>
+   <header location="global">safe-searching-line-edit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

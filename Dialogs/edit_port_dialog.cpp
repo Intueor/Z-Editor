@@ -12,7 +12,7 @@
 QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt;
 int* Edit_Port_Dialog::p_iNumberInt;
 QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected;
-bool Edit_Port_Dialog::bFromDelete = false;
+bool Edit_Port_Dialog::bBlockSpinBoxSync = false;
 bool Edit_Port_Dialog::bFromConstructor = false;
 
 //== ФУНКЦИИ КЛАССОВ.
@@ -25,6 +25,8 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	int iRows = pv_Ports->count();
 	//
 	p_ui->setupUi(this);
+	p_ui->lineEdit_Search->p_QPushButtonForNotDefault = p_ui->pushButton_Accept;
+	p_ui->lineEdit_Search->p_QPushButtonForDisable = p_ui->pushButton_Delete_Pseudonym;
 	setWindowTitle(p_chDialogCaption);
 	p_ui->spinBox->setValue(*p_iNumber);
 	p_ui->spinBox->selectAll();
@@ -80,11 +82,16 @@ void Edit_Port_Dialog::UpdateTable()
 	p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItemSelected, true);
 	p_ui->tableWidget_Pseudonyms->scrollToItem(p_QTableWidgetItemSelected);
 	p_ui->tableWidget_Pseudonyms->setCurrentCell(p_QTableWidgetItemSelected->row(), 0);
-	p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
 	if(bFromConstructor)
 	{
 		p_ui->tableWidget_Pseudonyms->setFocus();
 		bFromConstructor = false;
+		p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
+	}
+	else
+	{
+		p_ui->spinBox->setValue(p_QTableWidgetItemSelected->data(ROLE_PORT_NUMBER).toInt());
+		if(!p_ui->lineEdit_Search->bUserInside) p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
 	}
 }
 
@@ -109,13 +116,13 @@ void Edit_Port_Dialog::on_spinBox_valueChanged(int arg1)
 // Смена ячейки псевдонима.
 void Edit_Port_Dialog::on_tableWidget_Pseudonyms_currentCellChanged(int currentRow, int currentColumn, int, int)
 {
-	if(!bFromDelete)
+	if(!bBlockSpinBoxSync)
 	{
 		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(currentRow, currentColumn);
 		//
 		p_ui->spinBox->setValue(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt());
 	}
-	else bFromDelete = false;
+	else bBlockSpinBoxSync = false;
 }
 
 // Смена значения поисковой строки.
@@ -123,14 +130,48 @@ void Edit_Port_Dialog::on_lineEdit_Search_textEdited(const QString &arg1)
 {
 	if(!arg1.isEmpty())
 	{
-		QList<QTableWidgetItem*> vp_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->findItems(arg1, Qt::MatchStartsWith | Qt::MatchCaseSensitive);
-		//
-		if(!vp_QTableWidgetItem.isEmpty())
+		for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
 		{
-			p_QTableWidgetItemSelected = vp_QTableWidgetItem.first();
-			oQTimer.singleShot(0, this, SLOT(UpdateTable()));
+			QTableWidgetItem* p_QTableWidgetItemCurrent = p_ui->tableWidget_Pseudonyms->item(iF, 0);
+			QString strCurrentText = p_QTableWidgetItemCurrent->text();
+			bool bM = true;
+			//
+			for(int iC = 0; iC != arg1.count(); iC++)
+			{
+				if((iC > (strCurrentText.count() - 1)) || (arg1.at(iC) != strCurrentText.at(iC)))
+				{
+					bM = false;
+					break;
+				}
+			}
+			if(bM)
+			{
+				p_QTableWidgetItemSelected = p_QTableWidgetItemCurrent;
+				oQTimer.singleShot(0, this, SLOT(UpdateTable()));
+				return;
+			}
 		}
 	}
+}
+
+// Уход из редактирования поиска.
+void Edit_Port_Dialog::LeaveSearch()
+{
+	int iSpinValue = p_ui->spinBox->value();
+	//
+
+	for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
+	{
+		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
+		if(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt() == iSpinValue)
+		{
+			p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
+			return;
+		}
+	}
+	bBlockSpinBoxSync = true;
+	p_ui->tableWidget_Pseudonyms->setCurrentCell(-1, -1);
+	p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
 }
 
 // Удаление псевдонима.
@@ -140,7 +181,7 @@ void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
 	//
 	if(iRow != -1)
 	{
-		bFromDelete = true;
+		bBlockSpinBoxSync = true;
 		p_ui->tableWidget_Pseudonyms->removeRow(iRow);
 		for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
 		{
@@ -154,6 +195,11 @@ void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
 void Edit_Port_Dialog::on_lineEdit_Search_returnPressed()
 {
 	p_ui->tableWidget_Pseudonyms->setFocus();
-	p_ui->lineEdit_Search->deselect();
+	LeaveSearch();
 }
 
+// Обработка ухода из редактора.
+void Edit_Port_Dialog::on_lineEdit_Search_editingFinished()
+{
+	LeaveSearch();
+}

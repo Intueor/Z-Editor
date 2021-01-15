@@ -38,7 +38,7 @@ SOURCES += \
     graphics-scaler-item.cpp \
     main.cpp \
     main-window.cpp \
-    port-dialog-line-edit.cpp \
+    safe-searching-line-edit.cpp \
     schematic-window.cpp \
     schematic-view.cpp \
     ../Z-Hub/tester.cpp \
@@ -66,7 +66,7 @@ HEADERS += \
     graphics-port-item.h \
     graphics-scaler-item.h \
     main-window.h \
-    port-dialog-line-edit.h \
+    safe-searching-line-edit.h \
     schematic-window.h \
     schematic-view.h \
     ../Z-Hub/logger.h \
