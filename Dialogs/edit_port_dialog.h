@@ -71,7 +71,6 @@ private:
 	static QTableWidgetItem* p_QTableWidgetItemSelected; ///< Выбранная ячейка для установки в таблице.
 	QTimer oQTimer; ///< Таймер для установки текущей ячейки в таблице (уродство).
 	static bool bFromDelete; ///< Признак захода в смену строки из удаления.
-	static bool bAnythingFounded; ///< Признак того, что строка поиска совпала хоть с чем-то.
 };
 
 #endif // EDIT_PORT_DIALOG_H

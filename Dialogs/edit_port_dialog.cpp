@@ -13,7 +13,6 @@ QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt;
 int* Edit_Port_Dialog::p_iNumberInt;
 QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected;
 bool Edit_Port_Dialog::bFromDelete = false;
-bool Edit_Port_Dialog::bAnythingFounded = false;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
@@ -123,15 +122,13 @@ void Edit_Port_Dialog::on_lineEdit_Search_textEdited(const QString &arg1)
 {
 	if(!arg1.isEmpty())
 	{
-		QList<QTableWidgetItem*> vp_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->findItems(arg1, Qt::MatchStartsWith);
+		QList<QTableWidgetItem*> vp_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->findItems(arg1, Qt::MatchStartsWith | Qt::MatchCaseSensitive);
 		//
 		if(!vp_QTableWidgetItem.isEmpty())
 		{
 			p_QTableWidgetItemSelected = vp_QTableWidgetItem.first();
-			bAnythingFounded = true;
 			oQTimer.singleShot(0, this, SLOT(UpdateTable()));
 		}
-		else bAnythingFounded = false;
 	}
 }
 
@@ -144,6 +141,11 @@ void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
 	{
 		bFromDelete = true;
 		p_ui->tableWidget_Pseudonyms->removeRow(iRow);
+		for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
+		{
+			p_ui->tableWidget_Pseudonyms->item(iF, 0)->setSelected(false);
+		}
+		p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
 	}
 }
 
@@ -156,9 +158,7 @@ void Edit_Port_Dialog::on_lineEdit_Search_cursorPositionChanged(int, int)
 // Обработка нажатия на Enter.
 void Edit_Port_Dialog::on_lineEdit_Search_returnPressed()
 {
-	if(bAnythingFounded) p_ui->tableWidget_Pseudonyms->setFocus();
-	else p_ui->lineEdit_Search->clearFocus();
-
+	p_ui->tableWidget_Pseudonyms->setFocus();
 	oQTimer.singleShot(0, this, SLOT(ReturnDefaultToAccept()));
 	p_ui->lineEdit_Search->deselect();
 }
