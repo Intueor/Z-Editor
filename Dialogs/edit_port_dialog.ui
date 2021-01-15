@@ -263,7 +263,7 @@
   <customwidget>
    <class>SafeSearchingLineEdit</class>
    <extends>QLineEdit</extends>
-   <header location="global">safe-searching-line-edit.h</header>
+   <header>safe-searching-line-edit.h</header>
   </customwidget>
  </customwidgets>
  <resources>
