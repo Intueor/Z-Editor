@@ -3,6 +3,9 @@
 
 //== ВКЛЮЧЕНИЯ.
 #include <QDialog>
+#include <QSpinBox>
+#include <QTimer>
+#include <QTableWidgetItem>
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {
@@ -36,11 +39,17 @@ private slots:
 	void accept();
 	/// Отменено.
 	void reject();
+	/// Исполнение таймера центровки таблицы.
+	void UpdateTable();
+	/// Смена значения.
+	void on_spinBox_valueChanged(int arg1);
 
 private:
 	Ui::Edit_Port_Dialog* p_ui; ///< Указатель на интерфейс.
 	static QVector<PortInfo>* pv_PortsInt; ///< Указатель на список информации по портам.
 	static int* p_iNumberInt; ///< Внутренний указатель на число.
+	static QTableWidgetItem* p_QTableWidgetItemSelected;
+	QTimer oQTimer;
 };
 
 #endif // EDIT_PORT_DIALOG_H

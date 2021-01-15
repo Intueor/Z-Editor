@@ -5351,7 +5351,6 @@ gF:		ReleaseOccupiedAPFS();
 		if(p_SelectedMenuItem != 0)
 		{
 			Edit_Port_Dialog* p_Edit_Port_Dialog = nullptr;
-			QVector<Edit_Port_Dialog::PortInfo> v_PortInfo;
 			PSchLinkBase oPSchLinkBase;
 			int iNumber;
 			//
@@ -5359,11 +5358,22 @@ gF:		ReleaseOccupiedAPFS();
 			   (p_SelectedMenuItem->data() == MENU_DST_PORT) |
 			   (p_SelectedMenuItem->data() == MENU_SELECTED_PORT))
 			{
+				QVector<Edit_Port_Dialog::PortInfo> v_PortInfo;
+				//
 				oPSchLinkBase.oPSchLinkVars.oSchLGraph = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph;
 				oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDSrc;
 				oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDDst;
 				oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 				oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+				for(int iF = 0; iF != SchematicWindow::v_PSchPseudonyms.count(); iF++)
+				{
+					const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
+					Edit_Port_Dialog::PortInfo oPortInfo;
+					//
+					oPortInfo.ushiPortNumber = p_PSchPseudonym->ushiPort;
+					oPortInfo.strPseudonym = QString(p_PSchPseudonym->m_chName);
+					v_PortInfo.append(oPortInfo);
+				}
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
 gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
