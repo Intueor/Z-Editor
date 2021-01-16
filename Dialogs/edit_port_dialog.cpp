@@ -74,6 +74,16 @@ Edit_Port_Dialog::~Edit_Port_Dialog()
 void Edit_Port_Dialog::accept()
 {
 	*p_iNumberInt = p_ui->spinBox->value();
+	pv_PortsInt->clear();
+	for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
+	{
+		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
+		PortInfo oPortInfo;
+		//
+		oPortInfo.ushiPortNumber = p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt();
+		oPortInfo.strPseudonym = p_QTableWidgetItem->text();
+		pv_PortsInt->append(oPortInfo);
+	}
 	done(DIALOGS_ACCEPT);
 }
 

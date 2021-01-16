@@ -5365,6 +5365,7 @@ gF:		ReleaseOccupiedAPFS();
 				oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDDst;
 				oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 				oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+				// Заполнение списка для диалога портов.
 				for(int iF = 0; iF != SchematicWindow::v_PSchPseudonyms.count(); iF++)
 				{
 					const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
@@ -5374,6 +5375,7 @@ gF:		ReleaseOccupiedAPFS();
 					oPortInfo.strPseudonym = QString(p_PSchPseudonym->m_chName);
 					v_PortInfo.append(oPortInfo);
 				}
+				//
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
 gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
