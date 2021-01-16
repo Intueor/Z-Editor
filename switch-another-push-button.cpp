@@ -26,8 +26,11 @@ bool SwitchAnotherPushButton::event(QEvent* p_Event)
 				{
 					QPushButton* p_QPushButton = pvp_QPushButtonsForSwitching->at(iF);
 					//
-					if(p_QPushButton->isEnabled()) p_QPushButton->setEnabled(false);
-					else p_QPushButton->setEnabled(true);
+					if(p_QPushButton)
+					{
+						if(p_QPushButton->isEnabled()) p_QPushButton->setEnabled(false);
+						else p_QPushButton->setEnabled(true);
+					}
 				}
 			}
 		}

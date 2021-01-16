@@ -126,6 +126,9 @@ void Edit_Port_Dialog::on_spinBox_valueChanged(int arg1)
 	if(!bFoundPseudonym)
 	{
 		p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(false);
+		p_ui->Safe_Searching_Line_Edit->SetRecordedButtonEnabledStatus(p_ui->SwitchAnotherPushButton_Delete_Pseudonym, false);
+		p_ui->pushButton_Set_New_Pseudonym->setEnabled(true);
+		p_ui->Safe_Searching_Line_Edit->SetRecordedButtonEnabledStatus(p_ui->pushButton_Set_New_Pseudonym, true);
 	}
 }
 
