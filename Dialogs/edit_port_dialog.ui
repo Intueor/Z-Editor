@@ -180,7 +180,7 @@
           </widget>
          </item>
          <item>
-          <widget class="SafeSearchingLineEdit" name="lineEdit_Search"/>
+          <widget class="SafeSearchingLineEdit" name="Safe_Searching_Line_Edit"/>
          </item>
         </layout>
        </widget>
@@ -245,11 +245,11 @@
        </widget>
       </item>
       <item alignment="Qt::AlignHCenter">
-       <widget class="QPushButton" name="pushButton_Delete_Pseudonym">
-        <property name="text">
+       <widget class="SwitchAnotherPushButton" name="SwitchAnotherPushButton_Delete_Pseudonym" native="true">
+        <property name="text" stdset="0">
          <string>Удалить выбранный псевдоним</string>
         </property>
-        <property name="autoDefault">
+        <property name="autoDefault" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -264,6 +264,11 @@
    <class>SafeSearchingLineEdit</class>
    <extends>QLineEdit</extends>
    <header>safe-searching-line-edit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SwitchAnotherPushButton</class>
+   <extends>QPushButton</extends>
+   <header>switch-another-push-button.h</header>
   </customwidget>
  </customwidgets>
  <resources>

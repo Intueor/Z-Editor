@@ -14,6 +14,8 @@ int* Edit_Port_Dialog::p_iNumberInt;
 QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected;
 bool Edit_Port_Dialog::bBlockSpinBoxSync = false;
 bool Edit_Port_Dialog::bFromConstructor = false;
+QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondForDisabling;
+QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondSwitchable;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
@@ -25,8 +27,10 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	int iRows = pv_Ports->count();
 	//
 	p_ui->setupUi(this);
-	p_ui->lineEdit_Search->p_QPushButtonForNotDefault = p_ui->pushButton_Accept;
-	p_ui->lineEdit_Search->p_QPushButtonForDisable = p_ui->pushButton_Delete_Pseudonym;
+	p_ui->Safe_Searching_Line_Edit->p_QPushButtonForNotDefault = p_ui->pushButton_Accept;
+	vp_QPushButtondForDisabling.append(p_ui->SwitchAnotherPushButton_Delete_Pseudonym);
+	vp_QPushButtondForDisabling.append(p_ui->pushButton_Set_New_Pseudonym);
+	p_ui->Safe_Searching_Line_Edit->plp_QPushButtonsForDisable = &vp_QPushButtondForDisabling;
 	setWindowTitle(p_chDialogCaption);
 	p_ui->spinBox->setValue(*p_iNumber);
 	p_ui->spinBox->selectAll();
@@ -49,12 +53,15 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 			p_QTableWidgetItemSelected = p_QTableWidgetItem;
 		}
 	}
+	vp_QPushButtondSwitchable.append(p_ui->pushButton_Set_New_Pseudonym);
+	p_ui->SwitchAnotherPushButton_Delete_Pseudonym->pvp_QPushButtonsForSwitching = &vp_QPushButtondSwitchable;
 	if(p_QTableWidgetItemSelected)
 	{
 		bFromConstructor = true;
 		oQTimer.singleShot(0, this, SLOT(UpdateTable()));
 	}
-	else p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
+	else p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(false);
+	p_ui->SwitchAnotherPushButton_Delete_Pseudonym->bReady = true;
 }
 
 // Деструктор.
@@ -79,19 +86,25 @@ void Edit_Port_Dialog::reject()
 // Исполнение таймера центровки таблицы.
 void Edit_Port_Dialog::UpdateTable()
 {
-	p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItemSelected, true);
-	p_ui->tableWidget_Pseudonyms->scrollToItem(p_QTableWidgetItemSelected);
-	p_ui->tableWidget_Pseudonyms->setCurrentCell(p_QTableWidgetItemSelected->row(), 0);
-	if(bFromConstructor)
+	if(p_QTableWidgetItemSelected)
 	{
-		p_ui->tableWidget_Pseudonyms->setFocus();
-		bFromConstructor = false;
-		p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
-	}
-	else
-	{
-		p_ui->spinBox->setValue(p_QTableWidgetItemSelected->data(ROLE_PORT_NUMBER).toInt());
-		if(!p_ui->lineEdit_Search->bUserInside) p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
+		p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItemSelected, true);
+		p_ui->tableWidget_Pseudonyms->scrollToItem(p_QTableWidgetItemSelected);
+		p_ui->tableWidget_Pseudonyms->setCurrentCell(p_QTableWidgetItemSelected->row(), 0);
+		if(bFromConstructor)
+		{
+			p_ui->tableWidget_Pseudonyms->setFocus();
+			bFromConstructor = false;
+			p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(true);
+		}
+		else
+		{
+			p_ui->spinBox->setValue(p_QTableWidgetItemSelected->data(ROLE_PORT_NUMBER).toInt());
+			if(!p_ui->Safe_Searching_Line_Edit->IsUserInside())
+			{
+				p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(true);
+			}
+		}
 	}
 }
 
@@ -110,23 +123,34 @@ void Edit_Port_Dialog::on_spinBox_valueChanged(int arg1)
 		}
 		else p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItem, false);
 	}
-	if(!bFoundPseudonym) p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
+	if(!bFoundPseudonym)
+	{
+		p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(false);
+	}
 }
 
 // Смена ячейки псевдонима.
 void Edit_Port_Dialog::on_tableWidget_Pseudonyms_currentCellChanged(int currentRow, int currentColumn, int, int)
 {
-	if(!bBlockSpinBoxSync)
+	if(currentRow != -1)
 	{
-		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(currentRow, currentColumn);
-		//
-		p_ui->spinBox->setValue(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt());
+		if(!bBlockSpinBoxSync)
+		{
+			QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(currentRow, currentColumn);
+			//
+			p_ui->spinBox->setValue(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt());
+			if(p_ui->Safe_Searching_Line_Edit->IsUserInside())
+			{
+				p_ui->Safe_Searching_Line_Edit->SetRecordedButtonEnabledStatus(p_ui->pushButton_Set_New_Pseudonym, false);
+				p_ui->Safe_Searching_Line_Edit->SetRecordedButtonEnabledStatus(p_ui->SwitchAnotherPushButton_Delete_Pseudonym, true);
+			}
+		}
+		else bBlockSpinBoxSync = false;
 	}
-	else bBlockSpinBoxSync = false;
 }
 
 // Смена значения поисковой строки.
-void Edit_Port_Dialog::on_lineEdit_Search_textEdited(const QString &arg1)
+void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_textEdited(const QString &arg1)
 {
 	if(!arg1.isEmpty())
 	{
@@ -165,17 +189,17 @@ void Edit_Port_Dialog::LeaveSearch()
 		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
 		if(p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt() == iSpinValue)
 		{
-			p_ui->pushButton_Delete_Pseudonym->setEnabled(true);
+			p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(true);
 			return;
 		}
 	}
 	bBlockSpinBoxSync = true;
 	p_ui->tableWidget_Pseudonyms->setCurrentCell(-1, -1);
-	p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
+	p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(false);
 }
 
 // Удаление псевдонима.
-void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
+void Edit_Port_Dialog::on_SwitchAnotherPushButton_Delete_Pseudonym_clicked()
 {
 	int iRow = p_ui->tableWidget_Pseudonyms->currentRow();
 	//
@@ -187,19 +211,20 @@ void Edit_Port_Dialog::on_pushButton_Delete_Pseudonym_clicked()
 		{
 			p_ui->tableWidget_Pseudonyms->item(iF, 0)->setSelected(false);
 		}
-		p_ui->pushButton_Delete_Pseudonym->setEnabled(false);
+		p_ui->SwitchAnotherPushButton_Delete_Pseudonym->setEnabled(false);
+		p_ui->tableWidget_Pseudonyms->setCurrentCell(-1, -1);
 	}
 }
 
 // Обработка нажатия на Enter.
-void Edit_Port_Dialog::on_lineEdit_Search_returnPressed()
+void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_returnPressed()
 {
 	p_ui->tableWidget_Pseudonyms->setFocus();
 	LeaveSearch();
 }
 
 // Обработка ухода из редактора.
-void Edit_Port_Dialog::on_lineEdit_Search_editingFinished()
+void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_editingFinished()
 {
 	LeaveSearch();
 }

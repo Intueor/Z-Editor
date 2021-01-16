@@ -18,32 +18,45 @@ class SafeSearchingLineEdit : public QLineEdit
 	Q_OBJECT
 public:
 	/// Конструктор 1.
-	explicit SafeSearchingLineEdit(QWidget* p_parent = nullptr);
+	explicit SafeSearchingLineEdit(QWidget* p_Parent = nullptr);
+								///< \param[in] p_Parent Указатель на родителя.
 	/// Конструктор 2.
-	explicit SafeSearchingLineEdit(const QString& a_strText, QWidget* p_parent = nullptr);
+	explicit SafeSearchingLineEdit(const QString& a_strText, QWidget* p_Parent = nullptr);
+								///< \param[in] a_strText Ссылка на инициализирующую строку.
+								///< \param[in] p_Parent Указатель на родителя.
+	/// Изменение запомненного статуса включённости кнопки по указателю в процессе редактирования.
+	void SetRecordedButtonEnabledStatus(QPushButton* p_QPushButton, bool bStatus);
+								///< \param[in] p_QPushButton Указатель на кнопку.
+								///< \param[in] bStatus Требуемый статус.
+	/// Проверка текущего статуса редактирования.
+	bool IsUserInside();
+								///< \return true - внури.
 protected:
 	/// Событие входа фокуса.
 	void focusInEvent(QFocusEvent* p_Event);
+								///< \param[in] p_Event Указатель на событие.
 	/// Событие выхода фокуса.
 	void focusOutEvent(QFocusEvent* p_Event);
+								///< \param[in] p_Event Указатель на событие.
 private slots:
 	// Выключение автовыбора кнопки.
-	void SetButtonSetNotDefault();
-	// Выключение доступа к кнопоке.
-	void SetButtonSetDisabled();
+	void SetButtonNotDefaultus();
+	// Выключение доступа к кнопокам.
+	void SetButtonsDisabled();
 	// Восстановление автовыбора кнопки.
-	void SetButtonRestoreDefault();
-	// Восстановление доступа к кнопоке.
-	void SetButtonRestoreEnabled();
+	void RestoreButtonDefault();
+	// Восстановление доступа к кнопокам.
+	void RestoreButtonsEnabled();
+
 private:
+	bool bUserInside; ///< Признак работы пользователя.
 	bool bLastButtDefStatus; ///< Флаг предыдущего статуса автовыбора кнопки.
-	bool bLastButtEnStatus; ///< Флаг предыдущего статуса доступности кнопки.
+	QVector<bool> vLastButtEnStatuses; ///< Список флагов предыдущих статусов доступности кнопок.
 	QTimer oQTimer; ///< Таймер для установки статусов кнопок.
 
 public:
 	QPushButton* p_QPushButtonForNotDefault; ///< Указатель на кнопку для снятия автовыбора.
-	QPushButton* p_QPushButtonForDisable; ///< Указатель на кнопку для блокировки.
-	bool bUserInside; ///< Признак работы пользователя.
+	QList<QPushButton*>* plp_QPushButtonsForDisable; ///< Список указателей на кнопки для блокировки.
 };
 
 #endif // SafeSearchingLineEdit_H

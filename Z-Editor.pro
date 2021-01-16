@@ -51,7 +51,8 @@ SOURCES += \
     ../Z-Hub/Server/proto-parser.cpp \
     ../Z-Hub/Server/proto-util.cpp \
     ../Z-Hub/Dialogs/message_dialog.cpp \
-    Dialogs/batch_rename_dialog.cpp
+    Dialogs/batch_rename_dialog.cpp \
+    switch-another-push-button.cpp
 
 HEADERS += \
     ../Z-Hub/Dialogs/set_server_dialog.h \
@@ -79,6 +80,7 @@ HEADERS += \
     ../Z-Hub/main-hub.h \
     ../Z-Hub/main-hub-defs.h \
     ../Z-Hub/parser-ext.h \
+    switch-another-push-button.h \
     z-editor-defs.h \
     Client/client.h \
     ../Z-Hub/Server/protocol.h \

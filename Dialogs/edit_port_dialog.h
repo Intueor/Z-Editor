@@ -49,14 +49,14 @@ private slots:
 								///< \param[in] currentRow Строка.
 								///< \param[in] currentRow Колонка.
 	/// Смена значения поисковой строки.
-	void on_lineEdit_Search_textEdited(const QString &arg1);
+	void on_Safe_Searching_Line_Edit_textEdited(const QString &arg1);
 								///< \param[in] arg1 Ссылка на строку.
 	/// Удаление псевдонима.
-	void on_pushButton_Delete_Pseudonym_clicked();
+	void on_SwitchAnotherPushButton_Delete_Pseudonym_clicked();
 	/// Обработка нажатия на Enter.
-	void on_lineEdit_Search_returnPressed();
+	void on_Safe_Searching_Line_Edit_returnPressed();
 	// Обработка ухода из редактора.
-	void on_lineEdit_Search_editingFinished();
+	void on_Safe_Searching_Line_Edit_editingFinished();
 
 private:
 	// Уход из редактирования поиска.
@@ -70,6 +70,8 @@ private:
 	QTimer oQTimer; ///< Таймер для установки текущей ячейки в таблице (уродство).
 	static bool bBlockSpinBoxSync; ///< При true - блокировка обновления числа в спинбоксе по выбранной ячейке таблицы.
 	static bool bFromConstructor; ///< Признак захода в смену строки из конструктора.
+	static QList<QPushButton*> vp_QPushButtondForDisabling; ///< Список указателей на отключаемые кнопки.
+	static QList<QPushButton*> vp_QPushButtondSwitchable; ///< Список указателей на переключаемые кнопки.
 };
 
 #endif // EDIT_PORT_DIALOG_H
