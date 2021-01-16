@@ -44,10 +44,10 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 		QTableWidgetItem* p_QTableWidgetItem;
 		//
 		strItemText.setNum(p_PortInfo->ushiPortNumber);
-		p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
 		p_QTableWidgetItem = new QTableWidgetItem(p_PortInfo->strPseudonym);
 		p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, p_PortInfo->ushiPortNumber);
 		p_ui->tableWidget_Pseudonyms->setItem(iF, 0, p_QTableWidgetItem);
+		p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
 		if(*p_iNumberInt == p_PortInfo->ushiPortNumber)
 		{
 			p_QTableWidgetItemSelected = p_QTableWidgetItem;
@@ -233,4 +233,67 @@ void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_returnPressed()
 void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_editingFinished()
 {
 	LeaveSearch();
+}
+
+// Создание псевдонима.
+void Edit_Port_Dialog::on_pushButton_Set_New_Pseudonym_clicked()
+{
+	int iN = p_ui->spinBox->value();
+	//
+	for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
+	{
+		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
+		int iPort = p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt();
+		//
+		if(iPort > iN)
+		{
+			QString strItemText;
+			//
+			strItemText.setNum(iN);
+			p_ui->tableWidget_Pseudonyms->insertRow(iF);
+			p_QTableWidgetItem = new QTableWidgetItem("");
+			p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, iN);
+			p_ui->tableWidget_Pseudonyms->setItem(iF, 0, p_QTableWidgetItem);
+			p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
+			p_ui->tableWidget_Pseudonyms->editItem(p_QTableWidgetItem);
+			p_QTableWidgetItemSelected = p_QTableWidgetItem;
+			UpdateTable();
+			break;
+		}
+	}
+}
+
+// Обработка изменённой ячейки.
+void Edit_Port_Dialog::on_tableWidget_Pseudonyms_itemChanged(QTableWidgetItem* p_Item)
+{
+	QString strNum;
+	//
+	if(p_Item->text().isEmpty())
+	{
+		strNum.setNum(GenerateID());
+		p_Item->setText("Псевдоним [" + strNum + "]");
+	}
+	else
+	{
+		unsigned char uchMC = 0;
+		//
+		for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
+		{
+			QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
+			//
+			if(p_QTableWidgetItem)
+			{
+				if(p_QTableWidgetItem->text() == p_Item->text())
+				{
+					uchMC++;
+					if(uchMC == 2)
+					{
+						strNum.setNum(GenerateID());
+						p_Item->setText(p_Item->text() + " [" + strNum + "]");
+						break;
+					}
+				}
+			}
+		}
+	}
 }

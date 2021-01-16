@@ -55,11 +55,16 @@ private slots:
 	void on_SwitchAnotherPushButton_Delete_Pseudonym_clicked();
 	/// Обработка нажатия на Enter.
 	void on_Safe_Searching_Line_Edit_returnPressed();
-	// Обработка ухода из редактора.
+	/// Обработка ухода из редактора.
 	void on_Safe_Searching_Line_Edit_editingFinished();
+	/// Создание псевдонима.
+	void on_pushButton_Set_New_Pseudonym_clicked();
+	/// Обработка изменённой ячейки.
+	void on_tableWidget_Pseudonyms_itemChanged(QTableWidgetItem* p_Item);
+								//< \param[in] p_Item Указатель на ячейку.
 
 private:
-	// Уход из редактирования поиска.
+	/// Уход из редактирования поиска.
 	void LeaveSearch();
 
 private:
