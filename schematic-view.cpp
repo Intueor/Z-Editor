@@ -2525,12 +2525,10 @@ void SchematicView::ElementMinOperations(QVector<GraphicsLinkItem*>& avp_Graphic
 	if(IsMinimized(p_ElementSettings))
 	{
 		p_GraphicsElementItem->p_GraphicsScalerItem->hide();
-		if(p_GraphicsElementItem->p_QGroupBox) p_GraphicsElementItem->p_QGroupBox->hide();
 	}
 	else
 	{
 		p_GraphicsElementItem->p_GraphicsScalerItem->show();
-		if(p_GraphicsElementItem->p_QGroupBox) p_GraphicsElementItem->p_QGroupBox->show();
 	}
 	if(!bFromAfterLoader)
 	{
@@ -2581,6 +2579,7 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 		//
 		TempSelectElement(p_GraphicsElementItem);
 		// Обработка статусов минимизации.
+		WidgetsThrAccess::vp_ConnGraphicsElementItems.clear();
 		for(int iF = 0; iF != SchematicWindow::vp_SelectedElements.count(); iF++) // По всем причастным.
 		{
 			GraphicsElementItem* p_GraphicsElementItemCurrent = SchematicWindow::vp_SelectedElements.at(iF);
@@ -2599,7 +2598,12 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 															   sizeof(p_GraphicsElementItemCurrent->oPSchElementBaseInt.oPSchElementVars));
 				//
 				ElementMinOperations(vp_GraphicsLinkItemCollection, p_GraphicsElementItemCurrent);
+				WidgetsThrAccess::vp_ConnGraphicsElementItems.append(p_GraphicsElementItemCurrent);
 			}
+		}
+		if(p_GraphicsElementItem->p_QGroupBox)
+		{
+			ThrUiAccessET(MainWindow::p_WidgetsThrAccess, ElementGroupboxesVisibilitySet);
 		}
 		SetLinksVisAfterMinChanges(vp_GraphicsLinkItemCollection);
 		//
@@ -3772,17 +3776,14 @@ void SchematicView::AfterLoadingPlacement()
 	QVector<GraphicsLinkItem*> vp_GraphicsLinkItemsCollection;
 	QVector<GraphicsPortItem*> vp_GraphicsPortItemsCollection;
 	//
+	WidgetsThrAccess::vp_ConnGraphicsGroupItems.clear();
 	for(int iF = 0; iF != SchematicWindow::vp_Groups.count(); iF++)
 	{
 		p_GraphicsGroupItemCurrent = SchematicWindow::vp_Groups.at(iF);
-		if(IsMinimized(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits))
-		{
-			p_GraphicsGroupItemCurrent->p_QLabel->hide();
-		}
-		else
+		WidgetsThrAccess::vp_ConnGraphicsGroupItems.append(p_GraphicsGroupItemCurrent);
+		if(!IsMinimized(p_GraphicsGroupItemCurrent->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits))
 		{
 			p_GraphicsGroupItemCurrent->bPortsForMin = false;
-			p_GraphicsGroupItemCurrent->p_QLabel->show();
 		}
 		p_GraphicsGroupItemRoot = p_GraphicsGroupItemCurrent;
 		while(p_GraphicsGroupItemCurrent)
@@ -3795,6 +3796,7 @@ void SchematicView::AfterLoadingPlacement()
 			vp_GraphicsGroupItemRoots.append(p_GraphicsGroupItemRoot);
 		}
 	}
+	ThrUiAccessET(MainWindow::p_WidgetsThrAccess, GroupLabelsVisibilitySet);
 	//
 	SchematicWindow::vp_SelectedGroups.clear();
 	//
@@ -3807,17 +3809,18 @@ void SchematicView::AfterLoadingPlacement()
 	//
 	SetPortsPlacementAndLinksVisAfterGroupsMinChanges(vp_GraphicsPortItemsCollection);
 	//
+	WidgetsThrAccess::vp_ConnGraphicsElementItems.clear();
 	for(int iF = 0; iF != SchematicWindow::vp_Elements.count(); iF++)
 	{
 		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		//
 		ElementMinOperations(vp_GraphicsLinkItemsCollection, p_GraphicsElementItem, true);
+		if(p_GraphicsElementItem->p_QGroupBox)
+		{
+			WidgetsThrAccess::vp_ConnGraphicsElementItems.append(p_GraphicsElementItem);
+		}
 		if(!IsMinimized(p_ElementSettings))
 		{
-			if(p_GraphicsElementItem->p_QGroupBox)
-			{
-				p_GraphicsElementItem->p_QGroupBox->show();
-			}
 			p_GraphicsElementItem->setToolTip("");
 		}
 		else
@@ -3825,6 +3828,7 @@ void SchematicView::AfterLoadingPlacement()
 			SetElementTooltip(p_GraphicsElementItem);
 		}
 	}
+	ThrUiAccessET(MainWindow::p_WidgetsThrAccess, ElementGroupboxesVisibilitySet);
 	SetLinksVisAfterMinChanges(vp_GraphicsLinkItemsCollection);
 }
 

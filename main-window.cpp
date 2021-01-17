@@ -1,4 +1,5 @@
 //== ВКЛЮЧЕНИЯ.
+#include <QList>
 #include "main-window.h"
 #include "ui_main-window.h"
 #include "../Z-Hub/Dialogs/message_dialog.h"
@@ -36,6 +37,8 @@ PSchGroupBase* WidgetsThrAccess::p_PSchGroupBase = nullptr;
 GraphicsElementItem* WidgetsThrAccess::p_ConnGraphicsElementItem = nullptr;
 GraphicsLinkItem* WidgetsThrAccess::p_ConnGraphicsLinkItem = nullptr;
 GraphicsGroupItem* WidgetsThrAccess::p_ConnGraphicsGroupItem = nullptr;
+QList<GraphicsElementItem*> WidgetsThrAccess::vp_ConnGraphicsElementItems;
+QList<GraphicsGroupItem*> WidgetsThrAccess::vp_ConnGraphicsGroupItems;
 WidgetsThrAccess* MainWindow::p_WidgetsThrAccess = nullptr;
 bool MainWindow::bSchemaIsOpened = false;
 
@@ -2118,6 +2121,28 @@ void WidgetsThrAccess::GroupLabelWidthSet()
 {
 	p_ConnGraphicsGroupItem->p_QLabel->setFixedWidth(
 				p_ConnGraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6);
+}
+
+// Установка видиости названия группы по p_ConnGraphicsGroupItem.
+void WidgetsThrAccess::GroupLabelsVisibilitySet()
+{
+	for(int iF = 0; iF != vp_ConnGraphicsGroupItems.count(); iF++)
+	{
+		GraphicsGroupItem* p_GraphicsGroupItem = vp_ConnGraphicsGroupItems.at(iF);
+		//
+		p_GraphicsGroupItem->p_QLabel->setVisible(!(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN));
+	}
+}
+
+// Установка видиости групбокса элемента по p_ConnGraphicsElementItem.
+void WidgetsThrAccess::ElementGroupboxesVisibilitySet()
+{
+	for(int iF = 0; iF != vp_ConnGraphicsElementItems.count(); iF++)
+	{
+		GraphicsElementItem* p_GraphicsElementItem = vp_ConnGraphicsElementItems.at(iF);
+		//
+		p_GraphicsElementItem->p_QGroupBox->setVisible(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN));
+	}
 }
 
 // Добавление графического объекта группы.

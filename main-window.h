@@ -222,6 +222,8 @@ public:
 	static PSchElementBase* p_PSchElementBase; ///< Указатель на данные по элементу схемы.
 	static PSchLinkBase* p_PSchLinkBase; ///< Указатель на данные по линку схемы.
 	static PSchGroupBase* p_PSchGroupBase; ///< Указатель на данные по группе схемы.
+	static QList<GraphicsElementItem*> vp_ConnGraphicsElementItems;
+	static QList<GraphicsGroupItem*> vp_ConnGraphicsGroupItems;
 
 public:
 	/// Конструктор.
@@ -241,6 +243,10 @@ public slots:
 	static void AddGraphicsGroupItem();
 	/// Установка ширины строки названия группы по указателю p_ConnGraphicsGroupItem.
 	static void GroupLabelWidthSet();
+	// Установка видиости названия групп по vp_ConnGraphicsElementItems.
+	static void GroupLabelsVisibilitySet();
+	// Установка видиости групбокса элементов по vp_ConnGraphicsElementItems.
+	static void ElementGroupboxesVisibilitySet();
 	/// Установка геометрии групбокса элемента по указателю p_ConnGraphicsElementItem и размеру из oDbPointFrameSize.
 	static void ElementGroupBoxSizeSet();
 };
