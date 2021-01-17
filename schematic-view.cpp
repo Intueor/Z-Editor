@@ -3402,7 +3402,7 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
 								  "left: 4px; padding-top: 0px; }");
 		}
-		p_GraphicsElementItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::black));
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::black));
 	}
 	else
 	{
@@ -3413,7 +3413,7 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
 								  "left: 4px; padding-top: 0px; }");
 		}
-		p_GraphicsElementItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::white));
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::white));
 	}
 	if(p_GraphicsElementItem->p_QGroupBox)
 	{
@@ -3426,11 +3426,11 @@ void SchematicView::SetGroupPalette(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	if(p_GraphicsGroupItem->bIsPositivePalette)
 	{
-		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::black));
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::black));
 	}
 	else
 	{
-		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::white));
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::white));
 	}
 	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
 }
