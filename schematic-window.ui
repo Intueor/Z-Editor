@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Schematic view</string>
+   <string>Схематический вид</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../Z-Hub/resources.qrc">
@@ -73,12 +73,12 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="Content_menu">
     <property name="title">
-     <string>&amp;Content</string>
+     <string>Содержание</string>
     </property>
     <addaction name="List_action"/>
    </widget>
