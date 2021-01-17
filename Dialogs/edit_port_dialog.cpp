@@ -9,9 +9,9 @@
 #define ROLE_PORT_NUMBER	0x100
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
-QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt;
+QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt = nullptr;
 int* Edit_Port_Dialog::p_iNumberInt;
-QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected;
+QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected = nullptr;
 bool Edit_Port_Dialog::bBlockSpinBoxSync = false;
 bool Edit_Port_Dialog::bFromConstructor = false;
 QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondForDisabling;
@@ -84,12 +84,18 @@ void Edit_Port_Dialog::accept()
 		oPortInfo.strPseudonym = p_QTableWidgetItem->text();
 		pv_PortsInt->append(oPortInfo);
 	}
+	vp_QPushButtondForDisabling.clear();
+	vp_QPushButtondSwitchable.clear();
+	p_QTableWidgetItemSelected = nullptr;
 	done(DIALOGS_ACCEPT);
 }
 
 // Отменено.
 void Edit_Port_Dialog::reject()
 {
+	vp_QPushButtondForDisabling.clear();
+	vp_QPushButtondSwitchable.clear();
+	p_QTableWidgetItemSelected = nullptr;
 	done(DIALOGS_REJECT);
 }
 
@@ -248,29 +254,19 @@ void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_editingFinished()
 // Создание псевдонима.
 void Edit_Port_Dialog::on_pushButton_Set_New_Pseudonym_clicked()
 {
+	int iRows = p_ui->tableWidget_Pseudonyms->rowCount();
+	QTableWidgetItem* p_QTableWidgetItem = new QTableWidgetItem("");
 	int iN = p_ui->spinBox->value();
+	QString strItemText;
 	//
-	for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
-	{
-		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
-		int iPort = p_QTableWidgetItem->data(ROLE_PORT_NUMBER).toInt();
-		//
-		if(iPort > iN)
-		{
-			QString strItemText;
-			//
-			strItemText.setNum(iN);
-			p_ui->tableWidget_Pseudonyms->insertRow(iF);
-			p_QTableWidgetItem = new QTableWidgetItem("");
-			p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, iN);
-			p_ui->tableWidget_Pseudonyms->setItem(iF, 0, p_QTableWidgetItem);
-			p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
-			p_ui->tableWidget_Pseudonyms->editItem(p_QTableWidgetItem);
-			p_QTableWidgetItemSelected = p_QTableWidgetItem;
-			UpdateTable();
-			break;
-		}
-	}
+	strItemText.setNum(iN);
+	p_ui->tableWidget_Pseudonyms->insertRow(iRows);
+	p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, p_ui->spinBox->value());
+	p_ui->tableWidget_Pseudonyms->setItem(iRows, 0, p_QTableWidgetItem);
+	p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iRows, new QTableWidgetItem(strItemText));
+	p_ui->tableWidget_Pseudonyms->editItem(p_QTableWidgetItem);
+	p_QTableWidgetItemSelected = p_QTableWidgetItem;
+	UpdateTable();
 }
 
 // Обработка изменённой ячейки.

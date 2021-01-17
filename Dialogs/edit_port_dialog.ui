@@ -245,11 +245,11 @@
        </widget>
       </item>
       <item alignment="Qt::AlignHCenter">
-       <widget class="SwitchAnotherPushButton" name="SwitchAnotherPushButton_Delete_Pseudonym" native="true">
-        <property name="text" stdset="0">
+       <widget class="SwitchAnotherPushButton" name="SwitchAnotherPushButton_Delete_Pseudonym">
+        <property name="text">
          <string>Удалить выбранный псевдоним</string>
         </property>
-        <property name="autoDefault" stdset="0">
+        <property name="autoDefault">
          <bool>false</bool>
         </property>
        </widget>
