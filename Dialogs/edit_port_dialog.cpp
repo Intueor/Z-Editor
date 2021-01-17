@@ -122,7 +122,7 @@ void Edit_Port_Dialog::UpdateTable()
 {
 	if(p_QTableWidgetItemSelected)
 	{
-		p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItemSelected, true);
+		p_QTableWidgetItemSelected->setSelected(true);
 		p_ui->tableWidget_Pseudonyms->scrollToItem(p_QTableWidgetItemSelected);
 		p_ui->tableWidget_Pseudonyms->setCurrentCell(p_QTableWidgetItemSelected->row(), 0);
 		if(bFromConstructor)
@@ -155,7 +155,7 @@ void Edit_Port_Dialog::on_spinBox_valueChanged(int arg1)
 			oQTimer.singleShot(0, this, SLOT(UpdateTable()));
 			bFoundPseudonym = true;
 		}
-		else p_ui->tableWidget_Pseudonyms->setItemSelected(p_QTableWidgetItem, false);
+		else p_QTableWidgetItem->setSelected(false);
 	}
 	if(!bFoundPseudonym)
 	{

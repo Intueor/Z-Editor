@@ -316,7 +316,7 @@ QRectF SchematicView::GetVisibleRect()
 // Переопределение функции обработки событий колёсика.
 void SchematicView::wheelEvent(QWheelEvent* p_Event)
 {
-	int iD = p_Event->delta();
+	int iD = p_Event->angleDelta().x();
 	qreal rScaleFactor = pow((double)2, (0 - iD) / 240.0f);
 	qreal rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f)).width();
 	//
@@ -1414,7 +1414,7 @@ int SchematicView::GetStringWidthInPixels(const QFont& a_Font, QString& a_strTex
 {
 	QFontMetrics oQFontMetrics(a_Font);
 	//
-	return oQFontMetrics.width(a_strText);
+	return oQFontMetrics.size(Qt::TextSingleLine, a_strText).rwidth();
 }
 
 // Поднятие элемента на первый план, блокировка и подготовка отсылки по запросу.
@@ -3391,7 +3391,7 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
 								  "left: 4px; padding-top: 0px; }");
 		}
-		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::black));
 	}
 	else
 	{
@@ -3402,7 +3402,7 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
 								  "left: 4px; padding-top: 0px; }");
 		}
-		p_GraphicsElementItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::white));
 	}
 	if(p_GraphicsElementItem->p_QGroupBox)
 	{
@@ -3415,11 +3415,11 @@ void SchematicView::SetGroupPalette(GraphicsGroupItem* p_GraphicsGroupItem)
 {
 	if(p_GraphicsGroupItem->bIsPositivePalette)
 	{
-		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::black));
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::black));
 	}
 	else
 	{
-		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Foreground, QColor(Qt::white));
+		p_GraphicsGroupItem->oQPalette.setColor(QPalette::Dark, QColor(Qt::white));
 	}
 	p_GraphicsGroupItem->p_QLabel->setPalette(p_GraphicsGroupItem->oQPalette);
 }
@@ -3427,7 +3427,7 @@ void SchematicView::SetGroupPalette(GraphicsGroupItem* p_GraphicsGroupItem)
 // Подготовка имени внешнего порта.
 void SchematicView::PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElementItem)
 {
-	QChar qchF = 0x00AF;
+	QChar qchF(0x00AF);
 	QString strName = p_GraphicsElementItem->oPSchElementBaseInt.m_chName;
 	QString strU;
 	//
@@ -3472,7 +3472,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
-		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Background, p_GraphicsElementItem->oQBrush);
+		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Dark, p_GraphicsElementItem->oQBrush);
 		if((IsMinimized(p_ElementSettings) != 0) || bLoading)
 		{
 			p_GraphicsElementItem->p_QGroupBox->hide(); // Если минимизировано - скрываем.
@@ -4611,7 +4611,7 @@ void SchematicView::FrameConstructorHandler(GraphicsFrameItem* p_GraphicsFrameIt
 		p_GraphicsFrameItem->setParentItem(p_PortParent);
 	}
 	p_GraphicsFrameItem->setZValue(OVERMIN_NUMBER);
-	p_GraphicsFrameItem->setAcceptedMouseButtons(0);
+	p_GraphicsFrameItem->setAcceptedMouseButtons(Qt::NoButton);
 }
 
 // Просчёт вектора Безье-отклонения линка к левому верхнему углу.
@@ -4929,7 +4929,7 @@ void SchematicView::LinkConstructorHandler(GraphicsLinkItem* p_GraphicsLinkItem,
 			p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY = p_GraphicsPortItemDst->pos().y();
 			//
 			UpdateLinkPositionByElements(p_GraphicsLinkItem);
-			p_GraphicsLinkItem->setAcceptedMouseButtons(0);
+			p_GraphicsLinkItem->setAcceptedMouseButtons(Qt::NoButton);
 			return;
 		}
 	}
@@ -5442,7 +5442,7 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 									// Сразу ЗАМЕЩАЕМ значение в списке на клиенте.
 									oPSchPseudonym.ushiPort = p_PortInfo->ushiPortNumber;
 									CopyStrArray((char*)p_PortInfo->strPseudonym.toStdString().c_str(),
-												 oPSchPseudonym.m_chName, p_PortInfo->strPseudonym.toStdString().length() + 1);
+												 oPSchPseudonym.m_chName, (uint)p_PortInfo->strPseudonym.toStdString().length() + 1);
 									SchematicWindow::v_PSchPseudonyms.replace(iF, oPSchPseudonym);
 									v_PSchPseudonymsInfoNews.append(oPSchPseudonym); // Добавление в список для отправки новых.
 								}
@@ -5471,7 +5471,7 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 						//
 						oPSchPseudonym.ushiPort = p_PortInfo->ushiPortNumber;
 						CopyStrArray((char*)p_PortInfo->strPseudonym.toStdString().c_str(),
-									 oPSchPseudonym.m_chName, p_PortInfo->strPseudonym.toStdString().length() + 1);
+									 oPSchPseudonym.m_chName, (uint)p_PortInfo->strPseudonym.toStdString().length() + 1);
 						v_PSchPseudonymsInfoNews.append(oPSchPseudonym);
 						SchematicWindow::v_PSchPseudonyms.append(oPSchPseudonym);
 					}
