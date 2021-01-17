@@ -353,14 +353,6 @@ private:
 							///< \param[in] avp_Groups Ссылка на вектор указателей на группы или nullptr.
 							///< \param[in] p_GraphicsGroupItemExclude Указатель на элемент для исключения или nullptr.
 							///< \param[in] pv_EGPointersVariants Указатель на вектор отсортированных вариантов для заполнения.
-	/// Сортировка вектора групп по Z-позиции с приоритетом по выборке.
-	static void SortGroupsByZPos(QVector<GraphicsGroupItem*>& avp_Groups,
-								 GraphicsGroupItem* p_GraphicsGroupItemExclude,
-								 QVector<GraphicsGroupItem*>* pvp_SortedGroups,
-								 QVector<GraphicsGroupItem*>* pvp_SelectionSortedGroups = nullptr);
-							///< \param[in] аvp_Groups Ссылка на вектор указателей на группы.
-							///< \param[in] bWithSelectedDiff При true - вынос выбранных пользователем элементов на передний план.
-							///< \param[in] p_GraphicsGroupItemExclude Указатель на группу для исключения или nullptr.
 	/// Поднятие Z-значений ветки группы с фокусом и очистка списка.
 	static void PullUpZOfBranch(QVector<GraphicsGroupItem*>& avp_GraphicsGroupItemsBranch);
 							///< \param[in] avp_GraphicsGroupItemsBranch Ссылка на вектор с веткой групп.

@@ -77,6 +77,7 @@ private:
 	static bool bFromConstructor; ///< Признак захода в смену строки из конструктора.
 	static QList<QPushButton*> vp_QPushButtondForDisabling; ///< Список указателей на отключаемые кнопки.
 	static QList<QPushButton*> vp_QPushButtondSwitchable; ///< Список указателей на переключаемые кнопки.
+	static QVector<PortInfo> v_Ports; ///< Список портов для внутреннего пользования.
 };
 
 #endif // EDIT_PORT_DIALOG_H

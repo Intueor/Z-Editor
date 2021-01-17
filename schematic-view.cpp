@@ -5364,6 +5364,7 @@ gF:		ReleaseOccupiedAPFS();
 				int iPseudonymsCount = SchematicWindow::v_PSchPseudonyms.count();
 				int iDiagResultPseudonymsCount;
 				PSchPseudonym oPSchPseudonym;
+				bool bAccepted = false;
 				//
 				oPSchLinkBase.oPSchLinkVars.oSchLGraph = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph;
 				oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDSrc;
@@ -5387,6 +5388,7 @@ gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortsInfo, &iNumber);
 					if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 					{
+						bAccepted = true;
 						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort)
 						{
 							DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
@@ -5403,6 +5405,7 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortsInfo, &iNumber);
 					if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 					{
+						bAccepted = true;
 						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort)
 						{
 							DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
@@ -5418,73 +5421,76 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 					if(p_GraphicsPortItem->bIsSrc) goto gSrc;
 					else goto gDst;
 				}
-				// Актуализация списка псевдонимов.
-				iDiagResultPseudonymsCount = v_PortsInfo.count();
-				for(int iF = 0; iF != iPseudonymsCount; iF++) // По всем имеющимся псевдонимам.
+				if(bAccepted)
 				{
-					const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
-					bool bFoundedOrRenamed = false;
-					// По всем результатам работы диалога.
-					for(int iN = 0; iN != iDiagResultPseudonymsCount; iN++)
+					// Актуализация списка псевдонимов.
+					iDiagResultPseudonymsCount = v_PortsInfo.count();
+					for(int iF = 0; iF != iPseudonymsCount; iF++) // По всем имеющимся псевдонимам.
 					{
-						const Edit_Port_Dialog::PortInfo* p_PortInfo = &v_PortsInfo.at(iN);
-						//
-						if(p_PortInfo->ushiPortNumber == p_PSchPseudonym->ushiPort) // Если совпал номер...
+						const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
+						bool bFoundedOrRenamed = false;
+						// По всем результатам работы диалога.
+						for(int iN = 0; iN != iDiagResultPseudonymsCount; iN++)
 						{
-							if(p_PortInfo->strPseudonym != QString(p_PSchPseudonym->m_chName))
-							{ // ... но не совпало имя - в список новых псевдонимов(аналог переименовывания).
+							const Edit_Port_Dialog::PortInfo* p_PortInfo = &v_PortsInfo.at(iN);
+							//
+							if(p_PortInfo->ushiPortNumber == p_PSchPseudonym->ushiPort) // Если совпал номер...
+							{
+								if(p_PortInfo->strPseudonym != QString(p_PSchPseudonym->m_chName))
+								{ // ... но не совпало имя - в список новых псевдонимов(аналог переименовывания).
 
-								// Сразу ЗАМЕЩАЕМ значение в списке на клиенте.
-								oPSchPseudonym.ushiPort = p_PortInfo->ushiPortNumber;
-								CopyStrArray((char*)p_PortInfo->strPseudonym.toStdString().c_str(),
-											 oPSchPseudonym.m_chName, p_PortInfo->strPseudonym.count() + 1);
-								SchematicWindow::v_PSchPseudonyms.replace(iF, oPSchPseudonym);
-								v_PSchPseudonymsInfoNews.append(oPSchPseudonym); // Добавление в список для отправки новых.
+									// Сразу ЗАМЕЩАЕМ значение в списке на клиенте.
+									oPSchPseudonym.ushiPort = p_PortInfo->ushiPortNumber;
+									CopyStrArray((char*)p_PortInfo->strPseudonym.toStdString().c_str(),
+												 oPSchPseudonym.m_chName, p_PortInfo->strPseudonym.toStdString().length() + 1);
+									SchematicWindow::v_PSchPseudonyms.replace(iF, oPSchPseudonym);
+									v_PSchPseudonymsInfoNews.append(oPSchPseudonym); // Добавление в список для отправки новых.
+								}
+								// Исключаем из поиска и переходим на следующий из присутствующих клиенте.
+								v_PortsInfo.removeAt(iN);
+								iDiagResultPseudonymsCount--;
+								bFoundedOrRenamed = true;
+								break; // Дубликаты по номеру не предполагаются.
 							}
-							// Исключаем из поиска и переходим на следующий из присутствующих клиенте.
-							v_PortsInfo.removeAt(iN);
-							iDiagResultPseudonymsCount--;
-							bFoundedOrRenamed = true;
-							break; // Дубликаты по номеру не предполагаются.
+						}
+						if(!bFoundedOrRenamed) // Если псевдоним был удалён в диалоге...
+						{
+							PSchPseudonymEraser oPSchPseudonymEraser;
+							oPSchPseudonymEraser.ushiPort = p_PSchPseudonym->ushiPort;
+							v_PSchPseudonymsInfoForDelete.append(oPSchPseudonymEraser); // Добавление в список для отправки удалений.
+							// Сразу УДАЛЯЕМ значение в списке на клиенте.
+							SchematicWindow::v_PSchPseudonyms.removeAt(iF);
+							iPseudonymsCount--;
+							iF--;
 						}
 					}
-					if(!bFoundedOrRenamed) // Если псевдоним был удалён в диалоге...
+					// Остались только новые из диалога - ДОБАВЛЯЕМ в список новостей и на клиент.
+					for(int iF = 0; iF != v_PortsInfo.count(); iF++)
 					{
-						PSchPseudonymEraser oPSchPseudonymEraser;
-						oPSchPseudonymEraser.ushiPort = p_PSchPseudonym->ushiPort;
-						v_PSchPseudonymsInfoForDelete.append(oPSchPseudonymEraser); // Добавление в список для отправки удалений.
-						// Сразу УДАЛЯЕМ значение в списке на клиенте.
-						SchematicWindow::v_PSchPseudonyms.removeAt(iF);
-						iPseudonymsCount--;
-						iF--;
+						const Edit_Port_Dialog::PortInfo* p_PortInfo = &v_PortsInfo.at(iF);
+						//
+						oPSchPseudonym.ushiPort = p_PortInfo->ushiPortNumber;
+						CopyStrArray((char*)p_PortInfo->strPseudonym.toStdString().c_str(),
+									 oPSchPseudonym.m_chName, p_PortInfo->strPseudonym.toStdString().length() + 1);
+						v_PSchPseudonymsInfoNews.append(oPSchPseudonym);
+						SchematicWindow::v_PSchPseudonyms.append(oPSchPseudonym);
 					}
+					// Подготовка к отправке удалений.
+					for(int iF = 0; iF != v_PSchPseudonymsInfoForDelete.count(); iF++)
+					{
+						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_PSEUDONYM_ERASE,
+																	   (char*)&v_PSchPseudonymsInfoForDelete.at(iF),
+																	   sizeof(PSchPseudonymEraser));
+					}
+					// Подготовка к отправке новостей.
+					for(int iF = 0; iF != v_PSchPseudonymsInfoNews.count(); iF++)
+					{
+						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_PSEUDONYM,
+																	   (char*)&v_PSchPseudonymsInfoNews.at(iF),
+																	   sizeof(PSchPseudonym));
+					}
+					SetPortTooltip(p_GraphicsPortItem);
 				}
-				// Остались только новые из диалога - ДОБАВЛЯЕМ в список новостей и на клиент.
-				for(int iF = 0; iF != v_PortsInfo.count(); iF++)
-				{
-					const Edit_Port_Dialog::PortInfo* p_PortInfo = &v_PortsInfo.at(iF);
-					//
-					oPSchPseudonym.ushiPort = p_PortInfo->ushiPortNumber;
-					CopyStrArray((char*)p_PortInfo->strPseudonym.toStdString().c_str(),
-								 oPSchPseudonym.m_chName, p_PortInfo->strPseudonym.count() + 1);
-					v_PSchPseudonymsInfoNews.append(oPSchPseudonym);
-					SchematicWindow::v_PSchPseudonyms.append(oPSchPseudonym);
-				}
-				// Подготовка к отправке удалений.
-				for(int iF = 0; iF != v_PSchPseudonymsInfoForDelete.count(); iF++)
-				{
-					MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_PSEUDONYM_ERASE,
-																   (char*)&v_PSchPseudonymsInfoForDelete.at(iF),
-																   sizeof(PSchPseudonymEraser));
-				}
-				// Подготовка к отправке новостей.
-				for(int iF = 0; iF != v_PSchPseudonymsInfoNews.count(); iF++)
-				{
-					MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_PSEUDONYM,
-																   (char*)&v_PSchPseudonymsInfoNews.at(iF),
-																   sizeof(PSchPseudonym));
-				}
-				SetPortTooltip(p_GraphicsPortItem);
 			}
 			if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{

@@ -16,6 +16,7 @@ bool Edit_Port_Dialog::bBlockSpinBoxSync = false;
 bool Edit_Port_Dialog::bFromConstructor = false;
 QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondForDisabling;
 QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondSwitchable;
+QVector<Edit_Port_Dialog::PortInfo> Edit_Port_Dialog::v_Ports;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
@@ -25,6 +26,30 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	p_ui(new Ui::Edit_Port_Dialog)
 {
 	int iRows = pv_Ports->count();
+	vp_QPushButtondForDisabling.clear();
+	vp_QPushButtondSwitchable.clear();
+	v_Ports.clear();
+	p_QTableWidgetItemSelected = nullptr;
+	// Сортировка.
+	while(!pv_Ports->isEmpty())
+	{
+		int iItem = 0;
+		int iPort = 65536;
+		const PortInfo* p_PortInfo;
+		//
+		for(int iF = 0; iF < pv_Ports->count(); iF++)
+		{
+			p_PortInfo = &pv_Ports->at(iF);
+			if(iPort > p_PortInfo->ushiPortNumber)
+			{
+				iPort = p_PortInfo->ushiPortNumber;
+				iItem = iF;
+			}
+		}
+		p_PortInfo = &pv_Ports->at(iItem);
+		v_Ports.append(*p_PortInfo);
+		pv_Ports->removeAt(iItem);
+	}
 	//
 	p_ui->setupUi(this);
 	p_ui->Safe_Searching_Line_Edit->p_QPushButtonForNotDefault = p_ui->pushButton_Accept;
@@ -39,7 +64,7 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	p_ui->tableWidget_Pseudonyms->setRowCount(iRows);
 	for(int iF = 0; iF != iRows; iF++)
 	{
-		const PortInfo* p_PortInfo = &pv_PortsInt->at(iF);
+		const PortInfo* p_PortInfo = &v_Ports.at(iF);
 		QString strItemText;
 		QTableWidgetItem* p_QTableWidgetItem;
 		//
@@ -74,7 +99,6 @@ Edit_Port_Dialog::~Edit_Port_Dialog()
 void Edit_Port_Dialog::accept()
 {
 	*p_iNumberInt = p_ui->spinBox->value();
-	pv_PortsInt->clear();
 	for(int iF = 0; iF != p_ui->tableWidget_Pseudonyms->rowCount(); iF++)
 	{
 		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->item(iF, 0);
@@ -84,18 +108,12 @@ void Edit_Port_Dialog::accept()
 		oPortInfo.strPseudonym = p_QTableWidgetItem->text();
 		pv_PortsInt->append(oPortInfo);
 	}
-	vp_QPushButtondForDisabling.clear();
-	vp_QPushButtondSwitchable.clear();
-	p_QTableWidgetItemSelected = nullptr;
 	done(DIALOGS_ACCEPT);
 }
 
 // Отменено.
 void Edit_Port_Dialog::reject()
 {
-	vp_QPushButtondForDisabling.clear();
-	vp_QPushButtondSwitchable.clear();
-	p_QTableWidgetItemSelected = nullptr;
 	done(DIALOGS_REJECT);
 }
 
@@ -258,12 +276,27 @@ void Edit_Port_Dialog::on_pushButton_Set_New_Pseudonym_clicked()
 	QTableWidgetItem* p_QTableWidgetItem = new QTableWidgetItem("");
 	int iN = p_ui->spinBox->value();
 	QString strItemText;
+	int iF = 0;
+	bool bFoundGreater = false;
 	//
 	strItemText.setNum(iN);
-	p_ui->tableWidget_Pseudonyms->insertRow(iRows);
+	// Поиск места.
+	for(; iF != iRows; iF++)
+	{
+		QTableWidgetItem* p_QTableWidgetItemCurrent = p_ui->tableWidget_Pseudonyms->item(iF, 0);
+		//
+		if(p_QTableWidgetItemCurrent->data(ROLE_PORT_NUMBER).toInt() > iN)
+		{
+			bFoundGreater = true;
+			break;
+		}
+	}
+	if(!bFoundGreater) iF = iRows;
+	//
+	p_ui->tableWidget_Pseudonyms->insertRow(iF);
 	p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, p_ui->spinBox->value());
-	p_ui->tableWidget_Pseudonyms->setItem(iRows, 0, p_QTableWidgetItem);
-	p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iRows, new QTableWidgetItem(strItemText));
+	p_ui->tableWidget_Pseudonyms->setItem(iF, 0, p_QTableWidgetItem);
+	p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
 	p_ui->tableWidget_Pseudonyms->editItem(p_QTableWidgetItem);
 	p_QTableWidgetItemSelected = p_QTableWidgetItem;
 	UpdateTable();
