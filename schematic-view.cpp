@@ -320,6 +320,8 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 	//
 	if(iD)
 	{
+		if(iD < -120) iD = -120;
+		else if(iD > 120) iD = 120;
 		qreal rScaleFactor = pow((double)2, (0 - iD) / 240.0f);
 		qreal rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f)).width();
 		//
