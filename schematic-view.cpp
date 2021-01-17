@@ -341,6 +341,7 @@ void SchematicView::wheelEvent(QWheelEvent* p_Event)
 			if(uchWheelMul > 0) uchWheelMul--;
 		}
 		dbSnapStep = v_dbSnaps.at(uchWheelMul);
+		SetBackgroundPos();
 	}
 }
 
