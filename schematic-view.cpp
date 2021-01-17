@@ -316,26 +316,30 @@ QRectF SchematicView::GetVisibleRect()
 // Переопределение функции обработки событий колёсика.
 void SchematicView::wheelEvent(QWheelEvent* p_Event)
 {
-	int iD = p_Event->angleDelta().x();
-	qreal rScaleFactor = pow((double)2, (0 - iD) / 240.0f);
-	qreal rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f)).width();
+	int iD = p_Event->angleDelta().y();
 	//
-	if((rFactor < 0.1f) || (rFactor > 5.0f))
-		return;
-	scale(rScaleFactor, rScaleFactor);
-	if(pf_CBSchematicViewFrameChangedInt != nullptr)
+	if(iD)
 	{
-		pf_CBSchematicViewFrameChangedInt(GetVisibleRect());
+		qreal rScaleFactor = pow((double)2, (0 - iD) / 240.0f);
+		qreal rFactor = transform().scale(rScaleFactor, rScaleFactor).mapRect(QRectF(0.0f, 0.0f, 1.0f, 1.0f)).width();
+		//
+		if((rFactor < 0.1f) || (rFactor > 5.0f))
+			return;
+		scale(rScaleFactor, rScaleFactor);
+		if(pf_CBSchematicViewFrameChangedInt != nullptr)
+		{
+			pf_CBSchematicViewFrameChangedInt(GetVisibleRect());
+		}
+		if(iD > 0)
+		{
+			if(uchWheelMul < 255) uchWheelMul++;
+		}
+		else
+		{
+			if(uchWheelMul > 0) uchWheelMul--;
+		}
+		dbSnapStep = v_dbSnaps.at(uchWheelMul);
 	}
-	if(iD > 0)
-	{
-		if(uchWheelMul < 255) uchWheelMul++;
-	}
-	else
-	{
-		if(uchWheelMul > 0) uchWheelMul--;
-	}
-	dbSnapStep = v_dbSnaps.at(uchWheelMul);
 }
 
 // Установка позиции подложки.
