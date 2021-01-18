@@ -5363,6 +5363,7 @@ gF:		ReleaseOccupiedAPFS();
 		{
 			Edit_Port_Dialog* p_Edit_Port_Dialog = nullptr;
 			PSchLinkBase oPSchLinkBase;
+			GraphicsPortItem* p_GraphicsPortItemVar = p_GraphicsPortItem;
 			int iNumber;
 			//
 			if((p_SelectedMenuItem->data() == MENU_SRC_PORT) |
@@ -5395,36 +5396,38 @@ gF:		ReleaseOccupiedAPFS();
 				//
 				if(p_SelectedMenuItem->data() == MENU_SRC_PORT)
 				{
-gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
+					p_GraphicsPortItemVar = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc;
+gSrc:				iNumber = p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiSrcPort;
 					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortsInfo, &iNumber);
 					if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						bAccepted = true;
-						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort)
+						if(iNumber != p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiSrcPort)
 						{
-							DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
-							p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort = iNumber;
-							p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
-							oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->ushiPortInt;
-gSd:						MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+							DeleteLinkAPFS(p_GraphicsPortItemVar->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
+							p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiSrcPort = iNumber;
+							p_GraphicsPortItemVar->ushiPortInt = p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiSrcPort;
+							oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItemVar->ushiPortInt;
+							MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
 						}
 					}
 				}
 				else if(p_SelectedMenuItem->data() == MENU_DST_PORT)
 				{
-gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
-					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortsInfo, &iNumber);
+					p_GraphicsPortItemVar = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst;
+gDst:				iNumber = p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiDstPort;
+					p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortDst), &v_PortsInfo, &iNumber);
 					if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 					{
 						bAccepted = true;
-						if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort)
+						if(iNumber != p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiDstPort)
 						{
-							DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
-							p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort = iNumber;
-							p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
-							oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->ushiPortInt;
+							DeleteLinkAPFS(p_GraphicsPortItemVar->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
+							p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiDstPort = iNumber;
+							p_GraphicsPortItemVar->ushiPortInt = p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiDstPort;
+							oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItemVar->ushiPortInt;
+							MainWindow::p_Client->AddPocketToOutputBufferC(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
 						}
-						goto gSd;
 					}
 				}
 				else if(p_SelectedMenuItem->data() == MENU_SELECTED_PORT)
@@ -5500,7 +5503,11 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 																	   (char*)&v_PSchPseudonymsInfoNews.at(iF),
 																	   sizeof(PSchPseudonym));
 					}
-					SetPortTooltip(p_GraphicsPortItem);
+					// Установка всех тултипов.
+					for(int iF = 0; iF != SchematicWindow::vp_Ports.count(); iF++)
+					{
+						SetPortTooltip(SchematicWindow::vp_Ports.at(iF));
+					}
 				}
 			}
 			if(p_SelectedMenuItem->data() == MENU_DELETE)
