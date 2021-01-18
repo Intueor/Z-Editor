@@ -3528,10 +3528,6 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 				setPos(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW,
 					   p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH);
 	}
-//	if(IsMinimized(p_ElementSettings))
-//	{
-//		p_GraphicsElementItem->p_GraphicsScalerItem->hide();  // Если минимизировано - скрываем.
-//	}
 	// Фрейм для обводки.
 	p_GraphicsElementItem->p_GraphicsFrameItem = new GraphicsFrameItem(SCH_KIND_ITEM_ELEMENT, p_GraphicsElementItem);
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();

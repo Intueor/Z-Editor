@@ -62,17 +62,21 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	pv_PortsInt = pv_Ports;
 	p_iNumberInt = p_iNumber;
 	p_ui->tableWidget_Pseudonyms->setRowCount(iRows);
+	p_ui->tableWidget_Pseudonyms->verticalHeader()->setFixedWidth(44);
 	for(int iF = 0; iF != iRows; iF++)
 	{
 		const PortInfo* p_PortInfo = &v_Ports.at(iF);
 		QString strItemText;
 		QTableWidgetItem* p_QTableWidgetItem;
+		QTableWidgetItem* p_QTableWidgetItemHeader;
 		//
-		strItemText.setNum(p_PortInfo->ushiPortNumber);
+		strItemText = strItemText.setNum(p_PortInfo->ushiPortNumber).rightJustified(5) + " ";
 		p_QTableWidgetItem = new QTableWidgetItem(p_PortInfo->strPseudonym);
 		p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, p_PortInfo->ushiPortNumber);
 		p_ui->tableWidget_Pseudonyms->setItem(iF, 0, p_QTableWidgetItem);
-		p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
+		p_QTableWidgetItemHeader = new QTableWidgetItem(strItemText);
+		p_QTableWidgetItemHeader->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+		p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, p_QTableWidgetItemHeader);
 		if(*p_iNumberInt == p_PortInfo->ushiPortNumber)
 		{
 			p_QTableWidgetItemSelected = p_QTableWidgetItem;
@@ -274,12 +278,13 @@ void Edit_Port_Dialog::on_pushButton_Set_New_Pseudonym_clicked()
 {
 	int iRows = p_ui->tableWidget_Pseudonyms->rowCount();
 	QTableWidgetItem* p_QTableWidgetItem = new QTableWidgetItem("");
+	QTableWidgetItem* p_QTableWidgetItemHeader;
 	int iN = p_ui->spinBox->value();
 	QString strItemText;
 	int iF = 0;
 	bool bFoundGreater = false;
 	//
-	strItemText.setNum(iN);
+	strItemText = strItemText.setNum(iN).rightJustified(5) + " ";
 	// Поиск места.
 	for(; iF != iRows; iF++)
 	{
@@ -296,7 +301,9 @@ void Edit_Port_Dialog::on_pushButton_Set_New_Pseudonym_clicked()
 	p_ui->tableWidget_Pseudonyms->insertRow(iF);
 	p_QTableWidgetItem->setData(ROLE_PORT_NUMBER, p_ui->spinBox->value());
 	p_ui->tableWidget_Pseudonyms->setItem(iF, 0, p_QTableWidgetItem);
-	p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, new QTableWidgetItem(strItemText));
+	p_QTableWidgetItemHeader = new QTableWidgetItem(strItemText);
+	p_QTableWidgetItemHeader->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	p_ui->tableWidget_Pseudonyms->setVerticalHeaderItem(iF, p_QTableWidgetItemHeader);
 	p_ui->tableWidget_Pseudonyms->editItem(p_QTableWidgetItem);
 	p_QTableWidgetItemSelected = p_QTableWidgetItem;
 	UpdateTable();
