@@ -1,9 +1,10 @@
 //== ВКЛЮЧЕНИЯ.
 #include <QPushButton>
+#include <QScrollBar>
 #include "edit_port_dialog.h"
 #include "ui_edit_port_dialog.h"
 #include "../Z-Hub/main-hub.h"
-#include <QScrollBar>
+#include "schematic-window.h"
 
 //== МАКРОСЫ.
 #define ROLE_PORT_NUMBER	0x100
@@ -340,6 +341,32 @@ void Edit_Port_Dialog::on_tableWidget_Pseudonyms_itemChanged(QTableWidgetItem* p
 					}
 				}
 			}
+		}
+	}
+}
+
+// При выборе контекстного меню в таблице псевдонимов.
+void Edit_Port_Dialog::on_tableWidget_Pseudonyms_customContextMenuRequested(const QPoint& a_Pos)
+{
+	QAction* p_SelectedMenuItem;
+	//
+	SchematicWindow::ResetMenu();
+	SchematicWindow::p_SafeMenu = new SafeMenu;
+	SchematicWindow::p_SafeMenu->addAction(m_chMenuRenameP)->setData(MENU_RENAME_PSEUDONYM);
+	SchematicWindow::p_SafeMenu->addAction(m_chMenuDeleteP)->setData(MENU_DELETE_PSEUDONYM);
+	p_SelectedMenuItem = SchematicWindow::p_SafeMenu->exec(QCursor::pos());
+	if(p_SelectedMenuItem != 0)
+	{
+		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Pseudonyms->itemAt(a_Pos);
+		//
+		if(p_SelectedMenuItem->data() == MENU_RENAME_PSEUDONYM)
+		{
+			p_ui->tableWidget_Pseudonyms->editItem(p_QTableWidgetItem);
+		}
+		else if(p_SelectedMenuItem->data() == MENU_DELETE_PSEUDONYM)
+		{
+			p_ui->tableWidget_Pseudonyms->setCurrentItem(p_QTableWidgetItem);
+			on_SwitchAnotherPushButton_Delete_Pseudonym_clicked();
 		}
 	}
 }

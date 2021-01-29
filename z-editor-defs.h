@@ -256,4 +256,8 @@ const char m_chMenuSetPassword[] =		"Задать пароль";
 const char m_chMenuSetAsDefault[] =		"Установить как текущий";
 #define MENU_DELETE_ITEM				22
 const char m_chMenuDeleteItem[] =		"Удалить выбранный";
+#define MENU_RENAME_PSEUDONYM			23
+const char m_chMenuRenameP[] =			"Переименовать псевдоним";
+#define MENU_DELETE_PSEUDONYM			24
+const char m_chMenuDeleteP[] =			"Удалить псевдоним";
 #endif // ZEDITORDEFS_H

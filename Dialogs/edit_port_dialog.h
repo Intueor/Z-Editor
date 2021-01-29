@@ -62,6 +62,9 @@ private slots:
 	/// Обработка изменённой ячейки.
 	void on_tableWidget_Pseudonyms_itemChanged(QTableWidgetItem* p_Item);
 								//< \param[in] p_Item Указатель на ячейку.
+	/// При выборе контекстного меню в таблице псевдонимов.
+	void on_tableWidget_Pseudonyms_customContextMenuRequested(const QPoint& a_Pos);
+								//< \param[in] a_Pos Ссылка координаты выбранного объекта.
 
 private:
 	/// Уход из редактирования поиска.

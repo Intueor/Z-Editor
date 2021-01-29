@@ -3163,7 +3163,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			{
 				BacthRenameDialogProcedures();
 			}
-			if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
+			else if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
 			{
 				QString strNameType;
 				Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
@@ -4145,7 +4145,7 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			{
 				BacthRenameDialogProcedures();
 			}
-			if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
+			else if(p_SelectedMenuItem->data() == MENU_RENAME_EG)
 			{
 				char m_chName[SCH_OBJ_NAME_STR_LEN];
 				Set_Proposed_String_Dialog* p_Set_Proposed_String_Dialog;
@@ -5506,7 +5506,7 @@ gDst:				iNumber = p_GraphicsPortItemVar->p_PSchLinkVarsInt->ushiDstPort;
 					}
 				}
 			}
-			if(p_SelectedMenuItem->data() == MENU_DELETE)
+			else if(p_SelectedMenuItem->data() == MENU_DELETE)
 			{
 				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt);
 			}
