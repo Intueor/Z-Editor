@@ -179,12 +179,12 @@ const char m_chMenuDeleteR[] =			"Удалить приёмник";
 const char m_chMenuDeleteG[] =			"Удалить группу";
 const char m_chMenuDeleteL[] =			"Удалить линк";
 //										ПОРТЫ.
-#define MENU_PORTS						2
-const char m_chMenuPortsS[] =			"Порты выбранного";
-const char m_chMenuPortsE[] =			"Порты элемента";
-const char m_chMenuPortsB[] =			"Порты транслятора";
-const char m_chMenuPortsR[] =			"Порты приёмника";
-const char m_chMenuPortsG[] =			"Порты внутри группы";
+#define MENU_LINKS						2
+const char m_chMenuLinksS[] =			"Линки выбранного";
+const char m_chMenuLinksE[] =			"Линки элемента";
+const char m_chMenuLinksB[] =			"Линки транслятора";
+const char m_chMenuLinksR[] =			"Линки приёмника";
+const char m_chMenuLinksG[] =			"Линки внутри группы";
 #define MENU_SRC_PORT					3
 const char m_chMenuPortSrc[] =			"Порт источника ";
 #define MENU_DST_PORT					4

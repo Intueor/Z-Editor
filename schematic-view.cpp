@@ -2727,7 +2727,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 					{
 						pc_chVarRename = m_chMenuRenameR;
 						pc_chVarDelete = m_chMenuDeleteR;
-						pc_chVarPorts = m_chMenuPortsR;
+						pc_chVarPorts = m_chMenuLinksR;
 						pc_chVarExtPort = m_chMenuExtPortR;
 						pc_chVarCreateGroup = m_chMenuCreateFromR;
 						pc_chVarAdd = m_chMenuAddFreeR;
@@ -2738,7 +2738,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 					{
 						pc_chVarRename = m_chMenuRenameB;
 						pc_chVarDelete = m_chMenuDeleteB;
-						pc_chVarPorts = m_chMenuPortsB;
+						pc_chVarPorts = m_chMenuLinksB;
 						pc_chVarExtPort = m_chMenuExtPortB;
 						pc_chVarCreateGroup = m_chMenuCreateFromB;
 						pc_chVarAdd = m_chMenuAddFreeB;
@@ -2750,7 +2750,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				{
 					pc_chVarRename = m_chMenuRenameE;
 					pc_chVarDelete = m_chMenuDeleteE;
-					pc_chVarPorts = m_chMenuPortsE;
+					pc_chVarPorts = m_chMenuLinksE;
 					pc_chVarCreateGroup = m_chMenuCreateFromE;
 					pc_chVarAdd = m_chMenuAddFreeE;
 					pc_chVarDetach = m_chMenuDetachE;
@@ -2759,7 +2759,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarRename))->setData(MENU_RENAME_EG); // |->Переименовать элемент\группу.
 				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarDelete))->setData(MENU_DELETE); // |->Удалить.
 				if(bPortsPresent) // Если есть порты...
-					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarPorts))->setData(MENU_PORTS); // |->Меню портов.
+					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarPorts))->setData(MENU_LINKS); // |->Меню линков.
 				if(IsExtended(p_ElementSettings))
 				{
 					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarExtPort))->setData(MENU_EXTPORT); // |->Меню внешнего порта.
@@ -2780,7 +2780,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuRenameS))->setData(MENU_RENAME_SELECTED); // |->Переименовать выборку.
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDeleteS))->setData(MENU_DELETE); // |->Удалить.
 				if(bPortsPresent) // Если есть порты...
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPortsS))->setData(MENU_PORTS); // |->Меню портов.
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuLinksS))->setData(MENU_LINKS); // |->Меню линков.
 				if(bElementIsFree)  // Если не в группе...
 					if(!TestSelectedForNesting()) // И выборка не в группе...
 						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromS)->setData(MENU_CREATE_GROUP); // |->Создать группу.
@@ -3210,7 +3210,7 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			{
 				DeleteSelectedAPFS();
 			}
-			else if(p_SelectedMenuItem->data() == MENU_PORTS)
+			else if(p_SelectedMenuItem->data() == MENU_LINKS)
 			{
 
 			}
@@ -3972,7 +3972,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDeleteG))->setData(MENU_DELETE); // |->Удалить.
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisbandG))->setData(MENU_DISBAND); // |-> Расформировать.
 				if(bPortsPresent) // Если есть порты...
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPortsG))->setData(MENU_PORTS); // |->Меню портов.
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuLinksG))->setData(MENU_LINKS); // |->Меню линков.
 				if(bGroupIsFree) // Если не в группе...
 						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromG)->setData(MENU_CREATE_GROUP); // |->Создать группу.
 				if(!bGroupIsFree) // Если есть в составе группы...
@@ -3990,7 +3990,7 @@ void SchematicView::GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGro
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDeleteS))->setData(MENU_DELETE); // |->Удалить.
 				SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuDisbandS))->setData(MENU_DISBAND); // |-> Расформировать.
 				if(bPortsPresent) // Если есть порты...
-					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuPortsS))->setData(MENU_PORTS); // |->Меню портов.
+					SchematicWindow::p_SafeMenu->addAction(QString(m_chMenuLinksS))->setData(MENU_LINKS); // |->Меню линков.
 				if(bGroupIsFree)  // Если не в группе...
 					if(!TestSelectedForNesting()) // И выборка не в группе...
 						SchematicWindow::p_SafeMenu->addAction(m_chMenuCreateFromS)->setData(MENU_CREATE_GROUP); // |->Создать группу.
