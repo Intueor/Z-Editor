@@ -13,6 +13,7 @@
 #include "Dialogs/batch_rename_dialog.h"
 #include "ui_batch_rename_dialog.h"
 #include "Dialogs/edit_port_dialog.h"
+#include "Dialogs/edit_links_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QBrush SchematicView::oQBrushDark;
@@ -3212,7 +3213,12 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			}
 			else if(p_SelectedMenuItem->data() == MENU_LINKS)
 			{
+				Edit_Links_Dialog* p_Edit_Links_Dialog = new Edit_Links_Dialog();
+				//
+				if(p_Edit_Links_Dialog->exec() == DIALOGS_ACCEPT)
+				{
 
+				}
 			}
 			else if(p_SelectedMenuItem->data() == MENU_EXTPORT)
 			{

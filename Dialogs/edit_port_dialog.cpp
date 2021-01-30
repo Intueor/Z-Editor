@@ -22,8 +22,8 @@ QVector<Edit_Port_Dialog::PortInfo> Edit_Port_Dialog::v_Ports;
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
 // Конструктор.
-Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* pv_Ports, int* p_iNumber, QWidget* p_parent) :
-	QDialog(p_parent),
+Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* pv_Ports, int* p_iNumber, QWidget* p_Parent) :
+	QDialog(p_Parent),
 	p_ui(new Ui::Edit_Port_Dialog)
 {
 	int iRows = pv_Ports->count();

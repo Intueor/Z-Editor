@@ -9,7 +9,7 @@
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {
-class Edit_Port_Dialog;
+	class Edit_Port_Dialog;
 }
 
 //== КЛАССЫ.
@@ -27,10 +27,10 @@ public:
 
 public:
 	/// Конструктор.
-	explicit Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* pv_Ports, int* p_iNumber, QWidget* p_parent = nullptr);
+	explicit Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* pv_Ports, int* p_iNumber, QWidget* p_Parent = nullptr);
 								///< \param[in] p_chDialogCaption Указатель на массив строки с именем.
 								///< \param[in] p_iNumber Указатель на переменную числа для начального отображения и последующего заполнения..
-								///< \param[in] p_parent Указатель на родительский виджет.
+								///< \param[in] p_Parent Указатель на родительский виджет.
 	/// Деструктор.
 	~Edit_Port_Dialog();
 
