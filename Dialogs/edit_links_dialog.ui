@@ -42,7 +42,37 @@
     <number>1</number>
    </property>
    <item>
-    <widget class="QTableWidget" name="tableWidget_Links"/>
+    <widget class="QTableWidget" name="tableWidget_Links">
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOn</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QAbstractScrollArea::AdjustToContents</enum>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="columnCount">
+      <number>5</number>
+     </property>
+     <attribute name="horizontalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <column/>
+     <column/>
+     <column/>
+     <column/>
+     <column/>
+    </widget>
    </item>
    <item>
     <widget class="QFrame" name="frame">
@@ -135,5 +165,22 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_Exit</sender>
+   <signal>clicked()</signal>
+   <receiver>Edit_Links_Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>576</x>
+     <y>414</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>324</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

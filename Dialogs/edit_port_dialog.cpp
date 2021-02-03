@@ -7,7 +7,7 @@
 #include "schematic-window.h"
 
 //== МАКРОСЫ.
-#define ROLE_PORT_NUMBER	0x100
+
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt = nullptr;
@@ -15,7 +15,7 @@ int* Edit_Port_Dialog::p_iNumberInt;
 QTableWidgetItem* Edit_Port_Dialog::p_QTableWidgetItemSelected = nullptr;
 bool Edit_Port_Dialog::bBlockSpinBoxSync = false;
 bool Edit_Port_Dialog::bFromConstructor = false;
-QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondForDisabling;
+QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtonForDisabling;
 QList<QPushButton*> Edit_Port_Dialog::vp_QPushButtondSwitchable;
 QVector<Edit_Port_Dialog::PortInfo> Edit_Port_Dialog::v_Ports;
 
@@ -27,7 +27,7 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	p_ui(new Ui::Edit_Port_Dialog)
 {
 	int iRows = pv_Ports->count();
-	vp_QPushButtondForDisabling.clear();
+	vp_QPushButtonForDisabling.clear();
 	vp_QPushButtondSwitchable.clear();
 	v_Ports.clear();
 	p_QTableWidgetItemSelected = nullptr;
@@ -54,9 +54,9 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	//
 	p_ui->setupUi(this);
 	p_ui->Safe_Searching_Line_Edit->p_QPushButtonForNotDefault = p_ui->pushButton_Accept;
-	vp_QPushButtondForDisabling.append(p_ui->SwitchAnotherPushButton_Delete_Pseudonym);
-	vp_QPushButtondForDisabling.append(p_ui->pushButton_Set_New_Pseudonym);
-	p_ui->Safe_Searching_Line_Edit->plp_QPushButtonsForDisable = &vp_QPushButtondForDisabling;
+	vp_QPushButtonForDisabling.append(p_ui->SwitchAnotherPushButton_Delete_Pseudonym);
+	vp_QPushButtonForDisabling.append(p_ui->pushButton_Set_New_Pseudonym);
+	p_ui->Safe_Searching_Line_Edit->plp_QPushButtonsForDisable = &vp_QPushButtonForDisabling;
 	setWindowTitle(p_chDialogCaption);
 	p_ui->spinBox->setValue(*p_iNumber);
 	p_ui->spinBox->selectAll();

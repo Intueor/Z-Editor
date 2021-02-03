@@ -260,4 +260,8 @@ const char m_chMenuDeleteItem[] =		"Удалить выбранный";
 const char m_chMenuRenameP[] =			"Переименовать псевдоним";
 #define MENU_DELETE_PSEUDONYM			24
 const char m_chMenuDeleteP[] =			"Удалить псевдоним";
+// Для диалогов.
+#define ROLE_PORT_NUMBER				0x100
+#define EDIT_LINK_PORT_WIDTH			44
+#define EDIT_LINK_DIRECTION_WIDTH		25
 #endif // ZEDITORDEFS_H

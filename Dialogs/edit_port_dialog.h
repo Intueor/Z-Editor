@@ -78,7 +78,7 @@ private:
 	QTimer oQTimer; ///< Таймер для установки текущей ячейки в таблице (уродство).
 	static bool bBlockSpinBoxSync; ///< При true - блокировка обновления числа в спинбоксе по выбранной ячейке таблицы.
 	static bool bFromConstructor; ///< Признак захода в смену строки из конструктора.
-	static QList<QPushButton*> vp_QPushButtondForDisabling; ///< Список указателей на отключаемые кнопки.
+	static QList<QPushButton*> vp_QPushButtonForDisabling; ///< Список указателей на отключаемые кнопки.
 	static QList<QPushButton*> vp_QPushButtondSwitchable; ///< Список указателей на переключаемые кнопки.
 	static QVector<PortInfo> v_Ports; ///< Список портов для внутреннего пользования.
 };
