@@ -41,10 +41,8 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	p_ui(new Ui::Edit_Links_Dialog)
 {
 	int iRows;
-	int iInitColumnWidth;
-	int iPortCompensationWidth;
-	int iDirectionCompensationWidth;
-	int iCompensationOverall;
+	double dbInitColumnWidth;
+	double dbDirectionCompensationWidth;
 	double dbElementCompensationWidth;
 	int iElementWidth;
 	int iLastColumnCompensation;
@@ -76,60 +74,52 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 		}
 	}
 	iRows = vp_GraphicsLinkItems.count();
-	p_ui->tableWidget_Links->setColumnCount(5);
+	p_ui->tableWidget_Links->setColumnCount(3);
 	p_ui->tableWidget_Links->setRowCount(iRows);
 	for(int iL = 0; iL != iRows; iL++)
 	{
+		QString strHelper;
 		QString strItemSelected;
 		QString strItemAnother;
-		QString strItemSelectedPort;
-		QString strItemAnotherPort;
 		QString strDirection;
 		QTableWidgetItem* p_QTableWidgetItem;
 		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iL);
 		//
 		if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected)
 		{
-			strItemSelectedPort = strItemSelected.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort).rightJustified(5) + " ";
-			strItemAnotherPort = strItemSelected.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort).rightJustified(5) + " ";
-			strItemSelected = QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
-			strItemAnother = QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
+			strItemSelected = QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName) + " [" +
+							  strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) + "]";
+			strItemAnother = "[" + strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) + "] " +
+							 QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
 			strDirection = "=>";
 		}
 		else
 		{
-			strItemSelectedPort = strItemSelected.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort).rightJustified(5) + " ";
-			strItemAnotherPort = strItemSelected.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort).rightJustified(5) + " ";
-			strItemSelected = QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
-			strItemAnother = QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
+			strItemSelected = QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName) + " [" +
+							  strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) + "]";
+			strItemAnother = "[" + strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) + "] " +
+							 QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
 			strDirection = "<=";
 		}
 		p_QTableWidgetItem = new QTableWidgetItem(strItemSelected);
-		p_ui->tableWidget_Links->setItem(iL, 0, p_QTableWidgetItem);
-		p_QTableWidgetItem = new QTableWidgetItem(strItemSelectedPort);
 		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight);
-		p_ui->tableWidget_Links->setItem(iL, 1, p_QTableWidgetItem);
+		p_ui->tableWidget_Links->setItem(iL, 0, p_QTableWidgetItem);
 		p_QTableWidgetItem = new QTableWidgetItem(strDirection);
 		p_QTableWidgetItem->setTextAlignment(Qt::AlignCenter);
-		p_ui->tableWidget_Links->setItem(iL, 2, p_QTableWidgetItem);
-		p_QTableWidgetItem = new QTableWidgetItem(strItemAnotherPort);
-		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight);
-		p_ui->tableWidget_Links->setItem(iL, 3, p_QTableWidgetItem);
+		p_ui->tableWidget_Links->setItem(iL, 1, p_QTableWidgetItem);
 		p_QTableWidgetItem = new QTableWidgetItem(strItemAnother);
-		p_ui->tableWidget_Links->setItem(iL, 4, p_QTableWidgetItem);
+		p_QTableWidgetItem->setTextAlignment(Qt::AlignLeft);
+		p_ui->tableWidget_Links->setItem(iL, 2, p_QTableWidgetItem);
 	}
-	iInitColumnWidth = p_ui->tableWidget_Links->columnWidth(0);
-	iPortCompensationWidth = iInitColumnWidth - EDIT_LINK_PORT_WIDTH;
-	iDirectionCompensationWidth = iInitColumnWidth - EDIT_LINK_DIRECTION_WIDTH;
-	iCompensationOverall = iPortCompensationWidth + iDirectionCompensationWidth + iPortCompensationWidth;
-	dbElementCompensationWidth = (iCompensationOverall / 2.0f) - (p_ui->tableWidget_Links->verticalScrollBar()->sizeHint().width() / 2.0f);
-	iElementWidth = iInitColumnWidth + dbElementCompensationWidth;
+	this->show();
+	dbInitColumnWidth = p_ui->tableWidget_Links->contentsRect().width() / 3.0f;
+	dbDirectionCompensationWidth = dbInitColumnWidth - EDIT_LINK_DIRECTION_WIDTH;
+	dbElementCompensationWidth = (dbDirectionCompensationWidth / 2.0f) - (p_ui->tableWidget_Links->verticalScrollBar()->sizeHint().width() / 2.0f);
+	iElementWidth = dbInitColumnWidth + dbElementCompensationWidth;
 	if(dbElementCompensationWidth > (int)dbElementCompensationWidth) iLastColumnCompensation = 1; else iLastColumnCompensation = 0;
 	p_ui->tableWidget_Links->setColumnWidth(0, iElementWidth);
-	p_ui->tableWidget_Links->setColumnWidth(1, EDIT_LINK_PORT_WIDTH);
-	p_ui->tableWidget_Links->setColumnWidth(2, EDIT_LINK_DIRECTION_WIDTH);
-	p_ui->tableWidget_Links->setColumnWidth(3, EDIT_LINK_PORT_WIDTH);
-	p_ui->tableWidget_Links->setColumnWidth(4, iElementWidth + iLastColumnCompensation);
+	p_ui->tableWidget_Links->setColumnWidth(1, EDIT_LINK_DIRECTION_WIDTH);
+	p_ui->tableWidget_Links->setColumnWidth(2, iElementWidth + iLastColumnCompensation);
 }
 
 // Деструктор.

@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>650</width>
-    <height>431</height>
+    <width>662</width>
+    <height>432</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>650</width>
-    <height>431</height>
+    <width>662</width>
+    <height>432</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>650</width>
-    <height>431</height>
+    <width>662</width>
+    <height>432</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -49,17 +49,17 @@
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOff</enum>
      </property>
-     <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::AdjustToContents</enum>
-     </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <property name="cornerButtonEnabled">
+      <bool>false</bool>
+     </property>
      <property name="columnCount">
-      <number>5</number>
+      <number>3</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
@@ -67,8 +67,6 @@
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
      </attribute>
-     <column/>
-     <column/>
      <column/>
      <column/>
      <column/>
