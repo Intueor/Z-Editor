@@ -46,6 +46,8 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	double dbElementCompensationWidth;
 	int iElementWidth;
 	int iLastColumnCompensation;
+	QPixmap oQPixmapR = QPixmap(":/icons/arrow-right.png");
+	QPixmap oQPixmapL = oQPixmapR.transformed(QTransform().scale(-1, 1));
 	//
 	vp_GraphicsLinkItems.clear();
 	p_ui->setupUi(this);
@@ -80,7 +82,6 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 		QString strHelper;
 		QString strItemSelected;
 		QString strItemAnother;
-		QString strDirection;
 		QTableWidgetItem* p_QTableWidgetItem;
 		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iL);
 		QLabel* p_Label = new QLabel();
@@ -93,7 +94,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 							  strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) + "]";
 			strItemAnother = "[" + strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) + "] " +
 							 QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
-			strDirection = "=>";
+			p_Label->setPixmap(oQPixmapR);
 		}
 		else
 		{
@@ -101,7 +102,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 							  strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) + "]";
 			strItemAnother = "[" + strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) + "] " +
 							 QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
-			strDirection = "<=";
+			p_Label->setPixmap(oQPixmapL);
 		}
 		p_QTableWidgetItem = new QTableWidgetItem(strItemSelected);
 		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -109,7 +110,6 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 		//
 		p_Label->setMaximumSize(EDIT_LINK_DIRECTION_WIDTH, p_ui->tableWidget_Links->rowHeight(0) / 4);
 		p_Label->setScaledContents(true);
-		p_Label->setPixmap(QPixmap(":/icons/arrow-right.png"));
 		p_Layout = new QHBoxLayout(p_Widget);
 		p_Layout->addWidget(p_Label);
 		p_Layout->setAlignment(Qt::AlignCenter);
@@ -128,7 +128,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	if(dbElementCompensationWidth > (int)dbElementCompensationWidth) iLastColumnCompensation = 1; else iLastColumnCompensation = 0;
 	p_ui->tableWidget_Links->setColumnWidth(0, iElementWidth);
 	p_ui->tableWidget_Links->setColumnWidth(1, EDIT_LINK_DIRECTION_WIDTH);
-	p_ui->tableWidget_Links->setColumnWidth(2, iElementWidth + iLastColumnCompensation);
+	p_ui->tableWidget_Links->setColumnWidth(2, iElementWidth + iLastColumnCompensation - 1);
 }
 
 // Деструктор.
