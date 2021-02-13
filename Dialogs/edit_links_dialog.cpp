@@ -74,7 +74,6 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 		}
 	}
 	iRows = vp_GraphicsLinkItems.count();
-	p_ui->tableWidget_Links->setColumnCount(3);
 	p_ui->tableWidget_Links->setRowCount(iRows);
 	for(int iL = 0; iL != iRows; iL++)
 	{
@@ -84,6 +83,9 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 		QString strDirection;
 		QTableWidgetItem* p_QTableWidgetItem;
 		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iL);
+		QLabel* p_Label = new QLabel();
+		QWidget* p_Widget = new QWidget();
+		QHBoxLayout* p_Layout;
 		//
 		if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected)
 		{
@@ -102,13 +104,20 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 			strDirection = "<=";
 		}
 		p_QTableWidgetItem = new QTableWidgetItem(strItemSelected);
-		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight);
+		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		p_ui->tableWidget_Links->setItem(iL, 0, p_QTableWidgetItem);
-		p_QTableWidgetItem = new QTableWidgetItem(strDirection);
-		p_QTableWidgetItem->setTextAlignment(Qt::AlignCenter);
-		p_ui->tableWidget_Links->setItem(iL, 1, p_QTableWidgetItem);
+		//
+		p_Label->setMaximumSize(EDIT_LINK_DIRECTION_WIDTH, p_ui->tableWidget_Links->rowHeight(0) / 4);
+		p_Label->setScaledContents(true);
+		p_Label->setPixmap(QPixmap(":/icons/arrow-right.png"));
+		p_Layout = new QHBoxLayout(p_Widget);
+		p_Layout->addWidget(p_Label);
+		p_Layout->setAlignment(Qt::AlignCenter);
+		p_Layout->setContentsMargins(0,0,0,0);
+		p_Widget->setLayout(p_Layout);
+		p_ui->tableWidget_Links->setCellWidget(iL, 1, p_Widget);
+		//
 		p_QTableWidgetItem = new QTableWidgetItem(strItemAnother);
-		p_QTableWidgetItem->setTextAlignment(Qt::AlignLeft);
 		p_ui->tableWidget_Links->setItem(iL, 2, p_QTableWidgetItem);
 	}
 	this->show();

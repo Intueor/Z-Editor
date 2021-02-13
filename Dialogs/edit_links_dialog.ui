@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../../Z-Hub/resources.qrc">
+    <normaloff>:/icons/z-icon.ico</normaloff>:/icons/z-icon.ico</iconset>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
     <number>1</number>
@@ -54,9 +58,6 @@
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="cornerButtonEnabled">
-      <bool>false</bool>
      </property>
      <property name="columnCount">
       <number>3</number>
@@ -162,7 +163,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../Z-Hub/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>pushButton_Exit</sender>
