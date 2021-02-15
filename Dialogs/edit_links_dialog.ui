@@ -59,8 +59,8 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
-     <property name="verticalScrollMode">
-      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     <property name="wordWrap">
+      <bool>false</bool>
      </property>
      <property name="columnCount">
       <number>3</number>

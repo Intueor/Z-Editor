@@ -129,6 +129,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	p_ui->tableWidget_Links->setColumnWidth(0, iElementWidth);
 	p_ui->tableWidget_Links->setColumnWidth(1, EDIT_LINK_DIRECTION_WIDTH);
 	p_ui->tableWidget_Links->setColumnWidth(2, iElementWidth + iLastColumnCompensation - 1);
+	p_ui->tableWidget_Links->selectRow(0);
 }
 
 // Деструктор.
