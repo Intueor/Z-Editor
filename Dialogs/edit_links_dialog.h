@@ -27,6 +27,12 @@ public:
 	/// Деструктор.
 	~Edit_Links_Dialog();
 
+private slots:
+	/// При двойном клике на ячейке.
+	void on_tableWidget_Links_cellDoubleClicked(int iRow, int iColumn);
+								///< \param[in] iRow Строка.
+								///< \param[in] iColumn Колонка.
+
 private:
 	Ui::Edit_Links_Dialog* p_ui; ///< Указатель на интерфейс.
 	static QVector<GraphicsLinkItem*> vp_GraphicsLinkItems; ///< Список линков для обработки.

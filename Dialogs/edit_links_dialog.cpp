@@ -138,3 +138,9 @@ Edit_Links_Dialog::~Edit_Links_Dialog()
 	delete p_ui;
 	vp_GraphicsLinkItems.clear();
 }
+
+// При двойном клике на ячейке.
+void Edit_Links_Dialog::on_tableWidget_Links_cellDoubleClicked(int iRow, int iColumn)
+{
+
+}
