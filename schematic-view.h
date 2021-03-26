@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include "../Z-Hub/Server/protocol.h"
+#include "Dialogs/edit_port_dialog.h"
 
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
@@ -54,6 +55,11 @@ public:
 	/// Переопределение функции обработки перемещения мыши.
 	void mouseMoveEvent(QMouseEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие.
+	/// Работа с меню порта и подготовка отправки всех изменеий на сервер.
+	static bool PortMenuOperationsAPFS(int iData, GraphicsPortItem* p_GraphicsPortItem);
+							///< \param[in] iData Запрос из меню.
+							///< \param[in] p_GraphicsPortItem Указатель на запрашивающий порт.
+							///< \return true при подтверждении изменений.
 	/// Обработчик события нажатия мыши на элемент.
 	static void ElementMousePressEventHandler(GraphicsElementItem* p_GraphicsElementItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.

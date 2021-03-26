@@ -2,9 +2,12 @@
 #include <QScrollBar>
 #include "edit_links_dialog.h"
 #include "ui_edit_links_dialog.h"
+#include "Dialogs/edit_port_dialog.h"
+#include "schematic-view.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<GraphicsLinkItem*> Edit_Links_Dialog::vp_GraphicsLinkItems;
+bool Edit_Links_Dialog::bInitialized;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога редактора линков.
@@ -35,6 +38,45 @@ void Edit_Links_Dialog::AddGroupObjectsToTableRecursively(GraphicsGroupItem* p_G
 	}
 }
 
+// Конструирование строк для таблицы.
+void Edit_Links_Dialog::ConstructTableRow(GraphicsLinkItem* p_GraphicsLinkItem, QString& a_strItemLeft, QString& a_strItemRight)
+{
+	QString strHelperSrc;
+	QString strHelperDst;
+	//
+	for(int iP = 0; iP != SchematicWindow::v_PSchPseudonyms.count(); iP++)
+	{
+		const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iP);
+		//
+		if(p_PSchPseudonym->ushiPort == p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort)
+		{
+			strHelperSrc = QString(p_PSchPseudonym->m_chName);
+		}
+		if(p_PSchPseudonym->ushiPort == p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort)
+		{
+			strHelperDst = QString(p_PSchPseudonym->m_chName);
+		}
+		if((!strHelperSrc.isEmpty()) & (!strHelperDst.isEmpty())) break;
+	}
+	if(strHelperSrc.isEmpty()) strHelperSrc.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort);
+	if(strHelperDst.isEmpty()) strHelperDst.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort);
+	if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected)
+	{
+
+		a_strItemLeft = QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName) + " [" +
+						  strHelperSrc + "]";
+		a_strItemRight = "[" + strHelperDst + "] " +
+						 QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
+	}
+	else
+	{
+		a_strItemLeft = QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName) + " [" +
+						  strHelperDst + "]";
+		a_strItemRight = "[" + strHelperSrc + "] " +
+						 QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
+	}
+}
+
 // Конструктор.
 Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	QDialog(p_Parent),
@@ -49,6 +91,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	QPixmap oQPixmapR = QPixmap(":/icons/arrow-right.png");
 	QPixmap oQPixmapL = oQPixmapR.transformed(QTransform().scale(-1, 1));
 	//
+	bInitialized = false;
 	vp_GraphicsLinkItems.clear();
 	p_ui->setupUi(this);
 	//
@@ -79,32 +122,18 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	p_ui->tableWidget_Links->setRowCount(iRows);
 	for(int iL = 0; iL != iRows; iL++)
 	{
-		QString strHelper;
-		QString strItemSelected;
-		QString strItemAnother;
+		QString strItemLeft;
+		QString strItemRight;
 		QTableWidgetItem* p_QTableWidgetItem;
 		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iL);
 		QLabel* p_Label = new QLabel();
 		QWidget* p_Widget = new QWidget();
 		QHBoxLayout* p_Layout;
 		//
-		if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected)
-		{
-			strItemSelected = QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName) + " [" +
-							  strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) + "]";
-			strItemAnother = "[" + strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) + "] " +
-							 QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName);
-			p_Label->setPixmap(oQPixmapR);
-		}
-		else
-		{
-			strItemSelected = QString(p_GraphicsLinkItem->p_GraphicsElementItemDst->oPSchElementBaseInt.m_chName) + " [" +
-							  strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort) + "]";
-			strItemAnother = "[" + strHelper.setNum(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort) + "] " +
-							 QString(p_GraphicsLinkItem->p_GraphicsElementItemSrc->oPSchElementBaseInt.m_chName);
-			p_Label->setPixmap(oQPixmapL);
-		}
-		p_QTableWidgetItem = new QTableWidgetItem(strItemSelected);
+		if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected) p_Label->setPixmap(oQPixmapR);
+		else p_Label->setPixmap(oQPixmapL);
+		ConstructTableRow(p_GraphicsLinkItem, strItemLeft, strItemRight);
+		p_QTableWidgetItem = new QTableWidgetItem(strItemLeft);
 		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
 		p_ui->tableWidget_Links->setItem(iL, 0, p_QTableWidgetItem);
 		//
@@ -117,7 +146,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 		p_Widget->setLayout(p_Layout);
 		p_ui->tableWidget_Links->setCellWidget(iL, 1, p_Widget);
 		//
-		p_QTableWidgetItem = new QTableWidgetItem(strItemAnother);
+		p_QTableWidgetItem = new QTableWidgetItem(strItemRight);
 		p_ui->tableWidget_Links->setItem(iL, 2, p_QTableWidgetItem);
 	}
 	this->show();
@@ -130,6 +159,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	p_ui->tableWidget_Links->setColumnWidth(1, EDIT_LINK_DIRECTION_WIDTH);
 	p_ui->tableWidget_Links->setColumnWidth(2, iElementWidth + iLastColumnCompensation - 1);
 	p_ui->tableWidget_Links->selectRow(0);
+	bInitialized = true;
 }
 
 // Деструктор.
@@ -139,8 +169,59 @@ Edit_Links_Dialog::~Edit_Links_Dialog()
 	vp_GraphicsLinkItems.clear();
 }
 
-// При двойном клике на ячейке.
-void Edit_Links_Dialog::on_tableWidget_Links_cellDoubleClicked(int iRow, int iColumn)
+// При активации ячейки.
+void Edit_Links_Dialog::on_tableWidget_Links_cellActivated(int iRow, int iColumn)
 {
-
+	if(bInitialized)
+	{
+		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iRow);
+		//
+		if(iColumn == 1)
+		{
+			return;
+		}
+		else
+		{
+			bool bAccepted;
+			if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected)
+			{	// Источник слева, приёмник справа.
+				if(iColumn == 0)
+				{	// Выбрано слева.
+					bAccepted = SchematicView::PortMenuOperationsAPFS(MENU_SELECTED_PORT, p_GraphicsLinkItem->p_GraphicsPortItemSrc);
+				}
+				else
+				{	// Выбрано справа.
+					bAccepted = SchematicView::PortMenuOperationsAPFS(MENU_SELECTED_PORT, p_GraphicsLinkItem->p_GraphicsPortItemDst);
+				}
+			}
+			else
+			{	// Приёмник слева, источник справа.
+				if(iColumn == 0)
+				{	// Выбрано слева.
+					bAccepted = SchematicView::PortMenuOperationsAPFS(MENU_SELECTED_PORT, p_GraphicsLinkItem->p_GraphicsPortItemDst);
+				}
+				else
+				{	// Выбрано справа.
+					bAccepted = SchematicView::PortMenuOperationsAPFS(MENU_SELECTED_PORT, p_GraphicsLinkItem->p_GraphicsPortItemSrc);
+				}
+			}
+			if(bAccepted)
+			{
+				QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Links->item(iRow, iColumn);
+				QString strItemLeft;
+				QString strItemRight;
+				//
+				ConstructTableRow(p_GraphicsLinkItem, strItemLeft, strItemRight);
+				if(iColumn == 0)
+				{	// Выбрано слева.
+					p_QTableWidgetItem->setText(strItemLeft);
+				}
+				else
+				{	// Выбрано справа.
+					p_QTableWidgetItem->setText(strItemRight);
+				}
+				TrySendBufferToServer;
+			}
+		}
+	}
 }
