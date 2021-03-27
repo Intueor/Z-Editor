@@ -32,6 +32,9 @@ private slots:
 	void on_tableWidget_Links_cellActivated(int iRow, int iColumn);
 								///< \param[in] iRow Строка.
 								///< \param[in] iColumn Колонка.
+	/// При выборе создания линка.
+	void on_pushButton_Create_clicked();
+
 private:
 	/// Конструирование строк для таблицы.
 	static void ConstructTableRow(GraphicsLinkItem* p_GraphicsLinkItem, QString& a_strItemLeft, QString& a_strItemRight);

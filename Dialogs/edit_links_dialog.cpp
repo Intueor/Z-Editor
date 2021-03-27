@@ -3,7 +3,6 @@
 #include "edit_links_dialog.h"
 #include "ui_edit_links_dialog.h"
 #include "Dialogs/edit_port_dialog.h"
-#include "schematic-view.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<GraphicsLinkItem*> Edit_Links_Dialog::vp_GraphicsLinkItems;
@@ -224,4 +223,10 @@ void Edit_Links_Dialog::on_tableWidget_Links_cellActivated(int iRow, int iColumn
 			}
 		}
 	}
+}
+
+// При выборе создания линка.
+void Edit_Links_Dialog::on_pushButton_Create_clicked()
+{
+
 }

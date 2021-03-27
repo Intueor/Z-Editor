@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>Edit_Links_Dialog</class>
  <widget class="QDialog" name="Edit_Links_Dialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
