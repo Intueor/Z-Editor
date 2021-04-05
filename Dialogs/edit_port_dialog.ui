@@ -277,6 +277,15 @@
    <header>switch-another-push-button.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>spinBox</tabstop>
+  <tabstop>pushButton_Accept</tabstop>
+  <tabstop>pushButton_Reject</tabstop>
+  <tabstop>pushButton_Set_New_Pseudonym</tabstop>
+  <tabstop>Safe_Searching_Line_Edit</tabstop>
+  <tabstop>tableWidget_Pseudonyms</tabstop>
+  <tabstop>SwitchAnotherPushButton_Delete_Pseudonym</tabstop>
+ </tabstops>
  <resources>
   <include location="../../Z-Hub/resources.qrc"/>
  </resources>

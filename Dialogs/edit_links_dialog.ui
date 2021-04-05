@@ -168,6 +168,9 @@
         <property name="text">
          <string>Закрыть</string>
         </property>
+        <property name="default">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
      </layout>
@@ -175,6 +178,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tableWidget_Links</tabstop>
+  <tabstop>pushButton_RemoveSelected</tabstop>
+  <tabstop>pushButton_Create</tabstop>
+  <tabstop>pushButton_Exit</tabstop>
+ </tabstops>
  <resources>
   <include location="../../Z-Hub/resources.qrc"/>
  </resources>

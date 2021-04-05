@@ -3,6 +3,7 @@
 #include "edit_links_dialog.h"
 #include "ui_edit_links_dialog.h"
 #include "Dialogs/edit_port_dialog.h"
+#include "Dialogs/create_link_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<GraphicsLinkItem*> Edit_Links_Dialog::vp_GraphicsLinkItems;
@@ -159,6 +160,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	p_ui->tableWidget_Links->setColumnWidth(2, iElementWidth + iLastColumnCompensation - 1);
 	p_ui->tableWidget_Links->selectRow(0);
 	bInitialized = true;
+	p_ui->pushButton_Exit->setFocus();
 }
 
 // Деструктор.
@@ -182,6 +184,7 @@ void Edit_Links_Dialog::on_tableWidget_Links_cellActivated(int iRow, int iColumn
 		else
 		{
 			bool bAccepted;
+			//
 			if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected)
 			{	// Источник слева, приёмник справа.
 				if(iColumn == 0)
@@ -228,5 +231,8 @@ void Edit_Links_Dialog::on_tableWidget_Links_cellActivated(int iRow, int iColumn
 // При выборе создания линка.
 void Edit_Links_Dialog::on_pushButton_Create_clicked()
 {
-
+	Create_Link_Dialog* p_Create_Link_Dialog = new Create_Link_Dialog();
+	//
+	p_Create_Link_Dialog->exec();
+	p_Create_Link_Dialog->deleteLater();
 }

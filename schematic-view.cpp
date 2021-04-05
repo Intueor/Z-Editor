@@ -3214,10 +3214,8 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 			{
 				Edit_Links_Dialog* p_Edit_Links_Dialog = new Edit_Links_Dialog();
 				//
-				if(p_Edit_Links_Dialog->exec() == DIALOGS_ACCEPT)
-				{
-
-				}
+				p_Edit_Links_Dialog->exec();
+				p_Edit_Links_Dialog->deleteLater();
 			}
 			else if(p_SelectedMenuItem->data() == MENU_EXTPORT)
 			{

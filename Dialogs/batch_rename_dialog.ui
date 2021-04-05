@@ -216,6 +216,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>BaseName_lineEdit</tabstop>
+  <tabstop>Classic_radioButton</tabstop>
+  <tabstop>Empty_radioButton</tabstop>
+  <tabstop>FromUID_radioButton</tabstop>
+  <tabstop>Digits_radioButton</tabstop>
+  <tabstop>spinBox</tabstop>
+ </tabstops>
  <resources>
   <include location="../../Z-Hub/resources.qrc"/>
  </resources>
