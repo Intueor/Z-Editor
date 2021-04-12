@@ -244,9 +244,17 @@ public:
 							///< \param[in] ushBits Биты флагов необходимых обновлений.
 	/// Установка указателя кэлбэка изменения окна обзора.
 	static void SetSchematicViewFrameChangedCB(CBSchematicViewFrameChanged pf_CBSchematicViewFrameChanged);
-								///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
+							///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
 	/// Создание подложки.
 	static void CreateBackground();
+	/// Тест на имеющийся линк для внешнего пользования.
+	static bool IsLinkPresent(unsigned long long ullIDSrc, unsigned short ushiSrcPort,
+							  unsigned long long ullIDDst, unsigned short ushiDstPort);
+							///< \param[in] ullIDSrc ИД источника.
+							///< \param[in] ushiSrcPort Порт источника.
+							///< \param[in] ullIDDst ИД приёмника.
+							///< \param[in] ushiDstPort Порт приёмника.
+							///< \return true, если такой линк уже есть.
 public slots:
 	/// Обновление от таймера мерцания выбранных элементов.
 	static void UpdateSelectionFlash();

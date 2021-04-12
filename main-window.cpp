@@ -2130,7 +2130,8 @@ void WidgetsThrAccess::GroupLabelsVisibilitySet()
 	{
 		GraphicsGroupItem* p_GraphicsGroupItem = vp_ConnGraphicsGroupItems.at(iF);
 		//
-		p_GraphicsGroupItem->p_QLabel->setVisible(!(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN));
+		p_GraphicsGroupItem->p_QLabel->setVisible(!(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.uchSettingsBits &
+													SCH_SETTINGS_EG_BIT_MIN));
 	}
 }
 
@@ -2141,7 +2142,8 @@ void WidgetsThrAccess::ElementGroupboxesVisibilitySet()
 	{
 		GraphicsElementItem* p_GraphicsElementItem = vp_ConnGraphicsElementItems.at(iF);
 		//
-		p_GraphicsElementItem->p_QGroupBox->setVisible(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN));
+		p_GraphicsElementItem->p_QGroupBox->setVisible(!(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits &
+														 SCH_SETTINGS_EG_BIT_MIN));
 	}
 }
 

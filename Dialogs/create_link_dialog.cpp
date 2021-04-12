@@ -31,7 +31,9 @@ Create_Link_Dialog::~Create_Link_Dialog()
 // При нажатии выбора порта-источника.
 void Create_Link_Dialog::on_pushButton_Src_Port_clicked()
 {
-
+//	GraphicsPortItem oGraphicsPortItem;
+//	//
+//	SchematicView::PortMenuOperationsAPFS(MENU_SELECTED_PORT, &oGraphicsPortItem);
 }
 
 // При нажатии выбора порта-приёмника.

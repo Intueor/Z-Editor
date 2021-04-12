@@ -13,6 +13,7 @@
 #include "Dialogs/batch_rename_dialog.h"
 #include "ui_batch_rename_dialog.h"
 #include "Dialogs/edit_links_dialog.h"
+#include "../Z-Hub/Dialogs/message_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QBrush SchematicView::oQBrushDark;
@@ -5118,6 +5119,7 @@ bool SchematicView::PortMenuOperationsAPFS(int iData, GraphicsPortItem* p_Graphi
 	PSchPseudonym oPSchPseudonym;
 	bool bAccepted = false;
 	Edit_Port_Dialog* p_Edit_Port_Dialog = nullptr;
+	Message_Dialog* p_Message_Dialog = nullptr;
 	//
 	oPSchLinkBase.oPSchLinkVars.oSchLGraph = p_GraphicsPortItem->p_PSchLinkVarsInt->oSchLGraph;
 	oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsPortItem->p_PSchLinkVarsInt->ullIDSrc;
@@ -5125,7 +5127,7 @@ bool SchematicView::PortMenuOperationsAPFS(int iData, GraphicsPortItem* p_Graphi
 	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 	oPSchLinkBase.oPSchLinkVars.ushiDstPort = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 	// Заполнение списка для диалога портов.
-	for(int iF = 0; iF != iPseudonymsCount; iF++)
+gD:	for(int iF = 0; iF != iPseudonymsCount; iF++)
 	{
 		const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
 		Edit_Port_Dialog::PortInfo oPortInfo;
@@ -5138,13 +5140,18 @@ bool SchematicView::PortMenuOperationsAPFS(int iData, GraphicsPortItem* p_Graphi
 	if(iData == MENU_SRC_PORT)
 	{
 		p_GraphicsPortItem = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc;
-gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
+gSrc:	iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 		p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), &v_PortsInfo, &iNumber);
 		if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 		{
 			bAccepted = true;
 			if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort)
 			{
+				if(IsLinkPresent(oPSchLinkBase.oPSchLinkVars.ullIDSrc, iNumber,
+								 oPSchLinkBase.oPSchLinkVars.ullIDDst, oPSchLinkBase.oPSchLinkVars.ushiDstPort))
+				{
+					goto gDM;
+				}
 				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 				p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort = iNumber;
 				p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
@@ -5156,13 +5163,23 @@ gSrc:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 	else if(iData == MENU_DST_PORT)
 	{
 		p_GraphicsPortItem = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst;
-gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
+gDst:	iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 		p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortDst), &v_PortsInfo, &iNumber);
 		if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 		{
 			bAccepted = true;
 			if(iNumber != p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort)
 			{
+				if(IsLinkPresent(oPSchLinkBase.oPSchLinkVars.ullIDSrc, oPSchLinkBase.oPSchLinkVars.ushiSrcPort,
+								 oPSchLinkBase.oPSchLinkVars.ullIDDst, iNumber))
+				{
+gDM:				p_Message_Dialog = new Message_Dialog("Дублирование существующего линка!", "Установите корректный порт.");
+					p_Message_Dialog->exec();
+					p_Message_Dialog->deleteLater();
+					v_PortsInfo.clear();
+					bAccepted = false;
+					goto gD;
+				}
 				DeleteLinkAPFS(p_GraphicsPortItem->p_GraphicsLinkItemInt, NOT_FROM_ELEMENT, DONT_REMOVE_FROM_CLIENT);
 				p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort = iNumber;
 				p_GraphicsPortItem->ushiPortInt = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
@@ -5252,6 +5269,22 @@ gDst:				iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 	}
 	if(p_Edit_Port_Dialog) p_Edit_Port_Dialog->deleteLater();
 	return bAccepted;
+}
+
+// Тест на имеющийся линк для внешнего пользования.
+bool SchematicView::IsLinkPresent(unsigned long long ullIDSrc, unsigned short ushiSrcPort, unsigned long long ullIDDst, unsigned short ushiDstPort)
+{
+	for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+	{
+		GraphicsLinkItem* p_GraphicsLinkItem = SchematicWindow::vp_Links.at(iF);
+		//
+		if((p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDSrc == ullIDSrc) &
+				(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiSrcPort == ushiSrcPort) &
+				(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ullIDDst == ullIDDst) &
+				(p_GraphicsLinkItem->oPSchLinkBaseInt.oPSchLinkVars.ushiDstPort == ushiDstPort))
+			return true;
+	}
+	return false;
 }
 
 // Обработчик события отпусканеия мыши на порте.
