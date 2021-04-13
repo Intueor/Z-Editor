@@ -247,7 +247,7 @@ public:
 							///< \param[in] pf_CBSchematicViewFrameChanged Указатель на пользовательскую функцию.
 	/// Создание подложки.
 	static void CreateBackground();
-	/// Тест на имеющийся линк для внешнего пользования.
+	/// Тест на имеющийся линк по ИД и портам.
 	static bool IsLinkPresent(unsigned long long ullIDSrc, unsigned short ushiSrcPort,
 							  unsigned long long ullIDDst, unsigned short ushiDstPort);
 							///< \param[in] ullIDSrc ИД источника.
@@ -255,6 +255,9 @@ public:
 							///< \param[in] ullIDDst ИД приёмника.
 							///< \param[in] ushiDstPort Порт приёмника.
 							///< \return true, если такой линк уже есть.
+	/// Актуализация псевдонимов.
+	static void ActualizePseudonyms(QVector<Edit_Port_Dialog::PortInfo>& av_PortsInfo);
+							///< \param[in] av_PortsInfo Ссылка на вектор с данными по портам.
 public slots:
 	/// Обновление от таймера мерцания выбранных элементов.
 	static void UpdateSelectionFlash();

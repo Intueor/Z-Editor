@@ -22,34 +22,45 @@ QVector<Edit_Port_Dialog::PortInfo> Edit_Port_Dialog::v_Ports;
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога настройки порта.
 // Конструктор.
-Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* pv_Ports, int* p_iNumber, QWidget* p_Parent) :
+Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>& av_Ports, int* p_iNumber, QWidget* p_Parent) :
 	QDialog(p_Parent),
 	p_ui(new Ui::Edit_Port_Dialog)
 {
-	int iRows = pv_Ports->count();
+	int iRows = SchematicWindow::v_PSchPseudonyms.count();
+	if(!av_Ports.empty()) av_Ports.clear();
+	// Заполнение списка для диалога портов.
+	for(int iF = 0; iF != iRows; iF++)
+	{
+		const PSchPseudonym* p_PSchPseudonym = &SchematicWindow::v_PSchPseudonyms.at(iF);
+		PortInfo oPortInfo;
+		//
+		oPortInfo.ushiPortNumber = p_PSchPseudonym->ushiPort;
+		oPortInfo.strPseudonym = QString(p_PSchPseudonym->m_chName);
+		av_Ports.append(oPortInfo);
+	}
 	vp_QPushButtonForDisabling.clear();
 	vp_QPushButtondSwitchable.clear();
 	v_Ports.clear();
 	p_QTableWidgetItemSelected = nullptr;
 	// Сортировка.
-	while(!pv_Ports->isEmpty())
+	while(!av_Ports.isEmpty())
 	{
 		int iItem = 0;
 		int iPort = 65536;
 		const PortInfo* p_PortInfo;
 		//
-		for(int iF = 0; iF < pv_Ports->count(); iF++)
+		for(int iF = 0; iF < av_Ports.count(); iF++)
 		{
-			p_PortInfo = &pv_Ports->at(iF);
+			p_PortInfo = &av_Ports.at(iF);
 			if(iPort > p_PortInfo->ushiPortNumber)
 			{
 				iPort = p_PortInfo->ushiPortNumber;
 				iItem = iF;
 			}
 		}
-		p_PortInfo = &pv_Ports->at(iItem);
+		p_PortInfo = &av_Ports.at(iItem);
 		v_Ports.append(*p_PortInfo);
-		pv_Ports->removeAt(iItem);
+		av_Ports.removeAt(iItem);
 	}
 	//
 	p_ui->setupUi(this);
@@ -60,7 +71,7 @@ Edit_Port_Dialog::Edit_Port_Dialog(char* p_chDialogCaption, QVector<PortInfo>* p
 	setWindowTitle(p_chDialogCaption);
 	p_ui->spinBox->setValue(*p_iNumber);
 	p_ui->spinBox->selectAll();
-	pv_PortsInt = pv_Ports;
+	pv_PortsInt = &av_Ports;
 	p_iNumberInt = p_iNumber;
 	p_ui->tableWidget_Pseudonyms->setRowCount(iRows);
 	p_ui->tableWidget_Pseudonyms->verticalHeader()->setFixedWidth(44);
