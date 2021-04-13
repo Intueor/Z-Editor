@@ -4,6 +4,7 @@
 #include "ui_edit_links_dialog.h"
 #include "Dialogs/edit_port_dialog.h"
 #include "Dialogs/create_link_dialog.h"
+#include "../Z-Hub/Dialogs/message_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<GraphicsLinkItem*> Edit_Links_Dialog::vp_GraphicsLinkItems;
@@ -231,8 +232,17 @@ void Edit_Links_Dialog::on_tableWidget_Links_cellActivated(int iRow, int iColumn
 // При выборе создания линка.
 void Edit_Links_Dialog::on_pushButton_Create_clicked()
 {
-	Create_Link_Dialog* p_Create_Link_Dialog = new Create_Link_Dialog();
+	Create_Link_Dialog* p_Create_Link_Dialog = nullptr;
 	//
+	if(SchematicWindow::vp_Elements.count() < 2)
+	{
+		Message_Dialog* p_Message_Dialog = new Message_Dialog("Создание линков невозможно!", "Требуются хотя бы 2 элемента.");
+		//
+		p_Message_Dialog->exec();
+		p_Message_Dialog->deleteLater();
+		return;
+	}
+	p_Create_Link_Dialog = new Create_Link_Dialog();
 	p_Create_Link_Dialog->exec();
 	p_Create_Link_Dialog->deleteLater();
 }

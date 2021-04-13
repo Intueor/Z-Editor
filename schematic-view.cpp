@@ -5125,7 +5125,8 @@ bool SchematicView::PortMenuOperationsAPFS(int iData, GraphicsPortItem* p_Graphi
 	{
 		p_GraphicsPortItem = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemSrc;
 gSrc:	iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
-		p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), v_PortsInfo, &iNumber);
+		if(p_Edit_Port_Dialog != nullptr)
+			p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortSrc), v_PortsInfo, &iNumber);
 		if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 		{
 			bAccepted = true;
@@ -5149,7 +5150,8 @@ gSrc:	iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiSrcPort;
 	{
 		p_GraphicsPortItem = p_GraphicsPortItem->p_GraphicsLinkItemInt->p_GraphicsPortItemDst;
 gDst:	iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
-		p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortDst), v_PortsInfo, &iNumber);
+		if(p_Edit_Port_Dialog != nullptr)
+			p_Edit_Port_Dialog = new Edit_Port_Dialog(const_cast<char*>(m_chMenuPortDst), v_PortsInfo, &iNumber);
 		if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 		{
 			bAccepted = true;
@@ -5174,10 +5176,7 @@ gDst:	iNumber = p_GraphicsPortItem->p_PSchLinkVarsInt->ushiDstPort;
 		if(p_GraphicsPortItem->bIsSrc) goto gSrc;
 		else goto gDst;
 	}
-	if(bAccepted)
-	{
-		ActualizePseudonyms(v_PortsInfo);
-	}
+	if(bAccepted) ActualizePseudonyms(v_PortsInfo);
 	if(p_Edit_Port_Dialog) p_Edit_Port_Dialog->deleteLater();
 	return bAccepted;
 }
