@@ -145,6 +145,8 @@
 #define RENAME_TYPE_UID					2
 #define RENAME_TYPE_DIGITS				3
 //
+#define PORT_NOT_SELECTED				-1
+//
 #define SCH_SETTINGS_TYPE_MASK			0b11110011
 
 //== КОНСТАНТЫ.
@@ -263,4 +265,5 @@ const char m_chMenuDeleteP[] =			"Удалить псевдоним";
 // Для диалогов.
 #define ROLE_PORT_NUMBER				0x100
 #define EDIT_LINK_DIRECTION_WIDTH		32
+const char m_chPortNotSelected[] =		"Порт не выбран";
 #endif // ZEDITORDEFS_H

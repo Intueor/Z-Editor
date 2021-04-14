@@ -4,8 +4,9 @@
 #include "schematic-window.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
-int Create_Link_Dialog::iSelectedSrcPort = 0;
-int Create_Link_Dialog::iSelectedDstPort = 0;
+int Create_Link_Dialog::iSelectedSrcPort;
+int Create_Link_Dialog::iSelectedDstPort;
+int Create_Link_Dialog::iElements;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога создания линка.
@@ -13,7 +14,8 @@ int Create_Link_Dialog::iSelectedDstPort = 0;
 Create_Link_Dialog::Create_Link_Dialog(QWidget* p_Parent) : QDialog(p_Parent), p_ui(new Ui::Create_Link_Dialog)
 {
 	p_ui->setupUi(this);
-	for(int iF = 0; iF != SchematicWindow::vp_Elements.count(); iF++)
+	iElements = SchematicWindow::vp_Elements.count();
+	for(int iF = 0; iF != iElements; iF++)
 	{
 		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		//
@@ -22,16 +24,25 @@ Create_Link_Dialog::Create_Link_Dialog(QWidget* p_Parent) : QDialog(p_Parent), p
 	}
 	p_ui->listWidget_Src->setStyleSheet("QListWidget::item:selected {background-color: palette(Highlight);}");
 	p_ui->listWidget_Dst->setStyleSheet("QListWidget::item:selected {background-color: palette(Highlight);}");
-	FillPortLabel(p_ui->label_Src_Port, iSelectedSrcPort);
-	FillPortLabel(p_ui->label_Dst_Port, iSelectedDstPort);
 	p_ui->listWidget_Src->setCurrentRow(0);
 	p_ui->listWidget_Dst->setCurrentRow(1);
+	ResetPorts();
 }
 
 // Деструктор.
 Create_Link_Dialog::~Create_Link_Dialog()
 {
 	delete p_ui;
+}
+
+// Сброс портов.
+void Create_Link_Dialog::ResetPorts()
+{
+	iSelectedSrcPort = PORT_NOT_SELECTED;
+	iSelectedDstPort = PORT_NOT_SELECTED;
+	p_ui->label_Src_Port->setText(m_chPortNotSelected);
+	p_ui->label_Dst_Port->setText(m_chPortNotSelected);
+	p_ui->pushButton_Ok->setDisabled(true);
 }
 
 // Заполнение строки порта.
@@ -105,3 +116,42 @@ gD:	if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 	if(bAccepted) SchematicView::ActualizePseudonyms(v_PortsInfo);
 	FillPortLabel(p_ui->label_Dst_Port, iSelectedDstPort);
 }
+
+// При смене строки в листе элементов-источников.
+void Create_Link_Dialog::on_listWidget_Src_currentRowChanged(int iCurrentRow)
+{
+	int iDstCurrentRow = p_ui->listWidget_Dst->currentRow();
+	//
+	ResetPorts();
+	if(iCurrentRow == iDstCurrentRow)
+	{
+		if(iDstCurrentRow != (iElements - 1))
+		{
+			p_ui->listWidget_Dst->setCurrentRow(iDstCurrentRow + 1);
+		}
+		else
+		{
+			p_ui->listWidget_Dst->setCurrentRow(iDstCurrentRow - 1);
+		}
+	}
+}
+// При смене строки в листе элементов-приёмников.
+void Create_Link_Dialog::on_listWidget_Dst_currentRowChanged(int iCurrentRow)
+{
+	int iSrcCurrentRow = p_ui->listWidget_Src->currentRow();
+	//
+	ResetPorts();
+	if(iCurrentRow == iSrcCurrentRow)
+	{
+		if(iSrcCurrentRow != (iElements - 1))
+		{
+			p_ui->listWidget_Src->setCurrentRow(iSrcCurrentRow + 1);
+		}
+		else
+		{
+			p_ui->listWidget_Src->setCurrentRow(iSrcCurrentRow - 1);
+		}
+	}
+}
+
+
