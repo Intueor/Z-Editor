@@ -293,5 +293,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_Ok</sender>
+   <signal>clicked()</signal>
+   <receiver>Create_Link_Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>423</x>
+     <y>427</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>233</x>
+     <y>221</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>

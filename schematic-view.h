@@ -258,6 +258,14 @@ public:
 	/// Актуализация псевдонимов.
 	static void ActualizePseudonyms(QVector<Edit_Port_Dialog::PortInfo>& av_PortsInfo);
 							///< \param[in] av_PortsInfo Ссылка на вектор с данными по портам.
+	/// Обновление позиции линка по данным элементов.
+	static void UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
+							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
+	/// Пересчёт позиции граф. порта к краям элемента.
+	static DbPoint BindToEdge(GraphicsElementItem* p_GraphicsElementItem, DbPoint oDbPortPos);
+							///< \param[in] p_GraphicsElementItem Указатель на элемент.
+							///< \param[in] oDbPortPos Позиция порта в коорд. элемента.
+							///< \return Позиция порта на крае элемента в координатах элемента.
 public slots:
 	/// Обновление от таймера мерцания выбранных элементов.
 	static void UpdateSelectionFlash();
@@ -330,11 +338,6 @@ private:
 							///< \param[in] a_oDbPortPos Ссылка оординаты порта в коорд. элемента на момент обращения.
 							///< \param[in] bFromElement Флаг запроса работы с портом от элемента (при создании нового линка).
 							///< \return true при удаче.
-	/// Пересчёт позиции граф. порта к краям элемента.
-	static DbPoint BindToEdge(GraphicsElementItem* p_GraphicsElementItem, DbPoint oDbPortPos);
-							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-							///< \param[in] oDbPortPos Позиция порта в коорд. элемента.
-							///< \return Позиция порта на крае элемента в координатах элемента.
 	/// Получение длины строки выбранным шрифтом в пикселях.
 	static int GetStringWidthInPixels(const QFont& a_Font, QString& a_strText);
 							///< \param[in] a_Font Ссылка на шрифт.
@@ -436,9 +439,6 @@ private:
 							///< \param[in] p_GraphicsGroupItem Указатель на перемещаемую группу.
 							///< \param[in] a_QPointFRes Ссылка на смещение для группы.
 							///< \param[in] bMoveBody При true - смещать и тело группы.
-	/// Обновление позиции линка по данным элементов.
-	static void UpdateLinkPositionByElements(GraphicsLinkItem* p_GraphicsLinkItem);
-							///< \param[in] p_GraphicsLinkItem Указатель на граф. линк.
 	/// Установка порта в позицию.
 	static void SetPortToPos(GraphicsPortItem* p_GraphicsPortItem, DbPoint dbPortPos);
 							///< \param[in] p_GraphicsPortItem Указатель на граф. порт.

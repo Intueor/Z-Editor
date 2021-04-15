@@ -35,6 +35,9 @@ private slots:
 	/// При смене строки в листе элементов-приёмников.
 	void on_listWidget_Dst_currentRowChanged(int iCurrentRow);
 												///< \param[in] iCurrentRow Текущая строка.
+	/// При нажатии на кнопку "Принять".
+	void on_pushButton_Ok_clicked();
+
 private:
 	/// Сброс портов.
 	void ResetPorts();

@@ -265,5 +265,7 @@ const char m_chMenuDeleteP[] =			"Удалить псевдоним";
 // Для диалогов.
 #define ROLE_PORT_NUMBER				0x100
 #define EDIT_LINK_DIRECTION_WIDTH		32
+#define NEW_PLC_RADIUS					16
+#define PI								3.14159265f
 const char m_chPortNotSelected[] =		"Порт не выбран";
 #endif // ZEDITORDEFS_H

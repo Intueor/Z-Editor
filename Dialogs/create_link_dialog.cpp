@@ -1,4 +1,5 @@
 //== ВКЛЮЧЕНИЯ.
+#include <math.h>
 #include "create_link_dialog.h"
 #include "ui_create_link_dialog.h"
 #include "schematic-window.h"
@@ -86,8 +87,12 @@ gS:	if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 			goto gS;
 		}
 	}
-	if(bAccepted) SchematicView::ActualizePseudonyms(v_PortsInfo);
-	FillPortLabel(p_ui->label_Src_Port, iSelectedSrcPort);
+	if(bAccepted)
+	{
+		SchematicView::ActualizePseudonyms(v_PortsInfo);
+		FillPortLabel(p_ui->label_Src_Port, iSelectedSrcPort);
+		if(iSelectedDstPort != PORT_NOT_SELECTED) p_ui->pushButton_Ok->setDisabled(false);
+	}
 }
 
 // При нажатии выбора порта-приёмника.
@@ -113,8 +118,12 @@ gD:	if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 			goto gD;
 		}
 	}
-	if(bAccepted) SchematicView::ActualizePseudonyms(v_PortsInfo);
-	FillPortLabel(p_ui->label_Dst_Port, iSelectedDstPort);
+	if(bAccepted)
+	{
+		SchematicView::ActualizePseudonyms(v_PortsInfo);
+		FillPortLabel(p_ui->label_Dst_Port, iSelectedDstPort);
+		if(iSelectedSrcPort != PORT_NOT_SELECTED) p_ui->pushButton_Ok->setDisabled(false);
+	}
 }
 
 // При смене строки в листе элементов-источников.
@@ -154,4 +163,63 @@ void Create_Link_Dialog::on_listWidget_Dst_currentRowChanged(int iCurrentRow)
 	}
 }
 
-
+// При нажатии на кнопку "Принять".
+void Create_Link_Dialog::on_pushButton_Ok_clicked()
+{
+	PSchLinkBase oPSchLinkBase;
+	GraphicsElementItem* p_GraphicsElementItemSrc = SchematicWindow::vp_Elements.at(p_ui->listWidget_Src->currentRow());
+	GraphicsElementItem* p_GraphicsElementItemDst = SchematicWindow::vp_Elements.at(p_ui->listWidget_Dst->currentRow());
+	GraphicsLinkItem* p_GraphicsLinkItemNew;
+	double dbSRX, dbSRY, dbDRX, dbDRY;
+	//
+	dbSRX = p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+	if(p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits  & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		dbSRY = dbSRX;
+	}
+	else
+	{
+		dbSRY = p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
+	}
+	dbDRX = p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
+	if(p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits  & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	{
+		dbDRY = dbDRX;
+	}
+	else
+	{
+		dbDRY = p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
+	}
+	p_GraphicsElementItemSrc->bPortsForMin = true;
+	p_GraphicsElementItemDst->bPortsForMin = true;
+	//
+	oPSchLinkBase.oPSchLinkVars.ullIDSrc = p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+	oPSchLinkBase.oPSchLinkVars.ullIDDst = p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.ullIDInt;
+	oPSchLinkBase.oPSchLinkVars.ushiSrcPort = iSelectedSrcPort;
+	oPSchLinkBase.oPSchLinkVars.ushiDstPort = iSelectedDstPort;
+	//
+	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbX = dbSRX + (sinf(rand() * PI) * dbSRX);
+	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY = dbSRY + (sinf(rand() * PI) * dbSRY);
+	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX = dbDRX + (sinf(rand() * PI) * dbDRX);
+	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY = dbDRY + (sinf(rand() * PI) * dbDRY);
+	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos =
+			SchematicView::BindToEdge(p_GraphicsElementItemSrc, oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos);
+	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos =
+			SchematicView::BindToEdge(p_GraphicsElementItemDst, oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos);
+	MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+	//
+	p_GraphicsLinkItemNew = new GraphicsLinkItem(&oPSchLinkBase);
+	if(oPSchLinkBase.oPSchLinkVars.oSchLGraph.uchChangesBits != SCH_CHANGES_LINK_BIT_INIT_ERROR)
+	{
+		MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
+	}
+	else
+	{
+		delete p_GraphicsLinkItemNew;
+		p_GraphicsLinkItemNew = nullptr;
+		return;
+	}
+	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
+	SchematicView::UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
+	emit MainWindow::p_This->RemoteUpdateSchView();
+}
