@@ -50,7 +50,7 @@ private slots:
 								///< \param[in] currentRow Строка.
 								///< \param[in] currentRow Колонка.
 	/// Смена значения поисковой строки.
-	void on_Safe_Searching_Line_Edit_textEdited(const QString &arg1);
+	void on_Safe_Searching_Line_Edit_textEdited(const QString& arg1);
 								///< \param[in] arg1 Ссылка на строку.
 	/// Удаление псевдонима.
 	void on_SwitchAnotherPushButton_Delete_Pseudonym_clicked();

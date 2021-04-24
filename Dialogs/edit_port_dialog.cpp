@@ -8,7 +8,6 @@
 
 //== МАКРОСЫ.
 
-
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<Edit_Port_Dialog::PortInfo>* Edit_Port_Dialog::pv_PortsInt = nullptr;
 int* Edit_Port_Dialog::p_iNumberInt;
@@ -206,7 +205,7 @@ void Edit_Port_Dialog::on_tableWidget_Pseudonyms_currentCellChanged(int currentR
 }
 
 // Смена значения поисковой строки.
-void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_textEdited(const QString &arg1)
+void Edit_Port_Dialog::on_Safe_Searching_Line_Edit_textEdited(const QString& arg1)
 {
 	if(!arg1.isEmpty())
 	{

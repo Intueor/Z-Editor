@@ -15,6 +15,8 @@ int Create_Link_Dialog::iElements;
 Create_Link_Dialog::Create_Link_Dialog(QWidget* p_Parent) : QDialog(p_Parent), p_ui(new Ui::Create_Link_Dialog)
 {
 	p_ui->setupUi(this);
+	p_ui->lineEdit_SS->p_QPushButtonForNotDefault = p_ui->pushButton_Cancel;
+	p_ui->lineEdit_SD->p_QPushButtonForNotDefault = p_ui->pushButton_Cancel;
 	iElements = SchematicWindow::vp_Elements.count();
 	for(int iF = 0; iF != iElements; iF++)
 	{
@@ -28,6 +30,7 @@ Create_Link_Dialog::Create_Link_Dialog(QWidget* p_Parent) : QDialog(p_Parent), p
 	p_ui->listWidget_Src->setCurrentRow(0);
 	p_ui->listWidget_Dst->setCurrentRow(1);
 	ResetPorts();
+	p_ui->listWidget_Src->setFocus();
 }
 
 // Деструктор.
@@ -44,6 +47,8 @@ void Create_Link_Dialog::ResetPorts()
 	p_ui->label_Src_Port->setText(m_chPortNotSelected);
 	p_ui->label_Dst_Port->setText(m_chPortNotSelected);
 	p_ui->pushButton_Ok->setDisabled(true);
+	p_ui->pushButton_Ok->setDefault(false);
+	p_ui->pushButton_Cancel->setDefault(true);
 }
 
 // Заполнение строки порта.
@@ -91,7 +96,12 @@ gS:	if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 	{
 		SchematicView::ActualizePseudonyms(v_PortsInfo);
 		FillPortLabel(p_ui->label_Src_Port, iSelectedSrcPort);
-		if(iSelectedDstPort != PORT_NOT_SELECTED) p_ui->pushButton_Ok->setDisabled(false);
+		if(iSelectedDstPort != PORT_NOT_SELECTED)
+		{
+			p_ui->pushButton_Ok->setDisabled(false);
+			p_ui->pushButton_Ok->setDefault(true);
+			p_ui->pushButton_Cancel->setDefault(false);
+		}
 	}
 }
 
@@ -109,7 +119,7 @@ gD:	if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 		if(SchematicView::IsLinkPresent(SchematicWindow::vp_Elements.at(
 											p_ui->listWidget_Src->currentRow())->
 										oPSchElementBaseInt.oPSchElementVars.ullIDInt,
-										iSelectedDstPort,
+										iSelectedSrcPort,
 										SchematicWindow::vp_Elements.at(p_ui->listWidget_Dst->currentRow())->
 										oPSchElementBaseInt.oPSchElementVars.ullIDInt,
 										iSelectedDstPort))
@@ -122,7 +132,12 @@ gD:	if(p_Edit_Port_Dialog->exec() == DIALOGS_ACCEPT)
 	{
 		SchematicView::ActualizePseudonyms(v_PortsInfo);
 		FillPortLabel(p_ui->label_Dst_Port, iSelectedDstPort);
-		if(iSelectedSrcPort != PORT_NOT_SELECTED) p_ui->pushButton_Ok->setDisabled(false);
+		if(iSelectedSrcPort != PORT_NOT_SELECTED)
+		{
+			p_ui->pushButton_Ok->setDisabled(false);
+			p_ui->pushButton_Ok->setDefault(true);
+			p_ui->pushButton_Cancel->setDefault(false);
+		}
 	}
 }
 
@@ -222,4 +237,70 @@ void Create_Link_Dialog::on_pushButton_Ok_clicked()
 	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
 	SchematicView::UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 	emit MainWindow::p_This->RemoteUpdateSchView();
+}
+
+// При выходе из редактирования поиска элемента-источника.
+void Create_Link_Dialog::on_lineEdit_SS_editingFinished()
+{
+	p_ui->listWidget_Src->setFocus();
+}
+
+// При нажатии Enter в поиске элемента-источника.
+void Create_Link_Dialog::on_lineEdit_SS_returnPressed()
+{
+	p_ui->listWidget_Src->setFocus();
+}
+
+// При выходе из редактирования поиска элемента-приёмника.
+void Create_Link_Dialog::on_lineEdit_SD_editingFinished()
+{
+	p_ui->listWidget_Dst->setFocus();
+}
+
+// При нажатии Enter в поиске элемента-приёмника.
+void Create_Link_Dialog::on_lineEdit_SD_returnPressed()
+{
+	p_ui->listWidget_Dst->setFocus();
+}
+
+// Установка строки в листе по тексту из поиска.
+void Create_Link_Dialog::SetRowBySearch(const QString& arg1, QListWidget* p_listWidget)
+{
+	if(!arg1.isEmpty())
+	{
+		for(int iF = 0; iF != SchematicWindow::vp_Elements.count(); iF++)
+		{
+			QListWidgetItem* p_QListWidgetItemCurrent = p_listWidget->item(iF);
+			QString strCurrentText = p_QListWidgetItemCurrent->text();
+			bool bM = true;
+			//
+			for(int iC = 0; iC != arg1.count(); iC++)
+			{
+				if((iC > (strCurrentText.count() - 1)) || (arg1.at(iC) != strCurrentText.at(iC)))
+				{
+					bM = false;
+					break;
+				}
+			}
+			if(bM)
+			{
+				p_listWidget->setCurrentRow(iF);
+				return;
+			}
+		}
+	}
+}
+
+// При изменении в тексте в поиске элемента-источника.
+void Create_Link_Dialog::on_lineEdit_SS_textEdited(const QString& arg1)
+{
+	SetRowBySearch(arg1, p_ui->listWidget_Src);
+	p_ui->pushButton_Cancel->setDefault(false);
+}
+
+// При изменении в тексте в поиске элемента-приёмника.
+void Create_Link_Dialog::on_lineEdit_SD_textEdited(const QString& arg1)
+{
+	SetRowBySearch(arg1, p_ui->listWidget_Dst);
+	p_ui->pushButton_Cancel->setDefault(false);
 }
