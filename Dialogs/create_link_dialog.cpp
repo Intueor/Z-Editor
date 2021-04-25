@@ -51,6 +51,18 @@ Create_Link_Dialog::~Create_Link_Dialog()
 	delete p_ui;
 }
 
+// Принято.
+void Create_Link_Dialog::accept()
+{
+	done(DIALOGS_ACCEPT);
+}
+
+// Отменено.
+void Create_Link_Dialog::reject()
+{
+	done(DIALOGS_REJECT);
+}
+
 // Сброс портов.
 void Create_Link_Dialog::ResetPorts()
 {
@@ -246,7 +258,7 @@ void Create_Link_Dialog::on_pushButton_Ok_clicked()
 		p_GraphicsLinkItemNew = nullptr;
 		return;
 	}
-	SchematicWindow::vp_Links.push_front(p_GraphicsLinkItemNew);
+	SchematicWindow::vp_Links.append(p_GraphicsLinkItemNew);
 	SchematicView::UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 	emit MainWindow::p_This->RemoteUpdateSchView();
 }

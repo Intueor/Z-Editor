@@ -9,6 +9,8 @@
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QVector<GraphicsLinkItem*> Edit_Links_Dialog::vp_GraphicsLinkItems;
 bool Edit_Links_Dialog::bInitialized;
+QPixmap* Edit_Links_Dialog::p_QPixmapR = nullptr;
+QPixmap* Edit_Links_Dialog::p_QPixmapL = nullptr;
 
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога редактора линков.
@@ -78,6 +80,37 @@ void Edit_Links_Dialog::ConstructTableRow(GraphicsLinkItem* p_GraphicsLinkItem, 
 	}
 }
 
+// Заполнение строки таблицы по номеру линка.
+void Edit_Links_Dialog::FillTableRow(int iRow)
+{
+	QString strItemLeft;
+	QString strItemRight;
+	QTableWidgetItem* p_QTableWidgetItem;
+	GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iRow);
+	QLabel* p_Label = new QLabel();
+	QWidget* p_Widget = new QWidget();
+	QHBoxLayout* p_Layout;
+	//
+	if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected) p_Label->setPixmap(*p_QPixmapR);
+	else p_Label->setPixmap(*p_QPixmapL);
+	ConstructTableRow(p_GraphicsLinkItem, strItemLeft, strItemRight);
+	p_QTableWidgetItem = new QTableWidgetItem(strItemLeft);
+	p_QTableWidgetItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+	p_ui->tableWidget_Links->setItem(iRow, 0, p_QTableWidgetItem);
+	//
+	p_Label->setMaximumSize(EDIT_LINK_DIRECTION_WIDTH, p_ui->tableWidget_Links->rowHeight(0) / 4);
+	p_Label->setScaledContents(true);
+	p_Layout = new QHBoxLayout(p_Widget);
+	p_Layout->addWidget(p_Label);
+	p_Layout->setAlignment(Qt::AlignCenter);
+	p_Layout->setContentsMargins(0,0,0,0);
+	p_Widget->setLayout(p_Layout);
+	p_ui->tableWidget_Links->setCellWidget(iRow, 1, p_Widget);
+	//
+	p_QTableWidgetItem = new QTableWidgetItem(strItemRight);
+	p_ui->tableWidget_Links->setItem(iRow, 2, p_QTableWidgetItem);
+}
+
 // Конструктор.
 Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	QDialog(p_Parent),
@@ -89,9 +122,9 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	double dbElementCompensationWidth;
 	int iElementWidth;
 	int iLastColumnCompensation;
-	QPixmap oQPixmapR = QPixmap(":/icons/arrow-right.png");
-	QPixmap oQPixmapL = oQPixmapR.transformed(QTransform().scale(-1, 1));
 	//
+	p_QPixmapR = new QPixmap(":/icons/arrow-right.png");
+	p_QPixmapL = new QPixmap(p_QPixmapR->transformed(QTransform().scale(-1, 1)));
 	bInitialized = false;
 	vp_GraphicsLinkItems.clear();
 	p_ui->setupUi(this);
@@ -123,32 +156,7 @@ Edit_Links_Dialog::Edit_Links_Dialog(QWidget* p_Parent) :
 	p_ui->tableWidget_Links->setRowCount(iRows);
 	for(int iL = 0; iL != iRows; iL++)
 	{
-		QString strItemLeft;
-		QString strItemRight;
-		QTableWidgetItem* p_QTableWidgetItem;
-		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItems.at(iL);
-		QLabel* p_Label = new QLabel();
-		QWidget* p_Widget = new QWidget();
-		QHBoxLayout* p_Layout;
-		//
-		if(p_GraphicsLinkItem->p_GraphicsElementItemSrc->bSelected) p_Label->setPixmap(oQPixmapR);
-		else p_Label->setPixmap(oQPixmapL);
-		ConstructTableRow(p_GraphicsLinkItem, strItemLeft, strItemRight);
-		p_QTableWidgetItem = new QTableWidgetItem(strItemLeft);
-		p_QTableWidgetItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-		p_ui->tableWidget_Links->setItem(iL, 0, p_QTableWidgetItem);
-		//
-		p_Label->setMaximumSize(EDIT_LINK_DIRECTION_WIDTH, p_ui->tableWidget_Links->rowHeight(0) / 4);
-		p_Label->setScaledContents(true);
-		p_Layout = new QHBoxLayout(p_Widget);
-		p_Layout->addWidget(p_Label);
-		p_Layout->setAlignment(Qt::AlignCenter);
-		p_Layout->setContentsMargins(0,0,0,0);
-		p_Widget->setLayout(p_Layout);
-		p_ui->tableWidget_Links->setCellWidget(iL, 1, p_Widget);
-		//
-		p_QTableWidgetItem = new QTableWidgetItem(strItemRight);
-		p_ui->tableWidget_Links->setItem(iL, 2, p_QTableWidgetItem);
+		FillTableRow(iL);
 	}
 	this->show();
 	dbInitColumnWidth = p_ui->tableWidget_Links->contentsRect().width() / 3.0f;
@@ -169,6 +177,8 @@ Edit_Links_Dialog::~Edit_Links_Dialog()
 {
 	delete p_ui;
 	vp_GraphicsLinkItems.clear();
+	delete p_QPixmapR;
+	delete p_QPixmapL;
 }
 
 // При активации ячейки.
@@ -232,17 +242,41 @@ void Edit_Links_Dialog::on_tableWidget_Links_cellActivated(int iRow, int iColumn
 // При выборе создания линка.
 void Edit_Links_Dialog::on_pushButton_Create_clicked()
 {
-	Create_Link_Dialog* p_Create_Link_Dialog = nullptr;
+	Create_Link_Dialog* p_Create_Link_Dialog = new Create_Link_Dialog();
 	//
-	if(SchematicWindow::vp_Elements.count() < 2)
+	if(p_Create_Link_Dialog->exec() == DIALOGS_ACCEPT)
 	{
-		Message_Dialog* p_Message_Dialog = new Message_Dialog("Создание линков невозможно!", "Требуются хотя бы 2 элемента.");
+		int iC;
 		//
-		p_Message_Dialog->exec();
-		p_Message_Dialog->deleteLater();
-		return;
+		vp_GraphicsLinkItems.append(SchematicWindow::vp_Links.at(SchematicWindow::vp_Links.count() - 1));
+		iC = vp_GraphicsLinkItems.count();
+		p_ui->tableWidget_Links->setRowCount(iC);
+		FillTableRow(iC - 1);
 	}
-	p_Create_Link_Dialog = new Create_Link_Dialog();
-	p_Create_Link_Dialog->exec();
 	p_Create_Link_Dialog->deleteLater();
+}
+
+// При выборе удаления выбранных линков.
+void Edit_Links_Dialog::on_pushButton_RemoveSelected_clicked()
+{
+	QVector<GraphicsLinkItem*> vp_GraphicsLinkItemsForDelete;
+	QVector<QTableWidgetItem*> vp_QTableWidgetItems;
+	//
+	for(int iF = 0; iF != p_ui->tableWidget_Links->rowCount(); iF++)
+	{
+		QTableWidgetItem* p_QTableWidgetItem = p_ui->tableWidget_Links->item(iF, 0);
+		if(p_QTableWidgetItem->isSelected())
+		{
+			vp_GraphicsLinkItemsForDelete.append(vp_GraphicsLinkItems.at(iF));
+			vp_QTableWidgetItems.append(p_QTableWidgetItem);
+		}
+	}
+	for(int iF = 0; iF != vp_GraphicsLinkItemsForDelete.count(); iF++)
+	{
+		GraphicsLinkItem* p_GraphicsLinkItem = vp_GraphicsLinkItemsForDelete.at(iF);
+		vp_GraphicsLinkItems.removeOne(p_GraphicsLinkItem);
+		p_ui->tableWidget_Links->removeRow(p_ui->tableWidget_Links->row(vp_QTableWidgetItems.at(iF)));
+		SchematicView::DeleteLinkAPFS(p_GraphicsLinkItem);
+	}
+	TrySendBufferToServer;
 }

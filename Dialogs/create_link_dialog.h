@@ -28,6 +28,10 @@ public:
 	~Create_Link_Dialog();
 
 private slots:
+	/// Принято.
+	void accept();
+	/// Отменено.
+	void reject();
 	/// При нажатии выбора порта-источника.
 	void on_pushButton_Src_Port_clicked();
 	/// При нажатии выбора порта-приёмника.

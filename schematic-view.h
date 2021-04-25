@@ -266,6 +266,11 @@ public:
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
 							///< \param[in] oDbPortPos Позиция порта в коорд. элемента.
 							///< \return Позиция порта на крае элемента в координатах элемента.
+	// Удаление линка.
+	static void DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bFromElement = false, bool bRemoveFromClient = true);
+							///< \param[in] p_GraphicsLinkItem Указатель на линк.
+							///< \param[in] bFromElement Признак вызова из элемента.
+							///< \param[in] bRemoveFromClient Флаг для удаления с клиента.
 public slots:
 	/// Обновление от таймера мерцания выбранных элементов.
 	static void UpdateSelectionFlash();
@@ -295,11 +300,6 @@ private:
 	/// Подготовка отсылки параметров и удаление элемента (а так же добавка его группы в лист).
 	static void DeleteElementAPFS(GraphicsElementItem* p_GraphicsElementItem);
 							///< \param[in] p_GraphicsElementItem Указатель на элемент.
-	// Удаление линка.
-	static void DeleteLinkAPFS(GraphicsLinkItem* p_GraphicsLinkItem, bool bFromElement = false, bool bRemoveFromClient = true);
-							///< \param[in] p_GraphicsLinkItem Указатель на линк.
-							///< \param[in] bFromElement Признак вызова из элемента.
-							///< \param[in] bRemoveFromClient Флаг для удаления с клиента.
 	/// Расформирование выбранных групп и подготовка отправки всех изменеий на сервер.
 	static void DisbandSelectedGroupsAPFS();
 	/// Остоединение выбранного от группы и подготовка отправки всех изменеий на сервер.
