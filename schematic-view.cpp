@@ -4199,6 +4199,13 @@ void SchematicView::GroupMouseReleaseEventHandler(GraphicsGroupItem* p_GraphicsG
 			{
 				DisbandSelectedGroupsAPFS();
 			}
+			else if(p_SelectedMenuItem->data() == MENU_LINKS)
+			{
+				Edit_Links_Dialog* p_Edit_Links_Dialog = new Edit_Links_Dialog();
+				//
+				p_Edit_Links_Dialog->exec();
+				p_Edit_Links_Dialog->deleteLater();
+			}
 			else if(p_SelectedMenuItem->data() == MENU_DETACH)
 			{
 				DetachSelectedAPFS();
