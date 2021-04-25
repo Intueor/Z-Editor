@@ -10,6 +10,7 @@
 #define PORT_NUMBER_STR_LEN					6
 #define OVERMAX_NUMBER						999999999
 #define OVERMIN_NUMBER						-999999999
+#define OVERMAX_ID							18446744073709551615ULL
 #define SCENE_DIM_X							6000
 #define SCENE_DIM_Y							6000
 // Макросы для удобного чтения сложных вызовов функций.
@@ -232,16 +233,18 @@ const char m_chMenuCreateElement[] =	"Создать элемент";
 const char m_chMenuCreateBroadcaster[] ="Создать транслятор";
 #define MENU_CREATE_RECEIVER			13
 const char m_chMenuCreateReceiver[] =	"Создать приёмник";
-#define MENU_ADD_ELEMENT				14
+#define MENU_CREATE_LINK				14
+const char m_chMenuCreateLink[] =		"Создать линк";
+#define MENU_ADD_ELEMENT				15
 const char m_chMenuAddElement[] =		"Создать элемент в группе";
-#define MENU_ADD_BROADCASTER			15
+#define MENU_ADD_BROADCASTER			16
 const char m_chMenuAddBroadcaster[] =	"Создать транслятор в группе";
-#define MENU_ADD_RECEIVER				16
+#define MENU_ADD_RECEIVER				17
 const char m_chMenuAddReceiver[] =		"Создать приёмник в группе";
 //										ПЕРЕИМЕНОВАТЬ.
-#define MENU_RENAME_SELECTED			17
+#define MENU_RENAME_SELECTED			18
 const char m_chMenuRenameS[] =			"Переименовать выборку";
-#define MENU_RENAME_EG					18
+#define MENU_RENAME_EG					19
 const char m_chMenuRenameE[] =			"Переименовать элемент";
 const char m_chMenuRenameB[] =			"Переименовать транслятор";
 const char m_chMenuRenameR[] =			"Переименовать приёмник";
@@ -249,18 +252,18 @@ const char m_chMenuRenameG[] =			"Переименовать группу";
 //
 // <== ПРОЧИЕ МЕНЮ ==>
 //										МЕНЮ ПОРТОВ.
-#define MENU_SELECTED_PORT				19
+#define MENU_SELECTED_PORT				20
 const char m_chMenuSelectedPort[] =		"Выбранный порт ";
 //										МЕНЮ СЕРВЕРА.
-#define MENU_SET_PASSWORD				20
+#define MENU_SET_PASSWORD				21
 const char m_chMenuSetPassword[] =		"Задать пароль";
-#define MENU_SET_AS_DEFAULT				21
+#define MENU_SET_AS_DEFAULT				22
 const char m_chMenuSetAsDefault[] =		"Установить как текущий";
-#define MENU_DELETE_ITEM				22
+#define MENU_DELETE_ITEM				23
 const char m_chMenuDeleteItem[] =		"Удалить выбранный";
-#define MENU_RENAME_PSEUDONYM			23
+#define MENU_RENAME_PSEUDONYM			24
 const char m_chMenuRenameP[] =			"Переименовать псевдоним";
-#define MENU_DELETE_PSEUDONYM			24
+#define MENU_DELETE_PSEUDONYM			25
 const char m_chMenuDeleteP[] =			"Удалить псевдоним";
 // Для диалогов.
 #define ROLE_PORT_NUMBER				0x100

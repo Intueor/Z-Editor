@@ -12,8 +12,10 @@ int Create_Link_Dialog::iElements;
 //== ФУНКЦИИ КЛАССОВ.
 //== Класс диалога создания линка.
 // Конструктор.
-Create_Link_Dialog::Create_Link_Dialog(QWidget* p_Parent) : QDialog(p_Parent), p_ui(new Ui::Create_Link_Dialog)
+Create_Link_Dialog::Create_Link_Dialog(unsigned long long ullIDInitial, QWidget* p_Parent) :
+	QDialog(p_Parent), p_ui(new Ui::Create_Link_Dialog)
 {
+	int iInitRow = 0;
 	p_ui->setupUi(this);
 	p_ui->lineEdit_SS->p_QPushButtonForNotDefault = p_ui->pushButton_Cancel;
 	p_ui->lineEdit_SD->p_QPushButtonForNotDefault = p_ui->pushButton_Cancel;
@@ -22,13 +24,23 @@ Create_Link_Dialog::Create_Link_Dialog(QWidget* p_Parent) : QDialog(p_Parent), p
 	{
 		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
 		//
+		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt == ullIDInitial) iInitRow = iF;
 		p_ui->listWidget_Src->addItem(p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
 		p_ui->listWidget_Dst->addItem(p_GraphicsElementItem->oPSchElementBaseInt.m_chName);
 	}
 	p_ui->listWidget_Src->setStyleSheet("QListWidget::item:selected {background-color: palette(Highlight);}");
 	p_ui->listWidget_Dst->setStyleSheet("QListWidget::item:selected {background-color: palette(Highlight);}");
-	p_ui->listWidget_Src->setCurrentRow(0);
-	p_ui->listWidget_Dst->setCurrentRow(1);
+	if(ullIDInitial == OVERMAX_ID)
+	{
+		p_ui->listWidget_Src->setCurrentRow(0);
+		p_ui->listWidget_Dst->setCurrentRow(1);
+	}
+	else
+	{
+		p_ui->listWidget_Dst->setCurrentRow(0);
+		p_ui->listWidget_Src->setCurrentRow(iInitRow);
+		on_listWidget_Src_currentRowChanged(iInitRow);
+	}
 	ResetPorts();
 	p_ui->listWidget_Src->setFocus();
 }

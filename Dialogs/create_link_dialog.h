@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QListWidgetItem>
 #include <QTimer>
+#include "z-editor-defs.h"
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {
@@ -20,7 +21,8 @@ class Create_Link_Dialog : public QDialog
 
 public:
 	/// Конструктор.
-	explicit Create_Link_Dialog(QWidget* p_Parent = nullptr);
+	explicit Create_Link_Dialog(unsigned long long ullIDInitial = OVERMAX_ID, QWidget* p_Parent = nullptr);
+												///< \param[in] ullIDInitial ИД начального элемента или OVERMAX_ID.
 												///< \param[in] p_Parent Указатель на родительский виджет.
 	/// Деструктор.
 	~Create_Link_Dialog();

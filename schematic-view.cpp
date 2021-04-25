@@ -14,6 +14,7 @@
 #include "ui_batch_rename_dialog.h"
 #include "Dialogs/edit_links_dialog.h"
 #include "../Z-Hub/Dialogs/message_dialog.h"
+#include "Dialogs/create_link_dialog.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QBrush SchematicView::oQBrushDark;
@@ -2718,6 +2719,7 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				const char* pc_chVarPorts;
 				const char* pc_chVarExtPort = "";
 				const char* pc_chVarCreateGroup;
+				const char* pc_chVarCreateLink = m_chMenuCreateLink;
 				const char* pc_chVarAdd;
 				const char* pc_chVarDetach;
 				const char* pc_chVarChangeBkg;
@@ -2761,6 +2763,10 @@ gNL:	bLastSt = p_GraphicsElementItem->bSelected; // Запоминаем пре�
 				SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarDelete))->setData(MENU_DELETE); // |->Удалить.
 				if(bPortsPresent) // Если есть порты...
 					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarPorts))->setData(MENU_LINKS); // |->Меню линков.
+				if(SchematicWindow::vp_Elements.count() > 1)
+				{
+					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarCreateLink))->setData(MENU_CREATE_LINK); // |->Меню создания линка.
+				}
 				if(IsExtended(p_ElementSettings))
 				{
 					SchematicWindow::p_SafeMenu->addAction(QString(pc_chVarExtPort))->setData(MENU_EXTPORT); // |->Меню внешнего порта.
@@ -3217,6 +3223,14 @@ void SchematicView::ElementMouseReleaseEventHandler(GraphicsElementItem* p_Graph
 				//
 				p_Edit_Links_Dialog->exec();
 				p_Edit_Links_Dialog->deleteLater();
+			}
+			else if(p_SelectedMenuItem->data() == MENU_CREATE_LINK)
+			{
+				Create_Link_Dialog* p_Create_Link_Dialog =
+						new Create_Link_Dialog(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt);
+				//
+				p_Create_Link_Dialog->exec();
+				p_Create_Link_Dialog->deleteLater();
 			}
 			else if(p_SelectedMenuItem->data() == MENU_EXTPORT)
 			{
