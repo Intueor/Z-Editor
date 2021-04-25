@@ -225,7 +225,6 @@ SchematicView::~SchematicView()
 	SchematicWindow::ResetMenu();
 }
 
-
 // Установка временного стиля кистей общего пользования.
 void SchematicView::SetTempBrushesStyle(Qt::BrushStyle iStyle)
 {
@@ -812,6 +811,7 @@ void SchematicView::DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupI
 		p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr; // Сброс указателя на группу, чтобы не чистилось по алг. чистки от элемента.
 		PrepareForRemoveElementFromScene(p_GraphicsElementItem);
 		MainWindow::p_SchematicWindow->oScene.removeItem(p_GraphicsElementItem);
+		SchematicWindow::vp_Elements.removeOne(p_GraphicsElementItem);
 	}
 	// В вышележащей группе, если есть - удаление из списка.
 	if(p_GraphicsGroupItem->p_GraphicsGroupItemRel != nullptr)
