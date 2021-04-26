@@ -271,6 +271,9 @@ public:
 							///< \param[in] p_GraphicsLinkItem Указатель на линк.
 							///< \param[in] bFromElement Признак вызова из элемента.
 							///< \param[in] bRemoveFromClient Флаг для удаления с клиента.
+	/// Установка портов групп и видимости линков после смены статуса минимизации групп.
+	static void SetPortsPlacementAndLinksVisAfterGroupsMinChanges(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection);
+							///< \param[in] avp_GraphicsPortItemsCollection Ссылка на список портов.
 public slots:
 	/// Обновление от таймера мерцания выбранных элементов.
 	static void UpdateSelectionFlash();
@@ -482,9 +485,6 @@ private:
 	/// Установка видимости линков после смены статуса минимизации.
 	static void SetLinksVisAfterMinChanges(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemCollection);
 							///< \param[in] avp_GraphicsLinkItemCollection Ссылка на список линков.
-	/// Установка портов групп и видимости линков после смены статуса минимизации групп.
-	static void SetPortsPlacementAndLinksVisAfterGroupsMinChanges(QVector<GraphicsPortItem*>& avp_GraphicsPortItemsCollection);
-							///< \param[in] avp_GraphicsPortItemsCollection Ссылка на список портов.
 	/// Проверка наличия структуры скрытия в списке по координатам портов.
 	static bool CheckLinkPresent(QVector<GraphicsLinkItem*>& avp_GraphicsLinkItemUniques, GraphicsLinkItem* p_GraphicsLinkItem);
 							///< \param[in] avp_GraphicsLinkItemUniques Ссылка на список указателей на линки.

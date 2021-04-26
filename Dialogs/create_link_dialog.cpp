@@ -210,6 +210,9 @@ void Create_Link_Dialog::on_pushButton_Ok_clicked()
 	GraphicsElementItem* p_GraphicsElementItemDst = SchematicWindow::vp_Elements.at(p_ui->listWidget_Dst->currentRow());
 	GraphicsLinkItem* p_GraphicsLinkItemNew;
 	double dbSRX, dbSRY, dbDRX, dbDRY;
+	bool bSrcMin = false;
+	bool bDstMin = false;
+	QVector<GraphicsPortItem*> vp_GraphicsPortItemsCollection;
 	//
 	dbSRX = p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
 	if(p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits  & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
@@ -221,7 +224,7 @@ void Create_Link_Dialog::on_pushButton_Ok_clicked()
 		dbSRY = p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH / 2.0f;
 	}
 	dbDRX = p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW / 2.0f;
-	if(p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits  & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
+	if(p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_ELEMENT_BIT_EXTENDED)
 	{
 		dbDRY = dbDRX;
 	}
@@ -241,24 +244,74 @@ void Create_Link_Dialog::on_pushButton_Ok_clicked()
 	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos.dbY = dbSRY + (sinf(rand() * PI) * dbSRY);
 	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbX = dbDRX + (sinf(rand() * PI) * dbDRX);
 	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos.dbY = dbDRY + (sinf(rand() * PI) * dbDRY);
+	// Установка в нормальный статус с запоминанием минимизации.
+	if(p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	{
+		p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits |= SCH_SETTINGS_EG_BIT_MIN;
+		p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits ^= SCH_SETTINGS_EG_BIT_MIN;
+		bSrcMin = true;
+	}
+	if(p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits & SCH_SETTINGS_EG_BIT_MIN)
+	{
+		p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits |= SCH_SETTINGS_EG_BIT_MIN;
+		p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits ^= SCH_SETTINGS_EG_BIT_MIN;
+		bDstMin = true;
+	}
 	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos =
 			SchematicView::BindToEdge(p_GraphicsElementItemSrc, oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbSrcPortGraphPos);
 	oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos =
 			SchematicView::BindToEdge(p_GraphicsElementItemDst, oPSchLinkBase.oPSchLinkVars.oSchLGraph.oDbDstPortGraphPos);
-	MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+	// Восстановление минимизации.
+	if(bSrcMin)
+	{
+		p_GraphicsElementItemSrc->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits |= SCH_SETTINGS_EG_BIT_MIN;
+	}
+	if(bDstMin)
+	{
+		p_GraphicsElementItemDst->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.uchSettingsBits |= SCH_SETTINGS_EG_BIT_MIN;
+	}
 	//
 	p_GraphicsLinkItemNew = new GraphicsLinkItem(&oPSchLinkBase);
-	if(oPSchLinkBase.oPSchLinkVars.oSchLGraph.uchChangesBits != SCH_CHANGES_LINK_BIT_INIT_ERROR)
-	{
-		MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
-	}
-	else
+	if(oPSchLinkBase.oPSchLinkVars.oSchLGraph.uchChangesBits == SCH_CHANGES_LINK_BIT_INIT_ERROR)
 	{
 		delete p_GraphicsLinkItemNew;
 		p_GraphicsLinkItemNew = nullptr;
 		return;
 	}
+	vp_GraphicsPortItemsCollection.append(p_GraphicsLinkItemNew->p_GraphicsPortItemSrc);
+	vp_GraphicsPortItemsCollection.append(p_GraphicsLinkItemNew->p_GraphicsPortItemDst);
+	p_GraphicsLinkItemNew->p_GraphicsPortItemSrc->oDbPAlterVisPos.dbX = p_GraphicsLinkItemNew->p_GraphicsPortItemSrc->pos().x();
+	p_GraphicsLinkItemNew->p_GraphicsPortItemSrc->oDbPAlterVisPos.dbY = p_GraphicsLinkItemNew->p_GraphicsPortItemSrc->pos().y();
+	p_GraphicsLinkItemNew->p_GraphicsPortItemDst->oDbPAlterVisPos.dbX = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->pos().x();
+	p_GraphicsLinkItemNew->p_GraphicsPortItemDst->oDbPAlterVisPos.dbY = p_GraphicsLinkItemNew->p_GraphicsPortItemDst->pos().y();
+	SchematicView::SetPortsPlacementAndLinksVisAfterGroupsMinChanges(vp_GraphicsPortItemsCollection);
+	// Отправка линка и добавление в сцену.
+	MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_LINK_BASE, (char*)&oPSchLinkBase, sizeof(PSchLinkBase));
+	MainWindow::p_SchematicWindow->oScene.addItem(p_GraphicsLinkItemNew);
 	SchematicWindow::vp_Links.append(p_GraphicsLinkItemNew);
+	// Cкрытие при дублировании траектории линка.
+	for(int iF = 0; iF != SchematicWindow::vp_Links.count(); iF++)
+	{
+		GraphicsLinkItem* p_GraphicsLinkItemCurrent = SchematicWindow::vp_Links.at(iF);
+		//
+		if(p_GraphicsLinkItemCurrent != p_GraphicsLinkItemNew)
+		{
+			if((p_GraphicsLinkItemCurrent->p_GraphicsPortItemSrc->scenePos().x() ==
+				p_GraphicsLinkItemNew->p_GraphicsPortItemSrc->scenePos().x()) &&
+					(p_GraphicsLinkItemCurrent->p_GraphicsPortItemSrc->scenePos().y() ==
+					 p_GraphicsLinkItemNew->p_GraphicsPortItemSrc->scenePos().y()) &&
+					(p_GraphicsLinkItemCurrent->p_GraphicsPortItemDst->scenePos().x() ==
+					 p_GraphicsLinkItemNew->p_GraphicsPortItemDst->scenePos().x()) &&
+					(p_GraphicsLinkItemCurrent->p_GraphicsPortItemDst->scenePos().y() ==
+					 p_GraphicsLinkItemNew->p_GraphicsPortItemDst->scenePos().y()))
+			{
+				p_GraphicsLinkItemNew->bExcludeFromPaint = true;
+				p_GraphicsLinkItemNew->hide();
+				break;
+			}
+		}
+	}
+	//
 	SchematicView::UpdateLinkZPositionByElements(p_GraphicsLinkItemNew);
 	emit MainWindow::p_This->RemoteUpdateSchView();
 }
