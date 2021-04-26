@@ -32,7 +32,7 @@
    <iconset resource="../../Z-Hub/resources.qrc">
     <normaloff>:/icons/z-icon.ico</normaloff>:/icons/z-icon.ico</iconset>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <property name="spacing">
     <number>1</number>
    </property>
@@ -93,7 +93,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
        <number>1</number>
       </property>
@@ -110,58 +110,31 @@
        <number>1</number>
       </property>
       <item>
-       <widget class="QFrame" name="frame_Actions">
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+       <widget class="QPushButton" name="pushButton_Create">
+        <property name="text">
+         <string>Создать линк</string>
         </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="spacing">
-          <number>1</number>
-         </property>
-         <property name="leftMargin">
-          <number>1</number>
-         </property>
-         <property name="topMargin">
-          <number>1</number>
-         </property>
-         <property name="rightMargin">
-          <number>1</number>
-         </property>
-         <property name="bottomMargin">
-          <number>1</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="pushButton_RemoveSelected">
-           <property name="text">
-            <string>Удалить выбранные</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_Create">
-           <property name="text">
-            <string>Создать линк</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
        </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_RemoveSelected">
+        <property name="text">
+         <string>Удалить выбранные</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_Exit">
@@ -179,7 +152,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>tableWidget_Links</tabstop>
   <tabstop>pushButton_RemoveSelected</tabstop>
   <tabstop>pushButton_Create</tabstop>
   <tabstop>pushButton_Exit</tabstop>
