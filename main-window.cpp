@@ -1148,6 +1148,30 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 			bProcessed = true;
 			break;
 		}
+		//========  Раздел PROTO_O_SCH_DATA. ========
+		case PROTO_O_SCH_DATA:
+		{
+			if(p_ReceivedData != 0)
+			{
+				PSchData oPSchData;
+				//
+				oPSchData = *static_cast<PSchData*>(p_ReceivedData);
+				if(oPSchData.ullTypeID == 0)
+				{
+					char mchText[oPSchData.uiBytes];
+					//
+					memcpy(mchText, (char*)p_ReceivedData + sizeof(PSchData), oPSchData.uiBytes);
+					LOG_P_2(LOG_CAT_I, "{In} Message from server [" << QString(mchText).toStdString().c_str() << "]");
+				}
+			}
+			else
+			{
+				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
+				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
+			}
+			bProcessed = true;
+			break;
+		}
 		// Следующий раздел...
 	}
 	//

@@ -294,7 +294,7 @@ void* Client::RecThread(void *p_vPlug)
 	p_vPlug = p_vPlug;
 	oConvData.bSecured = false;
 	char* p_chData;
-	int iLength;
+	unsigned int uiLength;
 	NetHub::ReceivedData* p_CurrentData;
 	NetHub::ReceivedData oReceivedDataReserve;
 	//
@@ -317,11 +317,11 @@ void* Client::RecThread(void *p_vPlug)
 				}
 			}
 			p_chData = oConvData.m_chData;
-			iLength = oConvData.oConnectionData.iStatus;
+			uiLength = oConvData.oConnectionData.iStatus;
 gDp:		oConvData.iCurrentFreePocket = oInternalNetHub.FindFreeReceivedPocketsPos(oConvData.mReceivedPockets);
 			if(oConvData.iCurrentFreePocket != BUFFER_IS_FULL) p_CurrentData = &oConvData.mReceivedPockets[oConvData.iCurrentFreePocket];
 			else p_CurrentData = &oReceivedDataReserve;
-			oParsingResult = oProtoParser.ParsePocket(p_chData, iLength,
+			oParsingResult = oProtoParser.ParsePocket(p_chData, uiLength,
 								p_CurrentData->oProtocolStorage, oConvData.bFullOnClient || (!oConvData.bSecured));
 			switch(oParsingResult.iRes)
 			{
@@ -429,7 +429,7 @@ gI:					break;
 			if(oParsingResult.p_chExtraData != 0)
 			{
 				p_chData = oParsingResult.p_chExtraData;
-				iLength = oParsingResult.iExtraDataLength;
+				uiLength = oParsingResult.uiExtraDataLength;
 				goto gDp;
 			}
 		}
