@@ -1156,7 +1156,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 				PSchData oPSchData;
 				//
 				oPSchData = *static_cast<PSchData*>(p_ReceivedData);
-				if(oPSchData.ullTypeID == 0)
+				if(oPSchData.ullIDElement == 0)
 				{
 					char mchText[oPSchData.uiBytes];
 					//
