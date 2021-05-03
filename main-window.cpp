@@ -2137,7 +2137,7 @@ void WidgetsThrAccess::ElementGroupBoxSizeSet()
 {
 	p_ConnGraphicsElementItem->p_QGroupBox->
 			setFixedSize(p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
-						 p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
+						 p_ConnGraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 6);
 }
 
 // Установка ширины строки названия группы по указателю p_ConnGraphicsGroupItem.

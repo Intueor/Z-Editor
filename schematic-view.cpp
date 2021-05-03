@@ -15,6 +15,7 @@
 #include "Dialogs/edit_links_dialog.h"
 #include "../Z-Hub/Dialogs/message_dialog.h"
 #include "Dialogs/create_link_dialog.h"
+#include "graphics-text-edit.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
 QBrush SchematicView::oQBrushDark;
@@ -3418,9 +3419,10 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 			p_GraphicsElementItem->p_QGroupBox->
 					setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
-								  "left: 4px; padding-top: 0px; }");
+								  "left: 4px; padding-top: -6px; }");
 		}
 		p_GraphicsElementItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::black));
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Text, QColor(Qt::black));
 	}
 	else
 	{
@@ -3429,10 +3431,13 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 			p_GraphicsElementItem->p_QGroupBox->
 					setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
-								  "left: 4px; padding-top: 0px; }");
+								  "left: 4px; padding-top: -6px; }");
 		}
 		p_GraphicsElementItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::white));
+		p_GraphicsElementItem->oQPalette.setColor(QPalette::Text, QColor(Qt::white));
 	}
+	p_GraphicsElementItem->oQPalette.setColor(QPalette::Base,
+											  QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor));
 	if(p_GraphicsElementItem->p_QGroupBox)
 	{
 		p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
@@ -3475,6 +3480,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsElementItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_ELEMENT);
 	p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
+	p_GraphicsElementItem->p_vDataWidget = nullptr;
 	memcpy(&p_GraphicsElementItem->oPSchElementBaseInt, p_PSchElementBase, sizeof(PSchElementBase));
 	p_GraphicsElementItem->setFlag(p_GraphicsElementItem->ItemIsMovable);
 	p_GraphicsElementItem->setAcceptHoverEvents(true);
@@ -3495,13 +3501,24 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		p_GraphicsElementItem->p_QGraphicsProxyWidget =
 				MainWindow::p_SchematicWindow->GetSchematicView()->scene()->
 				addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
-		p_GraphicsElementItem->p_QGroupBox->move(3, 0);
+		p_GraphicsElementItem->p_QGroupBox->move(3, 3);
 		p_GraphicsElementItem->p_QGroupBox->
 				setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
-							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 3);
-		p_GraphicsElementItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
+							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 6);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
-		p_GraphicsElementItem->oQPalette.setBrush(QPalette::Dark, p_GraphicsElementItem->oQBrush);
+		// Встроенные типы представления данных.
+		switch(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
+		{
+			case DATA_ID_TEXT:
+			{
+				GraphicsTextEdit* p_GraphicsTextEdit = new GraphicsTextEdit("test", p_GraphicsElementItem->p_QGroupBox);
+				//
+				p_GraphicsTextEdit->setPalette(p_GraphicsElementItem->oQPalette);
+				p_QVBoxLayout->addWidget(p_GraphicsTextEdit);
+				break;
+			}
+		}
+		//
 		if((IsMinimized(p_ElementSettings) != 0) || bLoading)
 		{
 			p_GraphicsElementItem->p_QGroupBox->hide(); // Если минимизировано - скрываем.
@@ -4334,7 +4351,6 @@ void SchematicView::GroupConstructorHandler(GraphicsGroupItem* p_GraphicsGroupIt
 #endif
 	p_GraphicsGroupItem->p_QLabel->setFixedWidth(p_GraphicsGroupItem->oPSchGroupBaseInt.oPSchGroupVars.oSchEGGraph.oDbFrame.dbW - 6);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget = MainWindow::p_SchematicWindow->oScene.addWidget(p_GraphicsGroupItem->p_QLabel);
-	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setFiltersChildEvents(true);
 	p_GraphicsGroupItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsGroupItem);
 	SetGroupPalette(p_GraphicsGroupItem);
 	if(bLoading) p_GraphicsGroupItem->p_QLabel->hide();
