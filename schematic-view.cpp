@@ -5,6 +5,7 @@
 #include <QGraphicsProxyWidget>
 #include <QColorDialog>
 #include <QTimer>
+#include <QGraphicsOpacityEffect>
 #include "../Z-Hub/z-hub-defs.h"
 #include "z-editor-defs.h"
 #include "schematic-view.h"
@@ -3412,12 +3413,14 @@ bool SchematicView::CheckBkgPaletteType(unsigned int uiColor)
 // Установка стиля элемента в зависимости от типа палитры.
 void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem)
 {
+	QColor oQColor = QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor);
+	//
 	if(p_GraphicsElementItem->bIsPositivePalette)
 	{
 		if(p_GraphicsElementItem->p_QGroupBox)
 		{
 			p_GraphicsElementItem->p_QGroupBox->
-					setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px; } "
+					setStyleSheet("QGroupBox { border:1px solid rgba(0, 0, 0, 255); border-radius: 3px; margin-top: 6px;}"
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
 								  "left: 4px; padding-top: -6px; }");
 		}
@@ -3429,15 +3432,14 @@ void SchematicView::SetElementPalette(GraphicsElementItem* p_GraphicsElementItem
 		if(p_GraphicsElementItem->p_QGroupBox)
 		{
 			p_GraphicsElementItem->p_QGroupBox->
-					setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px; } "
+					setStyleSheet("QGroupBox { border:1px solid rgba(255, 255, 255, 255); border-radius: 3px; margin-top: 6px;}"
 								  "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; "
 								  "left: 4px; padding-top: -6px; }");
 		}
 		p_GraphicsElementItem->oQPalette.setColor(QPalette::WindowText, QColor(Qt::white));
 		p_GraphicsElementItem->oQPalette.setColor(QPalette::Text, QColor(Qt::white));
 	}
-	p_GraphicsElementItem->oQPalette.setColor(QPalette::Base,
-											  QColor::fromRgba(p_GraphicsElementItem->oPSchElementBaseInt.uiObjectBkgColor));
+	p_GraphicsElementItem->oQPalette.setColor(QPalette::Base, oQColor);
 	if(p_GraphicsElementItem->p_QGroupBox)
 	{
 		p_GraphicsElementItem->p_QGroupBox->setPalette(p_GraphicsElementItem->oQPalette);
@@ -3493,11 +3495,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	{
 		p_GraphicsElementItem->p_QGroupBox = new QGroupBox();
 		QVBoxLayout* p_QVBoxLayout = new QVBoxLayout;
+		p_QVBoxLayout->setContentsMargins(3, 7, 3, 3);
 		p_GraphicsElementItem->p_QGroupBox->setLayout(p_QVBoxLayout);
 		p_GraphicsElementItem->p_QGroupBox->setTitle(p_PSchElementBase->m_chName);
 		p_GraphicsElementItem->p_QGroupBox->setAttribute(Qt::WA_TranslucentBackground);
 		p_GraphicsElementItem->p_QGroupBox->setCursor(Qt::CursorShape::PointingHandCursor);
-		SetElementPalette(p_GraphicsElementItem);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget =
 				MainWindow::p_SchematicWindow->GetSchematicView()->scene()->
 				addWidget(p_GraphicsElementItem->p_QGroupBox); // Только так (на Linux).
@@ -3511,13 +3513,15 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 		{
 			case DATA_ID_TEXT:
 			{
-				GraphicsTextEdit* p_GraphicsTextEdit = new GraphicsTextEdit("test", p_GraphicsElementItem->p_QGroupBox);
+				GraphicsTextEdit* p_GraphicsTextEdit = new GraphicsTextEdit(p_GraphicsElementItem->p_QGroupBox);
 				//
-				p_GraphicsTextEdit->setPalette(p_GraphicsElementItem->oQPalette);
+				p_GraphicsTextEdit->setStyleSheet("GraphicsTextEdit { background-color: transparent; }");
+				//p_GraphicsTextEdit->viewport()->setAutoFillBackground(false);
 				p_QVBoxLayout->addWidget(p_GraphicsTextEdit);
 				break;
 			}
 		}
+		SetElementPalette(p_GraphicsElementItem);
 		//
 		if((IsMinimized(p_ElementSettings) != 0) || bLoading)
 		{

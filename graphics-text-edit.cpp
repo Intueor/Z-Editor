@@ -24,3 +24,12 @@ void GraphicsTextEdit::focusOutEvent(QFocusEvent* p_Event)
 	QTextEdit::focusOutEvent(p_Event);
 }
 
+// Событие отрисовки.
+void GraphicsTextEdit::paintEvent(QPaintEvent* p_Event)
+{
+	if(palette() != parentWidget()->palette())
+	{
+		setPalette(parentWidget()->palette());
+	}
+	QTextEdit::paintEvent(p_Event);
+}

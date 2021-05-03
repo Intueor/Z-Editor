@@ -29,6 +29,9 @@ protected:
 	/// Событие выхода фокуса.
 	void focusOutEvent(QFocusEvent* p_Event);
 								///< \param[in] p_Event Указатель на событие.
+	/// Событие отрисовки.
+	void paintEvent(QPaintEvent* p_Event);
+								///< \param[in] p_Event Указатель на событие.
 };
 
 #endif // GRAPHICSTEXTEDIT_H
