@@ -271,4 +271,5 @@ const char m_chMenuDeleteP[] =			"Удалить псевдоним";
 #define NEW_PLC_RADIUS					16
 #define PI								3.14159265f
 const char m_chPortNotSelected[] =		"Порт не выбран";
+const QString strSchLibrariesRelPath =	"../Z-Editor/libs/";
 #endif // ZEDITORDEFS_H

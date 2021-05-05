@@ -74,6 +74,7 @@ SchematicWindow::~SchematicWindow()
 {
 	delete p_ui;
 	p_QGraphicsScene = nullptr;
+	LOG_CLOSE;
 }
 
 // Очистка сцены.

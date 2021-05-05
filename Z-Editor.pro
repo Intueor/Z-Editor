@@ -38,7 +38,6 @@ SOURCES += \
     graphics-link-item.cpp \
     graphics-port-item.cpp \
     graphics-scaler-item.cpp \
-    graphics-text-edit.cpp \
     main.cpp \
     main-window.cpp \
     safe-searching-line-edit.cpp \
@@ -71,7 +70,6 @@ HEADERS += \
     graphics-link-item.h \
     graphics-port-item.h \
     graphics-scaler-item.h \
-    graphics-text-edit.h \
     main-window.h \
     safe-searching-line-edit.h \
     schematic-window.h \

@@ -4,11 +4,15 @@
 //== ВКЛЮЧЕНИЯ.
 #include <QGraphicsView>
 #include <QWheelEvent>
+#include <QLibrary>
 #include "../Z-Hub/Server/protocol.h"
 #include "Dialogs/edit_port_dialog.h"
+#include "../Z-Hub/logger.h"
 
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
+typedef unsigned long long (*GetTypeID)(void);
+typedef QWidget* (*CreateWidget)(QWidget* p_Parent);
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class GraphicsElementItem;
@@ -42,6 +46,13 @@ private:
 	{
 		GraphicsElementItem* p_GraphicsElementItem;
 		GraphicsGroupItem* p_GraphicsGroupItem;
+	};
+	struct SchLibraryHub
+	{
+		QLibrary* p_QLibrary;
+		unsigned long long ullID;
+		GetTypeID GetTypeIDFromLibrary;
+		CreateWidget CreateWidgetFromLybrary;
 	};
 
 public:
@@ -583,6 +594,8 @@ public:
 	static double dbSnapStep; ///< Шаг залипания к сетке.
 
 private:
+	LOGDECL
+	LOGDECL_PTHRD_INCLASS_ADD
 	static QBrush oQBrushDark; ///< Чёрная кисть общего пользования.
 	static QBrush oQBrushLight; ///< Белая кисть общего пользования.
 	static QBrush oQBrushGray; ///< Серая кисть общего пользования.
@@ -660,6 +673,7 @@ private:
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
 	static unsigned char uchWheelMul; ///< Позиция колёсика мыши от начала работы.
 	static QVector<double> v_dbSnaps; ///< Список шагов сетки.
+	static QVector<SchLibraryHub> v_SchLibraryHubs; ///< Вектор с описаниями подгруженных библиотек.
 };
 
 #endif // SCHEMATICVIEW_H

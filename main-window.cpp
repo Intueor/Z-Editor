@@ -174,11 +174,7 @@ MainWindow::~MainWindow()
 	delete p_WidgetsThrAccess;
 	if(RETVAL == RETVAL_OK)
 	{
-		LOG_P_0(LOG_CAT_I, m_chLogExit)
-	}
-	else
-	{
-		LOG_P_0(LOG_CAT_E, m_chLogErrorExit << RETVAL << "].");
+		LOG_P_0(LOG_CAT_I, m_chLogExit);
 	}
 	LOG_CLOSE;
 	delete p_ui;

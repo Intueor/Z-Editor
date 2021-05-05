@@ -5,7 +5,7 @@
 #include <QGraphicsProxyWidget>
 #include <QColorDialog>
 #include <QTimer>
-#include <QGraphicsOpacityEffect>
+#include <QDir>
 #include "../Z-Hub/z-hub-defs.h"
 #include "z-editor-defs.h"
 #include "schematic-view.h"
@@ -16,9 +16,10 @@
 #include "Dialogs/edit_links_dialog.h"
 #include "../Z-Hub/Dialogs/message_dialog.h"
 #include "Dialogs/create_link_dialog.h"
-#include "graphics-text-edit.h"
 
 //== ДЕКЛАРАЦИИ СТАТИЧЕСКИХ ПЕРЕМЕННЫХ.
+LOGDECL_INIT_INCLASS(SchematicView)
+LOGDECL_INIT_PTHRD_INCLASS_OWN_ADD(SchematicView)
 QBrush SchematicView::oQBrushDark;
 QBrush SchematicView::oQBrushLight;
 QBrush SchematicView::oQBrushGray;
@@ -100,8 +101,11 @@ GraphicsBackgroundItem* SchematicView::p_GraphicsBackgroundItemInt = nullptr;
 unsigned char SchematicView::uchWheelMul = 8;
 double SchematicView::dbSnapStep = 40;
 QVector<double> SchematicView::v_dbSnaps;
+QVector<SchematicView::SchLibraryHub> SchematicView::v_SchLibraryHubs;
 
 //== МАКРОСЫ.
+#define LOG_NAME				"schematic-view"
+#define LOG_DIR_PATH			"../Z-Editor/logs/"
 #define TempSelectGroup(group)			bool _bForceSelected = false;									\
 										if(!group->bSelected)											\
 										{																\
@@ -141,11 +145,16 @@ QVector<double> SchematicView::v_dbSnaps;
 // Конструктор.
 SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 {
+	LOG_CTRL_INIT;
+	//
 	double dbTSDimSubCorr = SCALER_TR_DIM - SCALER_TR_DIM_CORR;
 	double dbFrameDimIncNeg = 0 - FRAME_DIM_INC;
 	double dbFrameDimIncCorrHalf = FRAME_DIM_INC_CORR / 2.0f;
 	double dbSnap = 5;
 	unsigned char uchDiv = 0;
+	QDir oQDir(strSchLibrariesRelPath);
+	QStringList oQStringListPostfixes, oQStringListLibs;
+	QString strPostfix = SCH_LIBRARY_POSTFIX;
 	//
 	oQBrushLight.setColor(QColor(170, 170, 170, 255)); oQBrushLight.setStyle(Qt::SolidPattern);
 	oQBrushDark.setColor(QColor(64, 64, 64, 255)); oQBrushDark.setStyle(Qt::SolidPattern);
@@ -219,12 +228,63 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 	setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
 	connect(&oQTimerSelectionFlashing, SIGNAL(timeout()), this, SLOT(UpdateSelectionFlash()));
 	oQTimerSelectionFlashing.start(6);
+	//
+	if(oQDir.exists())
+	{
+		oQStringListPostfixes.append(strPostfix);
+		oQDir.setFilter(QDir::Files);
+		oQStringListLibs = oQDir.entryList(oQStringListPostfixes);
+		if(!oQStringListLibs.isEmpty())
+		{
+			LOG_P_1(LOG_CAT_I, m_chLogLoadingLibraries);
+			for(int iF = 0; iF != oQStringListLibs.count(); iF++)
+			{
+				QString strLib = oQStringListLibs.at(iF);
+				SchLibraryHub oSchLibraryHub;
+				//
+				oSchLibraryHub.p_QLibrary = new QLibrary(strSchLibrariesRelPath + strLib);
+				if(oSchLibraryHub.p_QLibrary->load())
+				{
+					oSchLibraryHub.GetTypeIDFromLibrary = (GetTypeID)oSchLibraryHub.p_QLibrary->resolve("GetTypeID");
+					oSchLibraryHub.CreateWidgetFromLybrary = (CreateWidget)oSchLibraryHub.p_QLibrary->resolve("CreateWidget");
+					if((oSchLibraryHub.GetTypeIDFromLibrary != nullptr) &
+							(oSchLibraryHub.CreateWidgetFromLybrary != nullptr))
+					{
+						oSchLibraryHub.ullID = oSchLibraryHub.GetTypeIDFromLibrary();
+						QString strID;
+						//
+						strID.setNum(oSchLibraryHub.ullID);
+						LOG_P_1(LOG_CAT_I, "[" << strLib.toStdString().c_str() << m_chLogLID << strID.toStdString().c_str());
+						v_SchLibraryHubs.append(oSchLibraryHub);
+					}
+					else
+					{
+						LOG_P_0(LOG_CAT_E, m_chLogUnreachableFunc << strLib.toStdString().c_str() << m_chLibrary);
+						RETVAL_SET(RETVAL_ERR);
+						delete oSchLibraryHub.p_QLibrary;
+					}
+				}
+				else
+				{
+					LOG_P_0(LOG_CAT_E, m_chLogCantLoadLib << strLib.toStdString().c_str() << m_chLibrary);
+					RETVAL_SET(RETVAL_ERR);
+					delete oSchLibraryHub.p_QLibrary;
+				}
+			}
+			LOG_P_1(LOG_CAT_I, m_chLogDone);
+		}
+	}
 }
 
 // Деструктор.
 SchematicView::~SchematicView()
 {
 	SchematicWindow::ResetMenu();
+	for(int iF = 0; iF != v_SchLibraryHubs.count(); iF++)
+	{
+		delete v_SchLibraryHubs.at(iF).p_QLibrary;
+	}
+	LOG_CLOSE;
 }
 
 // Установка временного стиля кистей общего пользования.
@@ -3508,16 +3568,13 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 				setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
 							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 6);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
-		// Встроенные типы представления данных.
-		switch(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
+		for(int iF = 0; iF != v_SchLibraryHubs.count(); iF++)
 		{
-			case DATA_ID_TEXT:
+			const SchLibraryHub* p_SchLibraryHub = &v_SchLibraryHubs.at(iF);
+			//
+			if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 			{
-				GraphicsTextEdit* p_GraphicsTextEdit = new GraphicsTextEdit(p_GraphicsElementItem->p_QGroupBox);
-				//
-				p_GraphicsTextEdit->setStyleSheet("GraphicsTextEdit { background-color: transparent; }");
-				//p_GraphicsTextEdit->viewport()->setAutoFillBackground(false);
-				p_QVBoxLayout->addWidget(p_GraphicsTextEdit);
+				p_QVBoxLayout->addWidget(p_SchLibraryHub->CreateWidgetFromLybrary(p_GraphicsElementItem->p_QGroupBox));
 				break;
 			}
 		}
