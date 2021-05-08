@@ -1150,15 +1150,16 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 			if(p_ReceivedData != 0)
 			{
 				PSchData oPSchData;
+				ElementData oElementData;
+				int iPSchDataSize = sizeof(PSchData);
+				int iPElementDataSize = sizeof(ElementData);
+				char* p_chRD = static_cast<char*>(p_ReceivedData);
 				//
-				oPSchData = *static_cast<PSchData*>(p_ReceivedData);
-				if(oPSchData.ullIDElement == 0)
-				{
-					char mchText[oPSchData.uiBytes];
-					//
-					memcpy(mchText, (char*)p_ReceivedData + sizeof(PSchData), oPSchData.uiBytes);
-					LOG_P_2(LOG_CAT_I, "{In} Message from server [" << QString(mchText).toStdString().c_str() << "]");
-				}
+				oPSchData = *reinterpret_cast<PSchData*>(p_chRD);
+				oElementData = *reinterpret_cast<ElementData*>(p_chRD + iPSchDataSize);
+				oElementData.p_vData = p_chRD + iPSchDataSize + iPElementDataSize;
+				LOG_P_0(LOG_CAT_I, "{In} Pocket arrived for element [" << oElementData.ullElementID << "] of type [" <<
+						oElementData.ullID << "], size [" << oElementData.uiDataSize << "]");
 			}
 			else
 			{

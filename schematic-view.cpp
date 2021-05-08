@@ -4,7 +4,6 @@
 #include <QBoxLayout>
 #include <QGraphicsProxyWidget>
 #include <QColorDialog>
-#include <QTimer>
 #include <QDir>
 #include "../Z-Hub/z-hub-defs.h"
 #include "z-editor-defs.h"
@@ -3536,6 +3535,42 @@ void SchematicView::PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElemen
 	p_GraphicsElementItem->strPreparedName += strU;
 }
 
+// Кэлбэк-функция, вызываемая при изменениях в данных элемента пользователем.
+void SchematicView::CBElementChanges(ElementData& a_oElementData)
+{
+	PSchData oSchData;
+	unsigned int uiOverallSize = sizeof(PSchData) + sizeof(ElementData) + a_oElementData.uiDataSize; // Размер всех трёх составляющих.
+	char m_chBuffer[uiOverallSize];	// Буфер под общий размер.
+	char* p_chBP = m_chBuffer; // Указатель текущей позиции в буфере.
+	//
+	oSchData.uiBytes = uiOverallSize; // Структура с размером пакета для передачи.
+	memcpy(p_chBP, &oSchData, sizeof(PSchData));
+	p_chBP += sizeof(PSchData);
+	memcpy(p_chBP, &a_oElementData, sizeof(ElementData));
+	p_chBP += sizeof(ElementData);
+	memcpy(p_chBP, a_oElementData.p_vData, a_oElementData.uiDataSize);
+	MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_DATA, (char*)&m_chBuffer, uiOverallSize);
+}
+
+// Кэлбэк-функция, вызываемая при входе фокуса в представление данных элемента.
+void SchematicView::CBElementFocus(unsigned long long ullElementID)
+{
+	for(int iF = 0; iF != SchematicWindow::vp_Elements.count(); iF++)
+	{
+		GraphicsElementItem* p_GraphicsElementItem = SchematicWindow::vp_Elements.at(iF);
+		//
+		if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt == ullElementID)
+		{
+			BlockingVerticalsAndPopupElement(p_GraphicsElementItem, p_GraphicsElementItem->p_GraphicsGroupItemRel,
+											 SEND_GROUP, DONT_SEND_NEW_ELEMENTS_TO_GROUPS_RELATION,
+											 DONT_SEND_NEW_GROUPS_TO_GROUPS_RELATION, ADD_SEND_ZPOS,
+											 DONT_ADD_SEND_FRAME, SEND_ELEMENTS);
+			TrySendBufferToServer;
+			break;
+		}
+	}
+}
+
 // Обработчик конструктора элемента.
 void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase)
 {
@@ -3574,7 +3609,9 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 			//
 			if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 			{
-				p_QVBoxLayout->addWidget(p_SchLibraryHub->CreateWidgetFromLybrary(p_GraphicsElementItem->p_QGroupBox));
+				p_QVBoxLayout->addWidget(
+							p_SchLibraryHub->CreateWidgetFromLybrary(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
+																	 CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox));
 				break;
 			}
 		}

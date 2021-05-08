@@ -8,11 +8,12 @@
 #include "../Z-Hub/Server/protocol.h"
 #include "Dialogs/edit_port_dialog.h"
 #include "../Z-Hub/logger.h"
+#include "../Z-Hub/common-data-types.h"
 
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
 typedef unsigned long long (*GetID)(void);
-typedef QWidget* (*CreateWidget)(QWidget* p_Parent);
+typedef QWidget* (*CreateWidget)(unsigned long long ullElementID, CBChanges pf_CBChanges, CBFocus pf_CBFocus, QWidget* p_Parent);
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class GraphicsElementItem;
@@ -307,6 +308,12 @@ protected:
 	void keyPressEvent(QKeyEvent* p_Event);
 							///< \param[in] p_Event Указатель на событие клавиши.
 private:
+	/// Кэлбэк-функция, вызываемая при изменениях в данных элемента пользователем.
+	static void CBElementChanges(ElementData& a_oElementData);
+							///< \param[in] a_oElementData Ссылка на пакет с инфо по изменённым данным элемента.
+	/// Кэлбэк-функция, вызываемая при входе фокуса в представление данных элемента.
+	static void CBElementFocus(unsigned long long ullElementID);
+							///< \param[in] ullElementID ИД элемента в новом фокусе.
 	/// Подготовка отсылки параметров и удаление группы.
 	static void DeleteGroupRecursiveAPFS(GraphicsGroupItem* p_GraphicsGroupItem, bool bInitial = true);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
