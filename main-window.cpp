@@ -1154,19 +1154,45 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 				int iPSchDataSize = sizeof(PSchData);
 				int iPElementDataSize = sizeof(ElementData);
 				char* p_chRD = static_cast<char*>(p_ReceivedData);
+				GraphicsElementItem* p_GraphicsElementItem = nullptr;
 				//
 				oPSchData = *reinterpret_cast<PSchData*>(p_chRD);
 				oElementData = *reinterpret_cast<ElementData*>(p_chRD + iPSchDataSize);
 				oElementData.p_vData = p_chRD + iPSchDataSize + iPElementDataSize;
 				LOG_P_0(LOG_CAT_I, "{In} Pocket arrived for element [" << oElementData.ullElementID << "] of type [" <<
 						oElementData.ullID << "], size [" << oElementData.uiDataSize << "]");
+				for(int iE = 0; iE != SchematicWindow::vp_Elements.count(); iE++)
+				{
+					GraphicsElementItem* p_GraphicsElementItemInt = SchematicWindow::vp_Elements.at(iE);
+					//
+					if(p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt == oElementData.ullElementID)
+					{
+						p_GraphicsElementItem = p_GraphicsElementItemInt;
+						break;
+					}
+				}
+				if(p_GraphicsElementItem == nullptr)
+				{
+					LOG_P_0(LOG_CAT_W, "Requested element by server is absent on client.");
+					goto WS;
+				}
+				for(int iF = 0; iF != p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.count(); iF++)
+				{
+					const SchematicView::SchLibraryHub* p_SchLibraryHub = &p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.at(iF);
+					//
+					if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
+					{
+						p_SchLibraryHub->ApplyDataFromServer(p_GraphicsElementItem->p_QWidgetData, oElementData.p_vData);
+						break;
+					}
+				}
 			}
 			else
 			{
 				LOG_P_0(LOG_CAT_W, m_chLogWrongData);
 				p_SchematicWindow->p_MainWindow->RemoteUpdateSchViewAndSendRFrame();
 			}
-			bProcessed = true;
+WS:			bProcessed = true;
 			break;
 		}
 		// Следующий раздел...

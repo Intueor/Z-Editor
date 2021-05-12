@@ -14,6 +14,7 @@
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
 typedef unsigned long long (*GetID)(void);
 typedef QWidget* (*CreateWidget)(unsigned long long ullElementID, CBChanges pf_CBChanges, CBFocus pf_CBFocus, QWidget* p_Parent);
+typedef void (*ApplyData)(QWidget* p_Widget, void* p_vData);
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class GraphicsElementItem;
@@ -29,6 +30,15 @@ class GraphicsBackgroundItem;
 class SchematicView : public QGraphicsView
 {
 	Q_OBJECT
+public:
+	struct SchLibraryHub
+	{
+		QLibrary* p_QLibrary;
+		unsigned long long ullID;
+		GetID GetIDFromLibrary;
+		CreateWidget CreateWidgetFromLybrary;
+		ApplyData ApplyDataFromServer;
+	};
 
 private:
 	struct DbPointPair
@@ -47,13 +57,6 @@ private:
 	{
 		GraphicsElementItem* p_GraphicsElementItem;
 		GraphicsGroupItem* p_GraphicsGroupItem;
-	};
-	struct SchLibraryHub
-	{
-		QLibrary* p_QLibrary;
-		unsigned long long ullID;
-		GetID GetIDFromLibrary;
-		CreateWidget CreateWidgetFromLybrary;
 	};
 
 public:
@@ -599,6 +602,7 @@ public:
 	static qreal dbObjectZPos; ///< Крайняя Z-позиция.
 	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 	static double dbSnapStep; ///< Шаг залипания к сетке.
+	static QVector<SchLibraryHub> v_SchLibraryHubs; ///< Вектор с описаниями подгруженных библиотек.
 
 private:
 	LOGDECL
@@ -680,7 +684,6 @@ private:
 	static bool bPortMenuExecuted; ///< Флаг выполненного меню для отмены ховера для порта.
 	static unsigned char uchWheelMul; ///< Позиция колёсика мыши от начала работы.
 	static QVector<double> v_dbSnaps; ///< Список шагов сетки.
-	static QVector<SchLibraryHub> v_SchLibraryHubs; ///< Вектор с описаниями подгруженных библиотек.
 };
 
 #endif // SCHEMATICVIEW_H

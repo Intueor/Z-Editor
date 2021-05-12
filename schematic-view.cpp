@@ -246,6 +246,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 				{
 					oSchLibraryHub.GetIDFromLibrary = (GetID)oSchLibraryHub.p_QLibrary->resolve("GetID");
 					oSchLibraryHub.CreateWidgetFromLybrary = (CreateWidget)oSchLibraryHub.p_QLibrary->resolve("CreateWidget");
+					oSchLibraryHub.ApplyDataFromServer = (ApplyData)oSchLibraryHub.p_QLibrary->resolve("ApplyData");
 					if((oSchLibraryHub.GetIDFromLibrary != nullptr) &
 							(oSchLibraryHub.CreateWidgetFromLybrary != nullptr))
 					{
@@ -3609,9 +3610,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 			//
 			if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 			{
-				p_QVBoxLayout->addWidget(
-							p_SchLibraryHub->CreateWidgetFromLybrary(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
-																	 CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox));
+				p_GraphicsElementItem->p_QWidgetData =
+						p_SchLibraryHub->CreateWidgetFromLybrary(
+							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
+							CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox);
+				p_QVBoxLayout->addWidget(p_GraphicsElementItem->p_QWidgetData);
 				break;
 			}
 		}
