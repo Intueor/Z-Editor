@@ -1182,7 +1182,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 					//
 					if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 					{
-						p_SchLibraryHub->ApplyDataFromServer(p_GraphicsElementItem->p_QWidgetData, oElementData.p_vData);
+						p_SchLibraryHub->ApplyDataFromServer(oElementData.p_vData);
 						break;
 					}
 				}

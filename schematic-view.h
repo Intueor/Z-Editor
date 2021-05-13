@@ -14,7 +14,7 @@
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
 typedef unsigned long long (*GetID)(void);
 typedef QWidget* (*CreateWidget)(unsigned long long ullElementID, CBChanges pf_CBChanges, CBFocus pf_CBFocus, QWidget* p_Parent);
-typedef void (*ApplyData)(QWidget* p_Widget, void* p_vData);
+typedef void (*ApplyData)(void* p_vData);
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
 class GraphicsElementItem;
