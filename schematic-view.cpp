@@ -247,8 +247,9 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 					oSchLibraryHub.GetIDFromLibrary = (GetID)oSchLibraryHub.p_QLibrary->resolve("GetID");
 					oSchLibraryHub.CreateWidgetFromLybrary = (CreateWidget)oSchLibraryHub.p_QLibrary->resolve("CreateWidget");
 					oSchLibraryHub.ApplyDataFromServer = (ApplyData)oSchLibraryHub.p_QLibrary->resolve("ApplyData");
-					if((oSchLibraryHub.GetIDFromLibrary != nullptr) &
-							(oSchLibraryHub.CreateWidgetFromLybrary != nullptr))
+					if((oSchLibraryHub.GetIDFromLibrary != nullptr) &&
+							(oSchLibraryHub.CreateWidgetFromLybrary != nullptr) &&
+							(oSchLibraryHub.ApplyDataFromServer != nullptr))
 					{
 						oSchLibraryHub.ullID = oSchLibraryHub.GetIDFromLibrary();
 						QString strID;
