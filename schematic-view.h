@@ -312,8 +312,8 @@ protected:
 							///< \param[in] p_Event Указатель на событие клавиши.
 private:
 	/// Кэлбэк-функция, вызываемая при изменениях в данных элемента пользователем.
-	static void CBElementChanges(ElementData& a_oElementData);
-							///< \param[in] a_oElementData Ссылка на пакет с инфо по изменённым данным элемента.
+	static void CBElementChanges(ExtElementData& a_oExtElementData);
+							///< \param[in] a_oExtElementData Ссылка на пакет с инфо по изменённым данным элемента.
 	/// Кэлбэк-функция, вызываемая при входе фокуса в представление данных элемента.
 	static void CBElementFocus(unsigned long long ullElementID);
 							///< \param[in] ullElementID ИД элемента в новом фокусе.

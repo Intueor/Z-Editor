@@ -1150,22 +1150,22 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 			if(p_ReceivedData != 0)
 			{
 				PSchData oPSchData;
-				ElementData oElementData;
+				ExtElementData oExtElementData;
 				int iPSchDataSize = sizeof(PSchData);
-				int iPElementDataSize = sizeof(ElementData);
+				int iPExtElementDataSize = sizeof(ExtElementData);
 				char* p_chRD = static_cast<char*>(p_ReceivedData);
 				GraphicsElementItem* p_GraphicsElementItem = nullptr;
 				//
 				oPSchData = *reinterpret_cast<PSchData*>(p_chRD);
-				oElementData = *reinterpret_cast<ElementData*>(p_chRD + iPSchDataSize);
-				oElementData.p_vData = p_chRD + iPSchDataSize + iPElementDataSize;
-				LOG_P_0(LOG_CAT_I, "{In} Pocket arrived for element [" << oElementData.ullElementID << "] of type [" <<
-						oElementData.ullID << "], size [" << oElementData.uiDataSize << "]");
+				oExtElementData = *reinterpret_cast<ExtElementData*>(p_chRD + iPSchDataSize);
+				oExtElementData.p_vData = p_chRD + iPSchDataSize + iPExtElementDataSize;
+				LOG_P_0(LOG_CAT_I, "{In} Pocket arrived for element [" << oExtElementData.ullElementID << "] of type [" <<
+						oExtElementData.ullID << "], size [" << oExtElementData.uiDataSize << "]");
 				for(int iE = 0; iE != SchematicWindow::vp_Elements.count(); iE++)
 				{
 					GraphicsElementItem* p_GraphicsElementItemInt = SchematicWindow::vp_Elements.at(iE);
 					//
-					if(p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt == oElementData.ullElementID)
+					if(p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt == oExtElementData.ullElementID)
 					{
 						p_GraphicsElementItem = p_GraphicsElementItemInt;
 						break;
@@ -1182,7 +1182,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 					//
 					if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 					{
-						p_SchLibraryHub->ApplyDataFromServer(oElementData.p_vData);
+						p_SchLibraryHub->ApplyDataFromServer(oExtElementData.p_vData);
 						break;
 					}
 				}
