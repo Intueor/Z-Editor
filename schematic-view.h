@@ -12,7 +12,7 @@
 
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
-typedef unsigned long long (*GetID)(void);
+typedef unsigned long long (*GetLibraryID)(void);
 typedef QWidget* (*CreateWidget)(unsigned long long ullElementID, CBChanges pf_CBChanges, CBFocus pf_CBFocus, QWidget* p_Parent);
 typedef void (*ApplyData)(void* p_vData);
 
@@ -35,7 +35,7 @@ public:
 	{
 		QLibrary* p_QLibrary;
 		unsigned long long ullID;
-		GetID GetIDFromLibrary;
+		GetLibraryID GetIDFromLibrary;
 		CreateWidget CreateWidgetFromLybrary;
 		ApplyData ApplyDataFromServer;
 	};

@@ -1167,24 +1167,33 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 					//
 					if(p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt == oExtElementData.ullElementID)
 					{
-						p_GraphicsElementItem = p_GraphicsElementItemInt;
+						p_GraphicsElementItem = p_GraphicsElementItemInt; // Найден запрашиваемый элемент.
 						break;
 					}
 				}
 				if(p_GraphicsElementItem == nullptr)
 				{
-					LOG_P_0(LOG_CAT_W, "Requested element by server is absent on client.");
+					LOG_P_0(LOG_CAT_W, "Element requested by server is absent on client.");
 					goto WS;
 				}
-				for(int iF = 0; iF != p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.count(); iF++)
+				if(p_GraphicsElementItem->iLibraryNumber != NO_LIBRARY_CONNECTED)
 				{
-					const SchematicView::SchLibraryHub* p_SchLibraryHub = &p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.at(iF);
-					//
-					if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
+					const SchematicView::SchLibraryHub* p_SchLibraryHub =
+							&p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.at(p_GraphicsElementItem->iLibraryNumber);
+					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType == p_SchLibraryHub->GetIDFromLibrary())
 					{
 						p_SchLibraryHub->ApplyDataFromServer(oExtElementData.p_vData);
-						break;
 					}
+					else
+					{
+						LOG_P_0(LOG_CAT_W, "Requested element can`t use received type of data.");
+						goto WS;
+					}
+				}
+				else
+				{
+					LOG_P_0(LOG_CAT_W, "Requested element don`t have visualizer library connected.");
+					goto WS;
 				}
 			}
 			else

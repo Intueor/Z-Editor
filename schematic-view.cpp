@@ -244,7 +244,7 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 				oSchLibraryHub.p_QLibrary = new QLibrary(strSchLibrariesRelPath + strLib);
 				if(oSchLibraryHub.p_QLibrary->load())
 				{
-					oSchLibraryHub.GetIDFromLibrary = (GetID)oSchLibraryHub.p_QLibrary->resolve("GetID");
+					oSchLibraryHub.GetIDFromLibrary = (GetLibraryID)oSchLibraryHub.p_QLibrary->resolve("GetLibraryID");
 					oSchLibraryHub.CreateWidgetFromLybrary = (CreateWidget)oSchLibraryHub.p_QLibrary->resolve("CreateWidget");
 					oSchLibraryHub.ApplyDataFromServer = (ApplyData)oSchLibraryHub.p_QLibrary->resolve("ApplyData");
 					if((oSchLibraryHub.GetIDFromLibrary != nullptr) &&
@@ -3605,6 +3605,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 				setFixedSize(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbW - 6,
 							 p_GraphicsElementItem-> oPSchElementBaseInt.oPSchElementVars.oSchEGGraph.oDbFrame.dbH - 6);
 		p_GraphicsElementItem->p_QGraphicsProxyWidget->setParentItem(p_GraphicsElementItem);
+		p_GraphicsElementItem->iLibraryNumber = NO_LIBRARY_CONNECTED;
 		for(int iF = 0; iF != v_SchLibraryHubs.count(); iF++)
 		{
 			const SchLibraryHub* p_SchLibraryHub = &v_SchLibraryHubs.at(iF);
@@ -3616,6 +3617,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
 							CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox);
 				p_QVBoxLayout->addWidget(p_GraphicsElementItem->p_QWidgetData);
+				p_GraphicsElementItem->iLibraryNumber = iF;
 				break;
 			}
 		}
