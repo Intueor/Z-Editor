@@ -1150,22 +1150,22 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 			if(p_ReceivedData != 0)
 			{
 				PSchData oPSchData;
-				ExtElementData oExtElementData;
+				ElementData oElementData;
 				int iPSchDataSize = sizeof(PSchData);
-				int iPExtElementDataSize = sizeof(ExtElementData);
+				int iPElementDataSize = sizeof(ElementData);
 				char* p_chRD = static_cast<char*>(p_ReceivedData);
 				GraphicsElementItem* p_GraphicsElementItem = nullptr;
 				//
 				oPSchData = *reinterpret_cast<PSchData*>(p_chRD);
-				oExtElementData = *reinterpret_cast<ExtElementData*>(p_chRD + iPSchDataSize);
-				oExtElementData.p_vData = p_chRD + iPSchDataSize + iPExtElementDataSize;
-				LOG_P_0(LOG_CAT_I, "{In} Pocket arrived for element [" << oExtElementData.ullElementID << "] of type [" <<
-						oExtElementData.ullID << "], size [" << oExtElementData.uiDataSize << "]");
+				oElementData = *reinterpret_cast<ElementData*>(p_chRD + iPSchDataSize);
+				oElementData.p_vData = p_chRD + iPSchDataSize + iPElementDataSize;
+				LOG_P_0(LOG_CAT_I, "{In} Pocket arrived for element [" << oElementData.ullElementID << "] of type [" <<
+						oElementData.ullID << "], size [" << oElementData.uiDataSize << "]");
 				for(int iE = 0; iE != SchematicWindow::vp_Elements.count(); iE++)
 				{
 					GraphicsElementItem* p_GraphicsElementItemInt = SchematicWindow::vp_Elements.at(iE);
 					//
-					if(p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt == oExtElementData.ullElementID)
+					if(p_GraphicsElementItemInt->oPSchElementBaseInt.oPSchElementVars.ullIDInt == oElementData.ullElementID)
 					{
 						p_GraphicsElementItem = p_GraphicsElementItemInt; // Найден запрашиваемый элемент.
 						break;
@@ -1182,7 +1182,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 							&p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.at(p_GraphicsElementItem->iLibraryNumber);
 					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType == p_SchLibraryHub->GetIDFromLibrary())
 					{
-						p_SchLibraryHub->ApplyDataFromServer(oExtElementData.p_vData);
+						p_SchLibraryHub->ApplyDataFromServer(oElementData.p_vData);
 					}
 					else
 					{

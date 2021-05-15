@@ -3538,19 +3538,19 @@ void SchematicView::PrepareNameWithExtPort(GraphicsElementItem* p_GraphicsElemen
 }
 
 // Кэлбэк-функция, вызываемая при изменениях в данных элемента пользователем.
-void SchematicView::CBElementChanges(ExtElementData& a_oExtElementData)
+void SchematicView::CBElementChanges(ElementData& a_oElementData)
 {
 	PSchData oSchData;
-	unsigned int uiOverallSize = sizeof(PSchData) + sizeof(ExtElementData) + a_oExtElementData.uiDataSize; // Размер всех трёх составляющих.
+	unsigned int uiOverallSize = sizeof(PSchData) + sizeof(ElementData) + a_oElementData.uiDataSize; // Размер всех трёх составляющих.
 	char m_chBuffer[uiOverallSize];	// Буфер под общий размер.
 	char* p_chBP = m_chBuffer; // Указатель текущей позиции в буфере.
 	//
 	oSchData.uiBytes = uiOverallSize; // Структура с размером пакета для передачи.
 	memcpy(p_chBP, &oSchData, sizeof(PSchData));
 	p_chBP += sizeof(PSchData);
-	memcpy(p_chBP, &a_oExtElementData, sizeof(ExtElementData));
-	p_chBP += sizeof(ExtElementData);
-	memcpy(p_chBP, a_oExtElementData.p_vData, a_oExtElementData.uiDataSize);
+	memcpy(p_chBP, &a_oElementData, sizeof(ElementData));
+	p_chBP += sizeof(ElementData);
+	memcpy(p_chBP, a_oElementData.p_vData, a_oElementData.uiDataSize);
 	MainWindow::p_Client->SendToServerImmediately(PROTO_O_SCH_DATA, (char*)&m_chBuffer, uiOverallSize);
 }
 
