@@ -1182,7 +1182,7 @@ gGC:			if(oPSchGroupColor.bLastInQueue)
 							&p_SchematicWindow->p_SchematicView->v_SchLibraryHubs.at(p_GraphicsElementItem->iLibraryNumber);
 					if(p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType == p_SchLibraryHub->GetIDFromLibrary())
 					{
-						p_SchLibraryHub->ApplyDataFromServer(oElementData.p_vData);
+						p_SchLibraryHub->ApplyDataFromServer(oElementData.ushiPort, oElementData.p_vData);
 					}
 					else
 					{

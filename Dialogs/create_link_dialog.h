@@ -7,6 +7,7 @@
 #include <QListWidgetItem>
 #include <QTimer>
 #include "z-editor-defs.h"
+#include "../Z-Hub/main-hub-defs.h"
 
 //== ПРОСТРАНСТВА ИМЁН.
 namespace Ui {

@@ -10,7 +10,6 @@
 #define PORT_NUMBER_STR_LEN					6
 #define OVERMAX_NUMBER						999999999
 #define OVERMIN_NUMBER						-999999999
-#define OVERMAX_ID							18446744073709551615ULL
 #define SCENE_DIM_X							6000
 #define SCENE_DIM_Y							6000
 // Макросы для удобного чтения сложных вызовов функций.
