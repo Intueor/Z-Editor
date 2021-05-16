@@ -61,10 +61,9 @@ public:
 	QGroupBox* p_QGroupBox; ///< Указатель на объект основного групбокса.
 	GraphicsScalerItem* p_GraphicsScalerItem; ///< Указатель на графический объект скалера.
 	QGraphicsProxyWidget* p_QGraphicsProxyWidget; ///< Указатель на виджет-посредник для сцены.
-	void* p_vDataWidget; ///< Указатель на виджет представления данных.
 	bool bPortsForMin; ///< true - при наличии портов на элементе (проверяется при минимизации).
 	QString strPreparedName; ///< Строка с подготовленным для отображения названием объекта.
-	QWidget* p_QWidgetData; ///< Указатель на виджет отображения данных (заполняется при создании откликом библиотеки).
+	QWidget* p_QWidgetDataVisualizer; ///< Указатель на виджет отображения данных (заполняется при создании откликом библиотеки).
 	int iLibraryNumber; ///< Номер библиотеки в списке библиотек.
 };
 

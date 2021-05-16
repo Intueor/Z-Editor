@@ -3579,7 +3579,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsElementItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_ELEMENT);
 	p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
-	p_GraphicsElementItem->p_vDataWidget = nullptr;
+	p_GraphicsElementItem->p_QWidgetDataVisualizer = nullptr;
 	memcpy(&p_GraphicsElementItem->oPSchElementBaseInt, p_PSchElementBase, sizeof(PSchElementBase));
 	p_GraphicsElementItem->setFlag(p_GraphicsElementItem->ItemIsMovable);
 	p_GraphicsElementItem->setAcceptHoverEvents(true);
@@ -3612,11 +3612,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 			//
 			if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 			{
-				p_GraphicsElementItem->p_QWidgetData =
+				p_GraphicsElementItem->p_QWidgetDataVisualizer =
 						p_SchLibraryHub->CreateWidgetFromLybrary(
 							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
 							CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox);
-				p_QVBoxLayout->addWidget(p_GraphicsElementItem->p_QWidgetData);
+				p_QVBoxLayout->addWidget(p_GraphicsElementItem->p_QWidgetDataVisualizer);
 				p_GraphicsElementItem->iLibraryNumber = iF;
 				break;
 			}
