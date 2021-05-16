@@ -2,6 +2,9 @@
 #define SCHEMATICVIEW_H
 
 //== ВКЛЮЧЕНИЯ.
+#ifdef WIN32
+#include <WinSock2.h> // Из-за конфликта заголовков в Windows.
+#endif
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QLibrary>
