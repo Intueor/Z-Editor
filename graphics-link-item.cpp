@@ -3,7 +3,7 @@
 #include "graphics-link-item.h"
 
 //== ФУНКЦИИ КЛАССОВ.
-// Класс графического линка.
+//== Класс графического линка.
 // Конструктор.
 GraphicsLinkItem::GraphicsLinkItem(PSchLinkBase* p_PSchLinkBase)
 {

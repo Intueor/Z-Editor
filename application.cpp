@@ -1,10 +1,15 @@
+//== ВКЛЮЧЕНИЯ.
 #include <QKeyEvent>
 #include "application.h"
 #include "schematic-view.h"
 #include "schematic-window.h"
 
+//== ФУНКЦИИ КЛАССОВ.
+//== Класс приложения.
+// Конструктор.
 Application::Application(int& iArgc, char** pp_Argv, int) : QApplication(iArgc, pp_Argv, ApplicationFlags) {}
 
+// Переопределение обработки всех событий из-за болкировки текстового ввода в поле пользовательского редактора внутри элемента.
 bool Application::notify(QObject* p_QObject, QEvent* p_QEvent)
 {
 	if(SchematicWindow::p_SchematicView)
