@@ -101,6 +101,7 @@ unsigned char SchematicView::uchWheelMul = 8;
 double SchematicView::dbSnapStep = 40;
 QVector<double> SchematicView::v_dbSnaps;
 QVector<SchematicView::SchLibraryHub> SchematicView::v_SchLibraryHubs;
+QVector<QWidget*> SchematicView::vp_QWidgetsKeyReceivers;
 
 //== МАКРОСЫ.
 #define LOG_NAME				"schematic-view"
@@ -2644,6 +2645,11 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	{
 		return; //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 	}
+	if(p_GraphicsElementItem->p_QWidgetDataVisualizer)
+	{
+		if(p_Event->button() == Qt::MouseButton::LeftButton) p_GraphicsElementItem->p_QWidgetDataVisualizer->clearFocus();
+		else if(p_GraphicsElementItem->p_QWidgetDataVisualizer->hasFocus()) return;
+	}
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
 		unsigned char uchMinStatus = IsMinimized(p_ElementSettings);
@@ -3618,6 +3624,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
 							CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox);
 				p_QVBoxLayout->addWidget(p_GraphicsElementItem->p_QWidgetDataVisualizer);
+				vp_QWidgetsKeyReceivers.append(p_GraphicsElementItem->p_QWidgetDataVisualizer);
 				p_GraphicsElementItem->iLibraryNumber = iF;
 				break;
 			}
@@ -3673,6 +3680,12 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->p_GraphicsFrameItem->hide();
 	// Статус блокирования.
 	SetElementBlockingPattern(p_GraphicsElementItem, IsBusy(p_ElementSettings));
+}
+
+// Обработчик деструктора элемента.
+void SchematicView::ElementDestructorHandler(GraphicsElementItem* p_GraphicsElementItem)
+{
+	vp_QWidgetsKeyReceivers.removeOne(p_GraphicsElementItem->p_QWidgetDataVisualizer);
 }
 
 // Проверка наличия структуры скрытия в списке по координатам портов.

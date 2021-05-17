@@ -31,6 +31,7 @@ SOURCES += \
     Dialogs/edit_links_dialog.cpp \
     Dialogs/edit_port_dialog.cpp \
     Dialogs/set_proposed_number_dialog.cpp \
+    application.cpp \
     graphics-background-item.cpp \
     graphics-element-item.cpp \
     graphics-frame-item.cpp \
@@ -63,6 +64,7 @@ HEADERS += \
     Dialogs/edit_links_dialog.h \
     Dialogs/edit_port_dialog.h \
     Dialogs/set_proposed_number_dialog.h \
+    application.h \
     graphics-background-item.h \
     graphics-element-item.h \
     graphics-frame-item.h \

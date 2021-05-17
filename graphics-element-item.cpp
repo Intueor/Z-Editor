@@ -13,6 +13,7 @@ GraphicsElementItem::GraphicsElementItem(PSchElementBase* p_PSchElementBase)
 // Деструктор.
 GraphicsElementItem::~GraphicsElementItem()
 {
+	SchematicView::ElementDestructorHandler(this);
 	if(p_QGroupBox != nullptr) delete p_QGroupBox;
 	delete p_GraphicsFrameItem;
 	delete p_GraphicsScalerItem;

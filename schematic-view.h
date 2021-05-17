@@ -106,7 +106,9 @@ public:
 	static void ElementConstructorHandler(GraphicsElementItem* p_GraphicsElementItem, PSchElementBase* p_PSchElementBase);
 							///< \param[in] GraphicsElementItem Указатель на элемент.
 							///< \param[in] p_PSchElementBase Указатель на структуру с параметрами элемента для копии внутрь.
-
+	/// Обработчик деструктора элемента.
+	static void ElementDestructorHandler(GraphicsElementItem* p_GraphicsElementItem);
+							///< \param[in] GraphicsElementItem Указатель на элемент.
 	/// Обработчик события нажатия мыши на группу.
 	static void GroupMousePressEventHandler(GraphicsGroupItem* p_GraphicsGroupItem, QGraphicsSceneMouseEvent* p_Event);
 							///< \param[in] p_GraphicsGroupItem Указатель на группу.
@@ -606,6 +608,7 @@ public:
 	static GraphicsBackgroundItem* p_GraphicsBackgroundItemInt; ///< Указатель на подкладку.
 	static double dbSnapStep; ///< Шаг залипания к сетке.
 	static QVector<SchLibraryHub> v_SchLibraryHubs; ///< Вектор с описаниями подгруженных библиотек.
+	static QVector<QWidget*> vp_QWidgetsKeyReceivers; ///< Вектор указателей на виджеты с принудительным получением клавиатурного ввода.
 
 private:
 	LOGDECL

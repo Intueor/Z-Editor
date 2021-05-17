@@ -1,7 +1,7 @@
 //== ВКЛЮЧЕНИЯ.
-#include "main-window.h"
-#include <QApplication>
 #include <QStyleFactory>
+#include "application.h"
+#include "main-window.h"
 
 //== ФУНКЦИИ.
 // Точка входа в приложение.
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 							///< \return Общий результат работы.
 {
 	int iExecResult;
-	QApplication oApplication(argc, argv);
+	Application oApplication(argc, argv);
 	//oApplication.setAttribute(Qt::AA_DisableWindowContextHelpButton);
 	oApplication.setStyle(QStyleFactory::create("Fusion"));
 	SchematicWindow wSchematicWindow;
