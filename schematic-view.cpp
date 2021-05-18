@@ -2645,11 +2645,6 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	{
 		return; //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 	}
-	if(p_GraphicsElementItem->p_QWidgetDataVisualizer)
-	{
-		if(p_Event->button() == Qt::MouseButton::LeftButton) p_GraphicsElementItem->p_QWidgetDataVisualizer->clearFocus();
-		else if(p_GraphicsElementItem->p_QWidgetDataVisualizer->hasFocus()) return;
-	}
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
 		unsigned char uchMinStatus = IsMinimized(p_ElementSettings);
