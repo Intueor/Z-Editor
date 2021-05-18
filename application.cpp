@@ -28,7 +28,7 @@ bool Application::notify(QObject* p_QObject, QEvent* p_QEvent)
 						//
 						if(p_QWidget->hasFocus())
 						{
-							QCoreApplication::sendEvent(SchematicView::vp_QWidgetsKeyReceivers.at(iW), p_QKeyEvent);
+							QCoreApplication::sendEvent(p_QWidget, p_QKeyEvent);
 						}
 					}
 				}
