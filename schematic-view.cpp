@@ -2647,19 +2647,13 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	}
 	if(p_GraphicsElementItem->p_QWidgetDataVisualizer)
 	{
-		p_GraphicsElementItem->p_QWidgetDataVisualizer->clearFocus();
 		QPoint oQPointW = p_GraphicsElementItem->p_QWidgetDataVisualizer->pos();
 		QPoint oQPointD;
+		QPointF oQPointM = p_Event->pos();
 		oQPointD.setX(p_GraphicsElementItem->p_QWidgetDataVisualizer->width());
 		oQPointD.setY(p_GraphicsElementItem->p_QWidgetDataVisualizer->height());
-		QPointF oQPointM = p_Event->pos();
-		if((oQPointM.x() > oQPointW.x()) && (oQPointM.y() > oQPointW.y()))
-		{
-			if((oQPointM.x() < oQPointW.x() + oQPointD.x()) && (oQPointM.y() < oQPointW.y() + oQPointD.y()))
-			{
-				return;
-			}
-		}
+		if(((oQPointM.x() > oQPointW.x()) && (oQPointM.y() > oQPointW.y())) &&
+				((oQPointM.x() < oQPointW.x() + oQPointD.x()) && (oQPointM.y() < oQPointW.y() + oQPointD.y()))) return;
 	}
 	if(DoubleButtonsPressControl(p_Event)) // Переключение минимизации.
 	{
