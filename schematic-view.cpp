@@ -246,10 +246,10 @@ SchematicView::SchematicView(QWidget* parent) : QGraphicsView(parent)
 				if(oSchLibraryHub.p_QLibrary->load())
 				{
 					oSchLibraryHub.GetIDFromLibrary = (GetLibraryID)oSchLibraryHub.p_QLibrary->resolve("GetLibraryID");
-					oSchLibraryHub.CreateWidgetFromLybrary = (CreateWidget)oSchLibraryHub.p_QLibrary->resolve("CreateWidget");
+					oSchLibraryHub.FillLayoutFromLybrary = (FillLayout)oSchLibraryHub.p_QLibrary->resolve("FillLayout");
 					oSchLibraryHub.ApplyDataFromServer = (ApplyData)oSchLibraryHub.p_QLibrary->resolve("ApplyData");
 					if((oSchLibraryHub.GetIDFromLibrary != nullptr) &&
-							(oSchLibraryHub.CreateWidgetFromLybrary != nullptr) &&
+							(oSchLibraryHub.FillLayoutFromLybrary != nullptr) &&
 							(oSchLibraryHub.ApplyDataFromServer != nullptr))
 					{
 						oSchLibraryHub.ullID = oSchLibraryHub.GetIDFromLibrary();
@@ -2645,13 +2645,13 @@ void SchematicView::ElementMousePressEventHandler(GraphicsElementItem* p_Graphic
 	{
 		return; //Если элемент блокирован занятостью, смещением выборки или главным окном - отказ.
 	}
-	if(p_GraphicsElementItem->p_QWidgetDataVisualizer)
+	if(p_GraphicsElementItem->p_QWidgetKeyReceiver)
 	{
-		QPoint oQPointW = p_GraphicsElementItem->p_QWidgetDataVisualizer->pos();
+		QPoint oQPointW = p_GraphicsElementItem->p_QWidgetKeyReceiver->pos();
 		QPoint oQPointD;
 		QPointF oQPointM = p_Event->pos();
-		oQPointD.setX(p_GraphicsElementItem->p_QWidgetDataVisualizer->width());
-		oQPointD.setY(p_GraphicsElementItem->p_QWidgetDataVisualizer->height());
+		oQPointD.setX(p_GraphicsElementItem->p_QWidgetKeyReceiver->width());
+		oQPointD.setY(p_GraphicsElementItem->p_QWidgetKeyReceiver->height());
 		if(((oQPointM.x() > oQPointW.x()) && (oQPointM.y() > oQPointW.y())) &&
 				((oQPointM.x() < oQPointW.x() + oQPointD.x()) && (oQPointM.y() < oQPointW.y() + oQPointD.y()))) return;
 	}
@@ -3591,7 +3591,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 	p_GraphicsElementItem->setData(SCH_TYPE_OF_ITEM, SCH_TYPE_ITEM_UI);
 	p_GraphicsElementItem->setData(SCH_KIND_OF_ITEM, SCH_KIND_ITEM_ELEMENT);
 	p_GraphicsElementItem->p_GraphicsGroupItemRel = nullptr;
-	p_GraphicsElementItem->p_QWidgetDataVisualizer = nullptr;
+	p_GraphicsElementItem->p_QWidgetKeyReceiver = nullptr;
 	memcpy(&p_GraphicsElementItem->oPSchElementBaseInt, p_PSchElementBase, sizeof(PSchElementBase));
 	p_GraphicsElementItem->setFlag(p_GraphicsElementItem->ItemIsMovable);
 	p_GraphicsElementItem->setAcceptHoverEvents(true);
@@ -3624,12 +3624,11 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 			//
 			if(p_SchLibraryHub->ullID == p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDDataType)
 			{
-				p_GraphicsElementItem->p_QWidgetDataVisualizer =
-						p_SchLibraryHub->CreateWidgetFromLybrary(
+				p_GraphicsElementItem->p_QWidgetKeyReceiver =
+						p_SchLibraryHub->FillLayoutFromLybrary(
 							p_GraphicsElementItem->oPSchElementBaseInt.oPSchElementVars.ullIDInt,
-							CBElementChanges, CBElementFocus, p_GraphicsElementItem->p_QGroupBox);
-				p_QVBoxLayout->addWidget(p_GraphicsElementItem->p_QWidgetDataVisualizer);
-				vp_QWidgetsKeyReceivers.append(p_GraphicsElementItem->p_QWidgetDataVisualizer);
+							CBElementChanges, CBElementFocus, p_QVBoxLayout);
+				vp_QWidgetsKeyReceivers.append(p_GraphicsElementItem->p_QWidgetKeyReceiver);
 				p_GraphicsElementItem->iLibraryNumber = iF;
 				break;
 			}
@@ -3690,7 +3689,7 @@ void SchematicView::ElementConstructorHandler(GraphicsElementItem* p_GraphicsEle
 // Обработчик деструктора элемента.
 void SchematicView::ElementDestructorHandler(GraphicsElementItem* p_GraphicsElementItem)
 {
-	vp_QWidgetsKeyReceivers.removeOne(p_GraphicsElementItem->p_QWidgetDataVisualizer);
+	vp_QWidgetsKeyReceivers.removeOne(p_GraphicsElementItem->p_QWidgetKeyReceiver);
 }
 
 // Проверка наличия структуры скрытия в списке по координатам портов.

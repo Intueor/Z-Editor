@@ -8,6 +8,7 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QLibrary>
+#include <QVBoxLayout>
 #include "../Z-Hub/Server/protocol.h"
 #include "Dialogs/edit_port_dialog.h"
 #include "../Z-Hub/logger.h"
@@ -16,7 +17,7 @@
 //== ОПРЕДЕЛЕНИЯ ТИПОВ.
 typedef void (*CBSchematicViewFrameChanged)(QRectF oQRectFVisibleFrame);
 typedef unsigned long long (*GetLibraryID)(void);
-typedef QWidget* (*CreateWidget)(unsigned long long ullElementID, CBChanges pf_CBChanges, CBFocus pf_CBFocus, QWidget* p_Parent);
+typedef QWidget* (*FillLayout)(unsigned long long ullElementID, CBChanges pf_CBChanges, CBFocus pf_CBFocus, QVBoxLayout* p_QVBoxLayout);
 typedef void (*ApplyData)(QWidget* p_QWidget, unsigned short int ushiPort, void* p_vData);
 
 //== ПРЕД-ДЕКЛАРАЦИИ.
@@ -39,7 +40,7 @@ public:
 		QLibrary* p_QLibrary;
 		unsigned long long ullID;
 		GetLibraryID GetIDFromLibrary;
-		CreateWidget CreateWidgetFromLybrary;
+		FillLayout FillLayoutFromLybrary;
 		ApplyData ApplyDataFromServer;
 	};
 
